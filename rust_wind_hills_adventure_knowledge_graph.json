@@ -1,7 +1,7 @@
 {
   "schema": {
     "name": "adventure-knowledge-graph",
-    "version": "0.2.0",
+    "version": "0.2.1",
     "description": "A stateful, directed knowledge graph for a classic gamebook-style dungeon adventure. The graph separates executable traversal rules from a narrative-semantic layer containing world truths, rumours, characters, factions, motifs, dramatic threads, knowledge definitions and node-level story affordances."
   },
   "graph": {
@@ -35,19 +35,16 @@
       "The graph contains loops, shortcuts, optional encounters, delayed consequences and several endings."
     ],
     "content_revision": {
-      "version": "0.2.0",
-      "summary": "Narrative enrichment without increasing the playable node count. Existing nodes, routes and mechanics are preserved while the semantic layer gains enough structured context for an LLM narrator, game master or retrieval layer to infer meaning, foreshadowing, callbacks, character motives and thematic continuity.",
-      "compatibility": "Additive content revision. Existing traversal and state operators are unchanged.",
+      "version": "0.2.1",
+      "summary": "Restores runtime-facing read_aloud content to every playable node. The richer semantic narrative from 0.2.0 is retained unchanged.",
+      "compatibility": "Top-level node.read_aloud remains a string because that is the field consumed by the current Rust Wind Hills runner.",
       "node_count_changed": false,
-      "major_additions": [
-        "World history and hidden cosmology",
-        "Named characters and factions",
-        "Rumour and knowledge catalogues",
-        "Narrative threads, motifs and dramatic questions",
-        "Narrative meaning for flags, conditions and key items",
-        "Node-level arrival text, local history, tension, hidden truth and semantic references",
-        "Encounter motives, voices and non-combat leverage",
-        "Route-level narrative cues and continuity references"
+      "route_count_changed": false,
+      "fixes": [
+        "Adds top-level read_aloud text to all 47 nodes.",
+        "Preserves node.narrative.arrival_text and the wider semantic layer.",
+        "Adds read_aloud_revisit text for future runtime support.",
+        "Adds validation for runtime-facing narration coverage."
       ]
     },
     "narrative_premise": "Barrowgate treats the dungeon beneath the Rust Wind Hills as a regulated natural resource. The joke is that the bureaucracy works: the old dungeon recognises permits, seals, debts and claims of office because it was never merely a tomb. It was the Ninth Treasury of a fallen kingdom, built to bind a crown that turns promises into law.",
@@ -824,7 +821,7 @@
       "region": "town",
       "title": "Barrowgate",
       "summary": "A hard little town built around the legal, illegal and memorial economy of dungeon delving.",
-      "read_aloud": "Rust-red dust moves along the street like smoke. Above the gatehouse hangs a board: DELVERS MUST BE LICENSED. NO REFUNDS.",
+      "read_aloud": "Rust-red dust moves along the street like smoke. Above the gatehouse hangs a board: DELVERS MUST BE LICENSED. NO REFUNDS. A brass gong sounds whenever another expedition leaves. Nobody rings it for those who return quietly.",
       "tags": [
         "start",
         "safe",
@@ -850,7 +847,8 @@
           "Show families reading departure boards.",
           "Let successful delvers be treated like investors and omens."
         ]
-      }
+      },
+      "read_aloud_revisit": "A hard little town built around the legal, illegal and memorial economy of dungeon delving."
     },
     {
       "id": "bent_nail_inn",
@@ -883,7 +881,9 @@
           "Rumours should contradict in detail but converge in motif.",
           "A survivor refuses to say the Warden's name."
         ]
-      }
+      },
+      "read_aloud": "Every table has been carved with a map. No two maps agree, including those carved by the same hand. You notice sour ale and smoke trapped beneath low beams.",
+      "read_aloud_revisit": "The principal market for rumours, boastful survivors and people selling maps they definitely drew themselves."
     },
     {
       "id": "market_last_chances",
@@ -912,7 +912,9 @@
           "Describe one item with a former owner's initials.",
           "Let bargains feel practical rather than magical."
         ]
-      }
+      },
+      "read_aloud": "Merchants call out guarantees that become narrower the closer anyone reads the chalkboard. You notice lamp oil and old leather.",
+      "read_aloud_revisit": "A row of stalls selling rope, spikes, charms, questionable tonics and second-hand armour with suspicious dents."
     },
     {
       "id": "torchbearers_yard",
@@ -941,7 +943,9 @@
           "Pell asks what the player will do when someone weaker says stop."
         ],
         "voice_or_prompt": "Pell: 'I carry light. I don't carry decisions.'"
-      }
+      },
+      "read_aloud": "The waiting workers study delvers the way sailors study weather. You notice tarred rope and lamp smoke.",
+      "read_aloud_revisit": "Labourers wait beneath a sign reading: HALF PAY IN ADVANCE. FULL PAY IF WE RETURN."
     },
     {
       "id": "temple_cinders",
@@ -970,7 +974,9 @@
           "A priest warns against making promises underground.",
           "The ash shifts when the Crown is named."
         ]
-      }
+      },
+      "read_aloud": "A priest asks for the delver's true name, then writes it in ash where no ledger can keep it. You notice warm ash and beeswax.",
+      "read_aloud_revisit": "A narrow shrine where delvers may purchase absolution before creating the need for it."
     },
     {
       "id": "licensing_hall",
@@ -1000,7 +1006,9 @@
           "A seal briefly warms in the applicant's hand."
         ],
         "voice_or_prompt": "Ollis: 'The dungeon is not obliged to recognise you. This document makes the attempt.'"
-      }
+      },
+      "read_aloud": "Applicants queue beneath a mural of a heroic delver shaking hands with a clerk. The delver's painted face has been retouched many times. You notice hot sealing wax and dusty ledgers.",
+      "read_aloud_revisit": "A civic hall whose clerks treat dungeon access as a revenue stream with unfortunate mortality statistics."
     },
     {
       "id": "forgery_cellar",
@@ -1030,7 +1038,9 @@
           "One erased surname matches a modern Barrowgate family."
         ],
         "voice_or_prompt": "Maera: 'Official does not mean true. Counterfeit does not mean false.'"
-      }
+      },
+      "read_aloud": "Names cover the walls in red ink: people absent from every official census but remembered here. You notice iron-gall ink and damp brick.",
+      "read_aloud_revisit": "A concealed workshop below a cobbler's shop. Its proprietor forges permits but refuses responsibility for iron registrars."
     },
     {
       "id": "road_rust_wind_hills",
@@ -1057,7 +1067,9 @@
         "narrative_hooks": [
           "The final milestone reads SUCCESSION."
         ]
-      }
+      },
+      "read_aloud": "The maintained road ends at a sign giving five legal warnings and no useful directions. You notice wind-bent grass and wagon ruts.",
+      "read_aloud_revisit": "The last maintained road before the land becomes red stone, thorn scrub and old warnings."
     },
     {
       "id": "wind_carved_cairns",
@@ -1085,7 +1097,9 @@
           "A careless promise makes one cairn answer.",
           "A treasury sigil has been deliberately chipped away."
         ]
-      }
+      },
+      "read_aloud": "The cairns hum at different pitches as the wind moves through them, like a choir trying to remember one chord. You notice singing stone and iron wind.",
+      "read_aloud_revisit": "Ancient cairns sing in the gale. One stone bears a half-erased treasury sigil."
     },
     {
       "id": "goblin_toll_path",
@@ -1115,7 +1129,9 @@
           "The receipt may be more useful than expected."
         ],
         "voice_or_prompt": "Toll clerk: 'Violence is free. Crossing is two gold.'"
-      }
+      },
+      "read_aloud": "A striped barrier blocks the path. A goblin in a clerk's visor asks whether the traveller requires a receipt. You notice bell metal and onion stew.",
+      "read_aloud_revisit": "A rope barrier, a dented bell and six goblins who have independently invented infrastructure finance."
     },
     {
       "id": "collapsed_watchtower",
@@ -1142,7 +1158,9 @@
         "narrative_hooks": [
           "From here the three entrances look like three moral arguments."
         ]
-      }
+      },
+      "read_aloud": "The tower has fallen outward, as though something inside expanded after the roof collapsed. You notice sun-warmed stone and bird droppings.",
+      "read_aloud_revisit": "A fallen imperial watchtower overlooking all three known dungeon approaches."
     },
     {
       "id": "old_quarry_entrance",
@@ -1169,7 +1187,9 @@
         "narrative_hooks": [
           "A notice lists opening hours for a dungeon that never closes."
         ]
-      }
+      },
+      "read_aloud": "Fresh municipal paint surrounds an opening older than the town by centuries. You notice new timber supports and old chisel marks.",
+      "read_aloud_revisit": "A broad, obvious descent used by licensed parties, tax inspectors and ambushers."
     },
     {
       "id": "smugglers_sinkhole",
@@ -1196,7 +1216,9 @@
         "narrative_hooks": [
           "The hidden road carries traces of both rescue and contraband."
         ]
-      }
+      },
+      "read_aloud": "Thorn mats conceal a shaft whose handholds have been polished by generations of illicit use. You notice crushed thyme and loose soil.",
+      "read_aloud_revisit": "A cramped shaft concealed beneath thorn mats and a carved sign reading NOTHING HERE."
     },
     {
       "id": "dust_saint_shrine",
@@ -1224,7 +1246,9 @@
         "narrative_hooks": [
           "The shrine rewards understanding the symbol, not devotion alone."
         ]
-      }
+      },
+      "read_aloud": "The saint's face has one open eye and one shallow cavity large enough for a coin. You notice sun-baked clay and old flowers.",
+      "read_aloud_revisit": "A weathered roadside shrine to the patron of hidden roads, lost names and inconvenient truths."
     },
     {
       "id": "main_stair",
@@ -1251,7 +1275,9 @@
         "narrative_hooks": [
           "Counted steps create the sense of entering a procedure."
         ]
-      }
+      },
+      "read_aloud": "Each seventh step bears a fee category: petition, appeal, inheritance, confession, succession. You notice stone dust and measured echoes.",
+      "read_aloud_revisit": "A monumental stair descending to the Gate of Tithes. Every seventh step is engraved with a fee."
     },
     {
       "id": "hidden_shaft",
@@ -1280,7 +1306,9 @@
           "Read fragments of names during descent.",
           "One name also appears in the Red Quill cellar."
         ]
-      }
+      },
+      "read_aloud": "The shaft avoids every ceremonial chamber and opens behind the places officials once stood. You notice rope polish and nail scratches.",
+      "read_aloud_revisit": "A narrow vertical route descending behind the upper garrison rooms."
     },
     {
       "id": "flooded_tunnel",
@@ -1307,7 +1335,9 @@
         "narrative_hooks": [
           "Let the water whisper a name the character has not given."
         ]
-      }
+      },
+      "read_aloud": "Black water presses against a low ceiling marked with archival shelf numbers. You notice mineral cold and wet stone.",
+      "read_aloud_revisit": "A submerged service tunnel carrying black water into the dungeon cisterns."
     },
     {
       "id": "gate_of_tithes",
@@ -1336,7 +1366,9 @@
           "The gate reacts differently to licence and counterfeit.",
           "A voice asks what office the delver claims."
         ]
-      }
+      },
+      "read_aloud": "Slots in the iron gate wait for coin, seal or blood. The order is not decorative. You notice iron filings and old coins.",
+      "read_aloud_revisit": "An iron gate guarded by mechanisms that recognise seals, coins and blood in that order."
     },
     {
       "id": "hall_broken_spears",
@@ -1363,7 +1395,9 @@
         "narrative_hooks": [
           "A spear carries a family name preserved by the Red Quill."
         ]
-      }
+      },
+      "read_aloud": "Hundreds of snapped spears stand upright in the floor, each bearing a tiny stamped number. You notice dry wood and rust.",
+      "read_aloud_revisit": "A barracks hall where snapped weapons have been planted upright like a dead forest."
     },
     {
       "id": "rat_king_warren",
@@ -1393,7 +1427,9 @@
           "Use formal quartermaster language amid animal movement.",
           "After death, ordinary rats avoid the little crown."
         ]
-      }
+      },
+      "read_aloud": "Keys hang from roots and ribs. The swarm speaks before any single rat becomes visible. You notice rat musk and brass.",
+      "read_aloud_revisit": "A nest built around the old quartermaster's throne. The Rat-King wears twelve keys and none fit normal locks."
     },
     {
       "id": "chained_well",
@@ -1420,7 +1456,9 @@
         "narrative_hooks": [
           "The mechanism thanks the player by an obsolete title."
         ]
-      }
+      },
+      "read_aloud": "Chains descend into a dry well. From below, a patient voice asks for a form that no longer exists. You notice cold chain links and paper-dry air.",
+      "read_aloud_revisit": "A dry well sealed by chains bearing treasury seals. Something below repeatedly asks for the correct form."
     },
     {
       "id": "mapmakers_bones",
@@ -1448,7 +1486,9 @@
         "narrative_hooks": [
           "The shield map should change meaning as the player learns more."
         ]
-      }
+      },
+      "read_aloud": "A skeleton hugs a shield whose inner surface carries a map corrected until metal shows through. You notice bone dust and scratched metal.",
+      "read_aloud_revisit": "A dead surveyor lies clutching a map drawn on the inside of his own shield."
     },
     {
       "id": "chapel_of_ash",
@@ -1476,7 +1516,9 @@
         "narrative_hooks": [
           "A vow spoken here may echo later at the Crown."
         ]
-      }
+      },
+      "read_aloud": "Old vows repeat underfoot whenever ash is disturbed. You notice cold ash and cracked bells.",
+      "read_aloud_revisit": "A roofless chapel where old vows remain audible as whispers beneath the ash."
     },
     {
       "id": "iron_registrar",
@@ -1506,7 +1548,9 @@
           "Let correct paperwork expose moral wrongness rather than solve it cleanly."
         ],
         "voice_or_prompt": "Halvek: 'Your document is legible. Your purpose remains improperly declared.'"
-      }
+      },
+      "read_aloud": "The armoured figure raises one hand. Every loose paper in the room aligns itself. You notice hot iron and dry ink.",
+      "read_aloud_revisit": "An armoured undead official who has continued inspecting permits for three hundred and eleven years."
     },
     {
       "id": "gaol_cells",
@@ -1533,7 +1577,9 @@
         "narrative_hooks": [
           "An appeal form asks for a registry number the prisoner was denied."
         ]
-      }
+      },
+      "read_aloud": "Names, appeals and release dates cover the walls. Many release dates are centuries in the future. You notice cold straw and rust.",
+      "read_aloud_revisit": "Cells for trespassers, fraudulent applicants and parties unable to produce itemised expenses."
     },
     {
       "id": "fungal_cloister",
@@ -1561,7 +1607,9 @@
           "Use memories belonging to erased citizens.",
           "One fungal prayer names Ilya as a traitor and saviour."
         ]
-      }
+      },
+      "read_aloud": "Pale caps bow along the cloister as if continuing a service after the monks are gone. You notice sweet rot and wet stone.",
+      "read_aloud_revisit": "Monastic arches choked with pale fungus that mimics whispered prayers."
     },
     {
       "id": "mirror_maze",
@@ -1590,7 +1638,9 @@
           "Reflections wear different endings.",
           "One reflection already wears the Crown."
         ]
-      }
+      },
+      "read_aloud": "Reflections continue walking when the delver stops. You notice cold silver and breath fog.",
+      "read_aloud_revisit": "Silvered passages reflect possible choices, including several the delver has not yet made."
     },
     {
       "id": "cistern_of_eels",
@@ -1619,7 +1669,9 @@
           "A lie causes the water to spark.",
           "A true admission calms one eel."
         ]
-      }
+      },
+      "read_aloud": "Black water circles a central platform while parchment scraps drift without becoming wet. You notice ozone and black water.",
+      "read_aloud_revisit": "A circular reservoir alive with blind electric eels and drifting scraps of official parchment."
     },
     {
       "id": "taxmans_ledger_room",
@@ -1648,7 +1700,9 @@
           "Reveal familiar Barrowgate surnames among erased debtors.",
           "A current licence fee mirrors an ancient tithe."
         ]
-      }
+      },
+      "read_aloud": "Shelves rise into darkness, packed with accounts that continue adding interest in red ink. You notice old leather and iron-gall ink.",
+      "read_aloud_revisit": "Stone shelves hold accounts of tribute, fines, exemptions and debts inherited by the dead."
     },
     {
       "id": "bridge_of_sighs",
@@ -1677,7 +1731,9 @@
           "Let Pell name knots and risks without heroics.",
           "The bridge repeats a future line in the player's own voice."
         ]
-      }
+      },
+      "read_aloud": "The wind speaks in the voices of people who turned back, fell or were pushed. You notice vertical wind and cold rope.",
+      "read_aloud_revisit": "A narrow bridge over an immeasurable drop. The wind repeats the final words of those who fell."
     },
     {
       "id": "beast_pits",
@@ -1706,7 +1762,9 @@
           "The beast may hesitate before an authority seal.",
           "Crowd noise survives without a crowd."
         ]
-      }
+      },
+      "read_aloud": "The largest gate is dented outward. Something inside has learned that applause means feeding time. You notice old blood and animal heat.",
+      "read_aloud_revisit": "An arena of rusted gates and old bones. One gate remains closed from the inside."
     },
     {
       "id": "black_wind_forge",
@@ -1734,7 +1792,9 @@
         "narrative_hooks": [
           "The candle reveals words on objects that never looked written upon."
         ]
-      }
+      },
+      "read_aloud": "Cold wind rises from the anvil, bending every dead flame towards the deep. You notice cold iron and stone soot.",
+      "read_aloud_revisit": "An extinguished forge where cold wind blows from cracks in the anvil."
     },
     {
       "id": "vault_antechamber",
@@ -1762,7 +1822,9 @@
         "narrative_hooks": [
           "Let different inventory items illuminate different doors."
         ]
-      }
+      },
+      "read_aloud": "Nine walls face nine doors. Each door is labelled with a different answer to the question: WHO MAY ENTER? You notice bronze dust and sub-audible vibration.",
+      "read_aloud_revisit": "A nine-sided chamber with doors that open only for recognised authority, recognised debt or overwhelming force."
     },
     {
       "id": "hall_whispered_debts",
@@ -1790,7 +1852,9 @@
           "Mix personal, inherited and institutional debts.",
           "A sincere confession should change the emotional temperature."
         ]
-      }
+      },
+      "read_aloud": "Voices speak every promise the delver hoped nobody remembered. You notice breath at the ear and dry salt.",
+      "read_aloud_revisit": "Every unpaid promise ever made in the dungeon is whispered here by a voice that knows the listener's name."
     },
     {
       "id": "ossuary_market",
@@ -1819,7 +1883,9 @@
           "A merchant recognises a memory the player has not yet lost.",
           "Coins are accepted only as curiosities."
         ]
-      }
+      },
+      "read_aloud": "Stalls are built from ribs and lacquered boxes. Prices are spoken in birthdays, names and remembered faces. You notice grave spice and bone chimes.",
+      "read_aloud_revisit": "Dead merchants trade memories, names, years of life and occasionally useful equipment."
     },
     {
       "id": "guardian_ninth_lock",
@@ -1849,7 +1915,9 @@
           "Pell's departure should make the threshold feel human before it feels mythic."
         ],
         "voice_or_prompt": "Varn: 'State the debt. State the completion. State who will witness release.'"
-      }
+      },
+      "read_aloud": "The bronze giant kneels with both hands on the sealed door, not to keep others out but to keep itself in place. You notice bronze warmth and stone under strain.",
+      "read_aloud_revisit": "A bronze giant kneels before the final seal, awaiting either a challenger or a lawful release."
     },
     {
       "id": "abyssal_stair",
@@ -1876,7 +1944,9 @@
         "narrative_hooks": [
           "Direct observation makes the route disappear."
         ]
-      }
+      },
+      "read_aloud": "The stair descends around an absence that seems deeper than the hill can contain. You notice air pressure and stone glimpsed sideways.",
+      "read_aloud_revisit": "A stair descending around an open void. The lower steps are visible only when not directly observed."
     },
     {
       "id": "sunken_archive",
@@ -1906,7 +1976,9 @@
           "Reveal facts through documents that implicate named people.",
           "Make every answer create a sharper moral question."
         ]
-      }
+      },
+      "read_aloud": "Shelves continue beneath black water. Words rise from submerged pages like bubbles and vanish at the surface. You notice black water and floating letters.",
+      "read_aloud_revisit": "A drowned archive preserving the legal memory of the lost kingdom beneath black water."
     },
     {
       "id": "gilded_maw",
@@ -1933,7 +2005,9 @@
         "narrative_hooks": [
           "Descriptions should tighten as the player frames the Crown as possession."
         ]
-      }
+      },
+      "read_aloud": "The passage resembles a golden throat because every door opens inward like a tooth. You notice warm metal and salt on the tongue.",
+      "read_aloud_revisit": "A trap-lined passage shaped like a golden throat. Its teeth are doors; its tongue is a bridge."
     },
     {
       "id": "warden_below",
@@ -1965,7 +2039,9 @@
           "Serath should distinguish capability from fitness."
         ],
         "voice_or_prompt": "Serath: 'You have proved that doors open for you. Now prove they should.'"
-      }
+      },
+      "read_aloud": "Serath waits without weapon drawn. The empty space behind the Warden feels more dangerous than armour. You notice judicial quiet and salt sparks.",
+      "read_aloud_revisit": "The last custodian of the vault, bound to defend the Crown until confronted by stronger authority."
     },
     {
       "id": "vault_mythic_treasure",
@@ -1993,7 +2069,9 @@
         "narrative_hooks": [
           "Ask what the delver expected wealth to solve."
         ]
-      }
+      },
+      "read_aloud": "The chamber contains no coins, only the Crown and the heat of promises still waiting to be fulfilled. You notice absolute quiet and red-gold light.",
+      "read_aloud_revisit": "A silent chamber containing one pedestal, one crown and the accumulated heat of a fallen dynasty."
     },
     {
       "id": "crown_ember_salt",
@@ -2023,7 +2101,9 @@
           "Let resisted, bound and mastered outcomes feel distinct."
         ],
         "voice_or_prompt": "Mereth: 'You may keep your name. I require only everything it can command.'"
-      }
+      },
+      "read_aloud": "The Crown does not speak aloud. It remembers the delver's own voice and uses that instead. You notice heat behind the eyes and salt on the lips.",
+      "read_aloud_revisit": "The mythic treasure of the Rust Wind Hills. It offers sovereignty before it offers safety."
     },
     {
       "id": "ending_escape_riches",
@@ -2053,7 +2133,9 @@
           "End on a small promise accidentally becoming binding."
         ],
         "voice_or_prompt": "Pell: 'Tell me you brought treasure, not government.'"
-      }
+      },
+      "read_aloud": "Barrowgate celebrates the return before anyone agrees what the Crown is worth. You notice bells and crowds.",
+      "read_aloud_revisit": "The delver returns to Barrowgate wealthy, famous and sufficiently alive to become unreliable in taverns."
     },
     {
       "id": "ending_cursed_possession",
@@ -2082,7 +2164,9 @@
         "narrative_hooks": [
           "Use one beloved mannerism at the wrong emotional moment."
         ]
-      }
+      },
+      "read_aloud": "The returning figure uses the delver's face perfectly and their habits almost perfectly. You notice measured speech and unnatural warmth.",
+      "read_aloud_revisit": "The Crown leaves the dungeon wearing the delver rather than the other way around."
     },
     {
       "id": "ending_dungeon_lordship",
@@ -2113,7 +2197,9 @@
           "Barrowgate sends a tax demand to its new sovereign."
         ],
         "voice_or_prompt": "Serath: 'Then rule. The ruins have waited long enough to become your excuses.'"
-      }
+      },
+      "read_aloud": "The dungeon's sealed doors open like a city waking. Every surviving mechanism asks for instruction. You notice bells underground and warm stone.",
+      "read_aloud_revisit": "The delver becomes lawful ruler of the ruins, inheriting their wealth, monsters, debts and licensing obligations."
     },
     {
       "id": "ending_gaol_ruin",
@@ -2141,7 +2227,9 @@
         "narrative_hooks": [
           "End with a courteous notice that the case remains active."
         ]
-      }
+      },
+      "read_aloud": "The cell door remains closed while generations of forms move from tray to tray. You notice paper sliding and distant stamps.",
+      "read_aloud_revisit": "The delver's adventure ends in a cell while the appeal is referred to a committee that no longer exists."
     },
     {
       "id": "ending_dead",
@@ -2169,7 +2257,9 @@
         "narrative_hooks": [
           "Echo an earlier promise or rumour in the memorial wording."
         ]
-      }
+      },
+      "read_aloud": "Barrowgate engraves a small brass plaque after deducting the fee from any recoverable estate. You notice hammer on brass and red dust.",
+      "read_aloud_revisit": "Barrowgate adds another small brass name beneath the licensing hall stairs."
     }
   ],
   "routes": [
@@ -5429,8 +5519,6 @@
     }
   ],
   "validation": {
-    "status": "passed",
-    "schema_version": "0.2.0",
     "node_count": 47,
     "route_count": 108,
     "relation_count": 82,
@@ -5452,6 +5540,13 @@
       "rumours": 8,
       "knowledge_facts": 15,
       "narrative_relations": 46
+    },
+    "status": "passed",
+    "schema_version": "0.2.1",
+    "read_aloud_coverage": {
+      "nodes_with_read_aloud": 47,
+      "nodes_with_revisit_text": 47,
+      "expected_nodes": 47
     },
     "warnings": [],
     "errors": []
@@ -6715,6 +6810,19 @@
         "bound": "The claimant's identity is being overwritten by the Crown's accumulated sovereign personalities.",
         "mastered": "The claimant has accepted office while forcing the Crown to recognise their distinct identity."
       }
+    }
+  },
+  "runtime_contract": {
+    "node_presentation": {
+      "title_field": "title",
+      "primary_read_aloud_field": "read_aloud",
+      "revisit_read_aloud_field": "read_aloud_revisit",
+      "semantic_context_field": "narrative",
+      "notes": [
+        "read_aloud is player-facing prose and is safe to present directly.",
+        "narrative.hidden_truth and similar semantic fields should not be exposed without discovery.",
+        "The current runner is expected to read node.read_aloud as a plain string."
+      ]
     }
   }
 }

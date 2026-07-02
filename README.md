@@ -79,6 +79,49 @@ Spec-mandated behaviours worth knowing when calling:
   live response only and never persisted, so the audit trail stays exactly as
   specified.
 
+## Narrative content
+
+Content revision 0.2.1 gives every node an explicit `read_aloud`, a `read_aloud_revisit`,
+and a `narrative` block (`local_history`, `present_tension`, `hidden_truth`,
+`sensory_details`, `semantic_refs`, `narrative_hooks`); every route a `narrative` block
+(`player_intent`, `dramatic_role`, `continuity_refs`, `narration_guidance`, and on some
+routes `transition_text`/`themes_activated`); every encounter a `narrative_semantics`
+block (`desire`, `fear`, `misconception`, `voice`, `non_combat_leverage`, `aftermath`);
+and every item a `narrative_semantics` block (`origin`, `symbolic_role`,
+`world_revelation`, `linked_threads`, `linked_motifs`). All of it is verified content-safe
+— no route or node narrative field reveals a hidden destination, failure branch, or
+visibility condition.
+
+What's exposed today, computed fresh on every call (never adding to what's persisted):
+
+- **`node.read_aloud`** — explicit text if the node has it, else `node.narrative.arrival_text`.
+- **`node.read_aloud_revisit`** — passed through raw. Nothing tracks per-run visit
+  history yet, so no first-visit/return-visit switching happens automatically; a caller
+  that wants that has to track it itself for now.
+- **`node.narrative`** — the rest of the node's narrative block (`arrival_text` is
+  dropped here since it's already folded into `read_aloud`).
+- **`route.narrative`** — on every route in `available_routes`.
+- **A combat test's `encounter_name`/`encounter_kind`** — shown on the route before it's
+  engaged, not just the bare `encounter_id`.
+- **A combat resolution's `encounter_name`/`encounter_kind`/`special`/`narrative`** —
+  included in `walk`'s `resolution` when a combat test actually resolves. Unlike node/route
+  narrative, this one *is* persisted to `log` — it's static per `encounter_id` (nothing new
+  is being frozen in that wasn't already fully implied by the id) and bounded to 7
+  encounters total, so keeping it as part of "what happened in this fight" strengthens the
+  audit trail rather than bloating it.
+- **`add_item` effect records** — enriched with the item's `name`/`description`/
+  `narrative` (its `narrative_semantics`) at the moment it's picked up, in `walk`'s live
+  `effects_applied` only. `get_log` still sees the lean `{ op, item }` shape the spec
+  documents — narrative flavour belongs at the moment of acquisition, not repeated on
+  every later read of the inventory.
+
+Still unexposed, a deliberate scope boundary rather than an oversight: the whole
+top-level `semantic_layer` (world history, factions, named characters, motifs, dramatic
+threads, the rumour/knowledge/condition catalogues) and region-level `narrative`. Both
+are large, mostly static reference material better suited to a separate, dedicated tool
+than repeated on every `get_node`/`walk` call — a real follow-up if wanted, not something
+this covers.
+
 ## Configuration
 
 | Setting | Purpose |
@@ -129,30 +172,20 @@ mid-walk on bad content.
 
 ## Content notes
 
-The shipped graph is content revision 0.2.0 — a purely additive narrative
-enrichment over 0.1.1. Same 47 nodes, 108 routes, entry node and terminals;
-every condition, effect, test and cost is byte-identical to the previous
-revision (verified diff, not just a version bump). What's new is a
-`narrative`/`narrative_semantics` field on every node, route, item, encounter
-and region, plus a top-level `semantic_layer` block (world history, factions,
-named characters, motifs, dramatic threads, a rumour/knowledge catalogue) —
-material for whatever's narrating the game, not consumed by the engine or
-validated beyond "the file parses."
+The shipped graph is content revision 0.2.1. 0.2.0 was a purely additive narrative
+enrichment over 0.1.1 — same 47 nodes, 108 routes, entry node and terminals; every
+condition, effect, test and cost byte-identical to 0.1.1 (verified diff, not just a
+version bump) — adding a `narrative`/`narrative_semantics` field to every node, route,
+item, encounter and region, plus a top-level `semantic_layer` block. 0.2.1 is a further
+additive fix on top: 0.2.0's new node narrative included `narrative.arrival_text` for
+every node, but at that point nothing in the engine read `narrative` at all, so it never
+reached a caller — 0.2.1 adds an explicit `read_aloud` string (and a `read_aloud_revisit`)
+to every node so the runtime picks it up. Both revisions are mechanically identical to
+0.1.1; see [Narrative content](#narrative-content) above for exactly what's surfaced.
 
-One piece of it is surfaced: `node.read_aloud` in `get_node`/`walk` responses
-falls back to `node.narrative.arrival_text` when a node has no explicit
-`read_aloud` (only `barrowgate_square` has ever had one, in both 0.1.1 and
-0.2.0 — the other 46 nodes previously returned no `read_aloud` at all). Since
-0.2.0 gives every node `narrative.arrival_text`, every node now gets proper
-arrival prose; an explicit `read_aloud` still wins where one exists, since
-it's deliberately different, hand-authored text. The rest of `narrative`
-(`local_history`, `present_tension`, `hidden_truth`, `sensory_details`,
-`semantic_refs`, `narrative_hooks`) and the whole `semantic_layer` block
-remain unexposed — a further follow-up, not something this covers.
-
-Random-playthrough simulation (300 runs, rerun against 0.2.0) surfaces the
-same two *content* soft-locks the runtime deliberately does not paper over,
-unchanged from 0.1.1: a player can reach `vault_antechamber` (all three exits
-need items) or `gate_of_tithes` (all four exits need a permit, a supplies
+Random-playthrough simulation (300 runs, rerun against 0.2.1) surfaces the same two
+*content* soft-locks the runtime deliberately does not paper over, unchanged since
+0.1.1: a player can reach `vault_antechamber` (all three exits need items) or
+`gate_of_tithes` (all four exits need a permit, a supplies
 pack, or 3 gold) without the means to leave. Per the spec, content fixes
 belong in the JSON, not the engine.

@@ -71,22 +71,52 @@ function createEngine({ adventure, store, now = () => new Date().toISOString(), 
   function publicRoute(route) {
     let test = null;
     if (route.test) {
-      test =
-        route.test.type === "combat"
-          ? { type: "combat", encounter_id: route.test.encounter_id }
-          : { type: route.test.type, stat: route.test.stat, modifier: route.test.modifier ?? 0 };
+      if (route.test.type === "combat") {
+        const encounter = adventure.encountersById.get(route.test.encounter_id);
+        test = {
+          type: "combat",
+          encounter_id: route.test.encounter_id,
+          encounter_name: encounter.name,
+          encounter_kind: encounter.kind,
+        };
+      } else {
+        test = { type: route.test.type, stat: route.test.stat, modifier: route.test.modifier ?? 0 };
+      }
     }
-    return {
+    const out = {
       id: route.id,
       label: route.label,
       costs: structuredClone(route.costs ?? []),
       test,
     };
+    // Route-level narrative (player_intent, dramatic_role, continuity_refs,
+    // narration_guidance and similar) — verified across every route to
+    // carry no hidden-destination or condition detail, only flavour for
+    // whatever's narrating this choice.
+    if (route.narrative) out.narrative = structuredClone(route.narrative);
+    return out;
   }
 
   function publicState(state) {
     const { current_node, consumed_routes, ...rest } = state;
     return structuredClone(rest);
+  }
+
+  // Adds name/description/narrative_semantics to add_item effect records —
+  // computed fresh from the adventure asset for walk's live response only,
+  // same as node/available_routes below. What's actually persisted in
+  // doc.log (see the step object in walk, and get_log) keeps the lean,
+  // spec-minimal { op, item } shape; only the moment an item is picked up
+  // gets the narrative flavour, not every subsequent read of the inventory.
+  function enrichItemEffects(effects) {
+    return effects.map((effect) => {
+      if (effect.op !== "add_item") return effect;
+      const item = adventure.itemsById.get(effect.item);
+      if (!item) return effect;
+      const enriched = { ...effect, name: item.name, description: item.description };
+      if (item.narrative_semantics) enriched.narrative = structuredClone(item.narrative_semantics);
+      return enriched;
+    });
   }
 
   function publicNode(node) {
@@ -98,6 +128,19 @@ function createEngine({ adventure, store, now = () => new Date().toISOString(), 
     // back to summary.
     const readAloud = node.read_aloud ?? node.narrative?.arrival_text;
     if (readAloud) out.read_aloud = readAloud;
+    // read_aloud_revisit exists on every node as of content revision 0.2.1
+    // but nothing here tracks per-run visit history yet, so it's passed
+    // through raw for a caller to use as it sees fit rather than switched
+    // on automatically.
+    if (node.read_aloud_revisit) out.read_aloud_revisit = node.read_aloud_revisit;
+    // The rest of node.narrative (local_history, present_tension,
+    // hidden_truth, sensory_details, semantic_refs, narrative_hooks and
+    // similar) minus arrival_text, which is already folded into read_aloud
+    // above and would just be a duplicate here.
+    if (node.narrative) {
+      const { arrival_text, ...rest } = node.narrative;
+      if (Object.keys(rest).length > 0) out.narrative = rest;
+    }
     return out;
   }
 
@@ -275,13 +318,15 @@ function createEngine({ adventure, store, now = () => new Date().toISOString(), 
     }
 
     // The step above is exactly what's persisted in doc.log — get_log will
-    // always return that unmodified. node and available_routes are computed
-    // fresh from the state already in memory (no extra storage read) and
+    // always return that unmodified. node, available_routes and the
+    // item-narrative enrichment on effects_applied are all computed fresh
+    // from the state/asset already in memory (no extra storage read) and
     // appended only to this live response, so the common case of "walk,
-    // then narrate" doesn't need a follow-up get_node round trip. They are
-    // never written to the log.
+    // then narrate" doesn't need a follow-up get_node round trip. None of
+    // it is written to the log.
     return {
       ...step,
+      effects_applied: enrichItemEffects(step.effects_applied),
       node: publicNode(destinationNode),
       available_routes: availableRoutesFor(state, status),
     };

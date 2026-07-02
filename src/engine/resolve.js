@@ -67,10 +67,22 @@ function resolveCombat(test, state, adventure, roll) {
     });
   }
   const success = state.stats.stamina > 0;
-  return {
-    resolution: { type: "combat", encounter_id: test.encounter_id, success, rounds },
+  // Descriptive/narrative fields are static per encounter_id (already fully
+  // implied by it) and small and bounded — unlike per-node/route narrative,
+  // which is deliberately kept out of the persisted log for storage growth
+  // reasons, this is cheap enough to persist as part of "what happened" in
+  // this fight rather than recomputed each time it's read back.
+  const resolution = {
+    type: "combat",
+    encounter_id: test.encounter_id,
+    encounter_name: encounter.name,
+    encounter_kind: encounter.kind,
+    special: encounter.special,
     success,
+    rounds,
   };
+  if (encounter.narrative_semantics) resolution.narrative = structuredClone(encounter.narrative_semantics);
+  return { resolution, success };
 }
 
 module.exports = { resolveTest };
