@@ -1,5 +1,12 @@
 {
   "version": "2.0",
+  "extensions": {
+    "mcp": {
+      "serverName": "rust-wind-hills",
+      "serverVersion": "0.1.0",
+      "instructions": "Runs the Rust Wind Hills dungeon adventure (adventure_id: rust-wind-hills-dungeon). Start with new_run to get a run_id, then loop: get_node to read the current node, player state and available_routes, then walk with a route id and the revision get_node returned. Narrate node read_aloud/summary text to the player and offer the available routes; never invent routes. walk returns the committed step including dice/combat resolution and state_after; if it returns route_unavailable or a revision conflict, re-fetch with get_node and continue from there. When status is completed, call get_node once more to narrate the ending; get_log returns the full step history."
+    }
+  },
   "logging": {
     "applicationInsights": {
       "samplingSettings": {
