@@ -164,7 +164,7 @@ jobs:
           # Health check — with run-from-package the host should come up fast
           # since there's no extraction step.
           $appHost = $scmHost -replace '\.scm\.', '.'
-          $healthUrl = "https://$appHost/api/mcp"
+          $healthUrl = "https://$appHost/api/health"
           Write-Host "Polling app health at $healthUrl (up to 2 min)..."
 
           $healthDeadline = (Get-Date).AddMinutes(2)

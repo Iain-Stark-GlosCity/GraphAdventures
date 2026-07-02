@@ -4,12 +4,12 @@ const path = require("node:path");
 const { app } = require("@azure/functions");
 const { loadAdventure } = require("../engine/adventure");
 
-// Loaded independently of mcpTools.js so this endpoint reports its own
-// honest view of readiness rather than assuming mcpTools.js's module-scope
-// work succeeded. In practice, if the adventure asset or storage
-// configuration is broken, mcpTools.js throws at require time and the
-// whole worker fails to start — this endpoint being reachable at all
-// already implies that succeeded.
+// Loaded independently of mcp.js so this endpoint reports its own honest
+// view of readiness rather than assuming mcp.js's module-scope work
+// succeeded. In practice, if the adventure asset or storage configuration
+// is broken, mcp.js throws at require time and the whole worker fails to
+// start — this endpoint being reachable at all already implies that
+// succeeded.
 let adventureInfo = null;
 let loadError = null;
 try {
@@ -35,7 +35,7 @@ const storageConfigured = Boolean(
 app.http("health", {
   methods: ["GET"],
   authLevel: "anonymous",
-  route: "mcp",
+  route: "health",
   handler: async () => {
     const ready = !loadError && storageConfigured;
     return {
