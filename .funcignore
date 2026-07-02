@@ -1,0 +1,8 @@
+.git*
+.vscode
+local.settings.json
+local.settings.sample.json
+test
+scratchpad
+rust-wind-hills-mcp-spec.md
+README.md
