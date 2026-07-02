@@ -50,7 +50,7 @@ for the exact JSON Schemas.
 | --- | --- | --- |
 | `new_run` | `adventure_id`, `label?` | Seeds state from the ruleset's `initial` values, applies the entry node's `knowledge_grants`, writes the run blob, returns the unguessable `run_id`. |
 | `get_node` | `run_id` | Strictly read-only. Current node, public state, and the routes that pass all four checks (visible, legal, affordable, not consumed). Serves completed runs with an empty route list so the ending can be narrated. |
-| `walk` | `run_id`, `route_id`, `expected_revision` | Optimistically-concurrent step: costs spent on the attempt, test rolled, effects applied, stats clamped, death invariant enforced, step committed with `If-Match` and returned exactly as logged. |
+| `walk` | `run_id`, `route_id`, `expected_revision` | Optimistically-concurrent step: costs spent on the attempt, test rolled, effects applied, stats clamped, death invariant enforced, step committed with `If-Match`. The response is the logged step plus `node` and `available_routes` for the destination, computed from state already in memory (no extra storage read) — the common "walk, then narrate" loop needs no follow-up `get_node` call. |
 | `get_log` | `run_id` | Full step log; exempt from the adventure-hash hard-stop (flagged `adventure_mismatch` instead). |
 
 A tool-level failure (unknown tool name, or an `EngineError` like `route_unavailable`)
@@ -72,6 +72,12 @@ Spec-mandated behaviours worth knowing when calling:
   ever returned. The caller re-fetches with `get_node` and retries.
 - The adventure hash is the sha256 of the exact deployed file bytes; formatting-only
   edits intentionally invalidate existing runs.
+- One deliberate deviation from the spec's "return the committed step, identical to
+  what's in `log`": walk's response is the step plus `node`/`available_routes`
+  appended on top. What actually gets appended to `log` (and what `get_log` returns)
+  is still exactly the step, unchanged — the two extra fields are computed for the
+  live response only and never persisted, so the audit trail stays exactly as
+  specified.
 
 ## Configuration
 

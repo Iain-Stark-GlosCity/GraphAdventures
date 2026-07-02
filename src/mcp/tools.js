@@ -43,7 +43,7 @@ function buildTools(adventureId) {
     {
       name: "walk",
       description:
-        "Take a route from the current node. Requires the run's current revision (from get_node); costs are spent, any test is rolled, effects applied, and the committed step is returned.",
+        "Take a route from the current node. Requires the run's current revision (from get_node); costs are spent, any test is rolled, effects applied, and the committed step is returned, together with the new node and its available_routes — usually no follow-up get_node call is needed.",
       inputSchema: {
         type: "object",
         properties: {
