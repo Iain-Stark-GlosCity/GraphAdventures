@@ -7,8 +7,8 @@
 # then wires the app settings the engine reads.
 #
 # Auth stays "simple": the app uses the platform default key-based auth —
-# no AAD/Easy Auth. The MCP endpoint is guarded by the mcp_extension
-# system key (printed at the end, once the app has been deployed).
+# no AAD/Easy Auth. The MCP endpoint itself (POST /api/mcp) is registered
+# with authLevel "anonymous" — no function key needed to call it.
 #
 # Usage:
 #   az login
@@ -99,14 +99,9 @@ Next steps:
      read-only run-from-package mount — never extracted onto disk.
   2. Or deploy once by hand while testing:
        func azure functionapp publish $FUNCTION_APP
-  3. Fetch the MCP system key (exists only after a deployment that includes
-     the MCP trigger):
-       az functionapp keys list --name $FUNCTION_APP --resource-group $RESOURCE_GROUP \\
-         --query systemKeys.mcp_extension --output tsv
-  4. Point an MCP client at:
-       https://$FUNCTION_APP.azurewebsites.net/runtime/webhooks/mcp
-     with header  x-functions-key: <mcp_extension key>
-     (or /runtime/webhooks/mcp/sse for the SSE transport).
-  5. Anonymous health/readiness check (used by the deploy workflow too):
+  3. Point an MCP client at the single consolidated endpoint (anonymous,
+     JSON-RPC 2.0 over HTTP POST — no function key needed):
        https://$FUNCTION_APP.azurewebsites.net/api/mcp
+  4. Anonymous health/readiness check (used by the deploy workflow too):
+       https://$FUNCTION_APP.azurewebsites.net/api/health
 EOF
