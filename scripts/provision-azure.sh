@@ -49,14 +49,6 @@ az storage container create \
   --connection-string "$CONNECTION_STRING" \
   --output none
 
-# Holds the immutable, SHA-named deployment zips the GitHub Actions workflow
-# points WEBSITE_RUN_FROM_PACKAGE at (read-only run-from-package deploys).
-echo "==> Blob container function-releases"
-az storage container create \
-  --name function-releases \
-  --connection-string "$CONNECTION_STRING" \
-  --output none
-
 echo "==> Function app ${FUNCTION_APP} (Windows consumption, Node 24, Functions v4)"
 # --storage-account also sets AzureWebJobsStorage in the app settings.
 # If your az version doesn't accept --runtime-version 24 yet, use 22 here;
@@ -76,29 +68,35 @@ az functionapp create \
 echo "==> App settings"
 # ADVENTURE_STORAGE_CONNECTION_STRING is the dedicated connection string the
 # engine prefers; it falls back to AzureWebJobsStorage (already set) if absent.
+# WEBSITE_RUN_FROM_PACKAGE=1 tells the host to mount whatever Kudu zipdeploy
+# last stored as a read-only package rather than extracting it onto disk —
+# required by .github/workflows/main_func-*.yml's deploy step.
 az functionapp config appsettings set \
   --name "$FUNCTION_APP" \
   --resource-group "$RESOURCE_GROUP" \
   --output none \
   --settings \
     "ADVENTURE_STORAGE_CONNECTION_STRING=$CONNECTION_STRING" \
-    "WEBSITE_NODE_DEFAULT_VERSION=~24"
+    "WEBSITE_NODE_DEFAULT_VERSION=~24" \
+    "WEBSITE_RUN_FROM_PACKAGE=1"
 
 cat <<EOF
 
 Provisioned:
   resource group:   $RESOURCE_GROUP
-  storage account:  $STORAGE_ACCOUNT (containers: adventure-runs, function-releases)
-  function app:     $FUNCTION_APP
+  storage account:  $STORAGE_ACCOUNT (container: adventure-runs)
+  function app:     $FUNCTION_APP (WEBSITE_RUN_FROM_PACKAGE=1)
 
 Next steps:
-  1. Wire up CI deployment (one-time):
-       GITHUB_REPO=<owner>/<repo> RESOURCE_GROUP=$RESOURCE_GROUP \\
-       STORAGE_ACCOUNT=$STORAGE_ACCOUNT FUNCTION_APP=$FUNCTION_APP \\
-         ./scripts/setup-github-oidc.sh
-     then add the printed values as GitHub Actions secrets. Every push to
-     main then deploys via WEBSITE_RUN_FROM_PACKAGE — a read-only package
-     mounted straight from function-releases, never unpacked onto disk.
+  1. Wire up CI deployment (one-time): the GitHub Actions workflow deploys
+     via Kudu zipdeploy using the app's publish profile, no Azure login
+     needed in the pipeline. Get it and add it as a GitHub Actions repo
+     secret named to match what the workflow reads
+     (AZUREAPPSERVICE_PUBLISHPROFILE_...):
+       az functionapp deployment list-publishing-profiles \\
+         --name $FUNCTION_APP --resource-group $RESOURCE_GROUP --xml
+     Every push to main then builds, smoke-tests, zips and deploys as a
+     read-only run-from-package mount — never extracted onto disk.
   2. Or deploy once by hand while testing:
        func azure functionapp publish $FUNCTION_APP
   3. Fetch the MCP system key (exists only after a deployment that includes
@@ -109,4 +107,6 @@ Next steps:
        https://$FUNCTION_APP.azurewebsites.net/runtime/webhooks/mcp
      with header  x-functions-key: <mcp_extension key>
      (or /runtime/webhooks/mcp/sse for the SSE transport).
+  5. Anonymous health/readiness check (used by the deploy workflow too):
+       https://$FUNCTION_APP.azurewebsites.net/api/mcp
 EOF
