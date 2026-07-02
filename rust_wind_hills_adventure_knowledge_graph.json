@@ -1,0 +1,2844 @@
+{
+  "schema": {
+    "name": "adventure-knowledge-graph",
+    "version": "0.1.1",
+    "description": "A stateful, directed knowledge graph for a classic gamebook-style dungeon adventure. Locations, encounters, items and endings are represented as entities; playable movement is represented by routes with explicit conditions, tests, costs and effects."
+  },
+  "graph": {
+    "id": "rust-wind-hills-dungeon",
+    "title": "The Dungeons Below the Rust Wind Hills",
+    "subtitle": "A licensed delve for fortune, glory, and likely doom",
+    "genre": [
+      "classic fantasy",
+      "dungeon crawl",
+      "gamebook",
+      "dark whimsy"
+    ],
+    "tone": [
+      "perilous",
+      "satirical",
+      "mysterious",
+      "old-school"
+    ],
+    "entry_node": "barrowgate_square",
+    "terminal_nodes": [
+      "ending_escape_riches",
+      "ending_cursed_possession",
+      "ending_dungeon_lordship",
+      "ending_gaol_ruin",
+      "ending_dead"
+    ],
+    "design_notes": [
+      "The town licensing system is both a comic premise and a persistent game mechanic.",
+      "Multiple routes bypass formal permission, but each creates later risks.",
+      "Key items open materially different paths rather than merely granting bonuses.",
+      "The graph contains loops, shortcuts, optional encounters, delayed consequences and several endings."
+    ],
+    "content_revision": {
+      "version": "0.1.1",
+      "summary": "Wires the torchbearer contract and previously dangling encounter-state flags into playable routes.",
+      "fixes": [
+        "The torchbearer contract now grants a safe Bridge of Sighs route and Pell explicitly leaves before the Ninth Lock.",
+        "The Rat-King combat and negotiation routes are available only while the Rat-King lives; cleared-warren routes replace them afterwards.",
+        "An alerted Iron Registrar disables peaceful checkpoint options and changes the Warden authority path.",
+        "A successful counterfeit-permit test now passes the checkpoint rather than still routing to the gaol."
+      ]
+    }
+  },
+  "ruleset": {
+    "mode": "single_player_gamebook",
+    "player_state": {
+      "stats": {
+        "skill": {
+          "type": "integer",
+          "min": 1,
+          "max": 12,
+          "initial": 8
+        },
+        "stamina": {
+          "type": "integer",
+          "min": 0,
+          "max": 24,
+          "initial": 16
+        },
+        "luck": {
+          "type": "integer",
+          "min": 0,
+          "max": 12,
+          "initial": 8
+        },
+        "reputation": {
+          "type": "integer",
+          "min": -10,
+          "max": 10,
+          "initial": 0
+        }
+      },
+      "resources": {
+        "gold": {
+          "type": "integer",
+          "min": 0,
+          "initial": 15
+        },
+        "provisions": {
+          "type": "integer",
+          "min": 0,
+          "initial": 3
+        },
+        "torch_turns": {
+          "type": "integer",
+          "min": 0,
+          "initial": 12
+        }
+      },
+      "collections": {
+        "inventory": {
+          "type": "set",
+          "initial": []
+        },
+        "conditions": {
+          "type": "set",
+          "initial": []
+        },
+        "knowledge": {
+          "type": "set",
+          "initial": []
+        }
+      },
+      "flags": {
+        "permit_status": {
+          "type": "enum",
+          "values": [
+            "none",
+            "licensed",
+            "counterfeit",
+            "revoked"
+          ],
+          "initial": "none"
+        },
+        "registrar_alerted": {
+          "type": "boolean",
+          "initial": false
+        },
+        "rat_king_dead": {
+          "type": "boolean",
+          "initial": false
+        },
+        "ninth_lock_open": {
+          "type": "boolean",
+          "initial": false
+        },
+        "crown_claimed": {
+          "type": "boolean",
+          "initial": false
+        },
+        "crown_attunement": {
+          "type": "enum",
+          "values": [
+            "none",
+            "resisted",
+            "bound",
+            "mastered"
+          ],
+          "initial": "none"
+        }
+      }
+    },
+    "condition_dsl": {
+      "operators": [
+        "has_item",
+        "missing_item",
+        "flag_is",
+        "flag_not",
+        "stat_at_least",
+        "stat_below",
+        "resource_at_least",
+        "has_condition",
+        "missing_condition",
+        "knows",
+        "not_knows"
+      ],
+      "combination": "All conditions on a route must pass unless the route uses an explicit any block."
+    },
+    "effect_dsl": {
+      "operators": [
+        "add_item",
+        "remove_item",
+        "set_flag",
+        "modify_stat",
+        "modify_resource",
+        "add_condition",
+        "remove_condition",
+        "add_knowledge",
+        "emit_event"
+      ]
+    },
+    "test_types": {
+      "skill": "Roll 2d6; succeed if total is less than or equal to the named stat after modifiers.",
+      "luck": "Roll 2d6; succeed if total is less than or equal to current luck, then reduce luck by 1.",
+      "combat": "Resolve repeated attack rounds using player skill/stamina against encounter values.",
+      "choice": "No roll; outcome is determined by state, cost or declared action."
+    }
+  },
+  "regions": [
+    {
+      "id": "town",
+      "name": "Barrowgate",
+      "depth": 0,
+      "theme": "bureaucratic frontier town"
+    },
+    {
+      "id": "surface",
+      "name": "Rust Wind Hills",
+      "depth": 1,
+      "theme": "weathered ruins and rival delvers"
+    },
+    {
+      "id": "upper_dungeon",
+      "name": "Upper Dungeon",
+      "depth": 2,
+      "theme": "dead garrison and living bureaucracy"
+    },
+    {
+      "id": "mid_dungeon",
+      "name": "Mid Dungeon",
+      "depth": 3,
+      "theme": "forgotten civic machinery and predatory ecology"
+    },
+    {
+      "id": "deep_ruins",
+      "name": "Lower Dungeon / Deep Ruins",
+      "depth": 4,
+      "theme": "debts, dead kingdoms and sealed knowledge"
+    },
+    {
+      "id": "final_region",
+      "name": "The Ninth Vault",
+      "depth": 5,
+      "theme": "mythic power and irreversible choice"
+    }
+  ],
+  "items": [
+    {
+      "id": "standard_delver_licence",
+      "name": "Standard Delver Licence",
+      "type": "permit",
+      "description": "A wax-sealed licence permitting one named delver to enter the public approaches to the dungeon.",
+      "traits": [
+        "legal",
+        "inspectable",
+        "revocable"
+      ]
+    },
+    {
+      "id": "counterfeit_permit",
+      "name": "Counterfeit Permit",
+      "type": "permit",
+      "description": "A convincing forgery unless checked against the iron registry.",
+      "traits": [
+        "illegal",
+        "fragile",
+        "inspectable"
+      ]
+    },
+    {
+      "id": "supplies_pack",
+      "name": "Delver's Supplies",
+      "type": "equipment",
+      "description": "Rope, chalk, iron spikes, lamp oil and three things the merchant insists are medicinal.",
+      "traits": [
+        "utility"
+      ]
+    },
+    {
+      "id": "torchbearer_contract",
+      "name": "Torchbearer Contract",
+      "type": "follower_contract",
+      "description": "A contract with Pell Vane. Pell carries light, can secure one dangerous crossing, and refuses to pass beyond the Ninth Lock.",
+      "traits": [
+        "follower",
+        "temporary",
+        "crossing_assistance",
+        "leaves_at_ninth_lock"
+      ]
+    },
+    {
+      "id": "dust_saint_token",
+      "name": "Token of the Dust Saint",
+      "type": "charm",
+      "description": "A little clay eye. Warm when hidden doors are nearby.",
+      "traits": [
+        "secret_detection",
+        "religious"
+      ]
+    },
+    {
+      "id": "goblin_toll_chit",
+      "name": "Goblin Toll Chit",
+      "type": "token",
+      "description": "A stamped scrap proving the bearer has paid one goblin toll, probably.",
+      "traits": [
+        "social",
+        "questionable"
+      ]
+    },
+    {
+      "id": "brass_seal",
+      "name": "Brass Seal",
+      "type": "key",
+      "description": "A heavy seal engraved with the emblem of the Ninth Treasury.",
+      "traits": [
+        "opens_deeper_wards",
+        "official"
+      ]
+    },
+    {
+      "id": "moon_key",
+      "name": "Moon Key",
+      "type": "key",
+      "description": "A crescent key that only appears solid in reflected light.",
+      "traits": [
+        "moon_lock"
+      ]
+    },
+    {
+      "id": "stolen_ledger_fragment",
+      "name": "Stolen Ledger Fragment",
+      "type": "document",
+      "description": "A page recording debts owed by dead nobles to the custodians of the vault.",
+      "traits": [
+        "archive_access",
+        "blackmail",
+        "lore"
+      ]
+    },
+    {
+      "id": "rune_candle",
+      "name": "Rune-Candle",
+      "type": "tool",
+      "description": "A black candle whose flame reveals inscriptions, invisible contracts and certain lies.",
+      "traits": [
+        "truth_revelation",
+        "consumable"
+      ]
+    },
+    {
+      "id": "registrars_key",
+      "name": "Registrar's Key",
+      "type": "key",
+      "description": "A severe iron key carried by the dungeon's undead licensing official.",
+      "traits": [
+        "gaol_access",
+        "official"
+      ]
+    },
+    {
+      "id": "crown_of_ember_salt",
+      "name": "The Crown of Ember Salt",
+      "type": "mythic_treasure",
+      "description": "A crown of red crystal and gold that remembers every ruler who wore it.",
+      "traits": [
+        "sentient",
+        "cursed",
+        "sovereign",
+        "world_changing"
+      ]
+    }
+  ],
+  "encounters": [
+    {
+      "id": "goblin_toll_collectors",
+      "name": "Goblin Toll Collectors",
+      "kind": "social_or_combat",
+      "skill": 6,
+      "stamina": 7,
+      "special": "They accept coins, official-looking paperwork or sufficiently confident nonsense."
+    },
+    {
+      "id": "rat_king",
+      "name": "The Rat-King of Broken Spears",
+      "kind": "combat",
+      "skill": 7,
+      "stamina": 10,
+      "special": "At half stamina, the swarm extinguishes one torch turn per combat round."
+    },
+    {
+      "id": "iron_registrar",
+      "name": "The Iron Registrar",
+      "kind": "social_or_combat",
+      "skill": 9,
+      "stamina": 12,
+      "special": "Counterfeit documents impose a penalty unless the registry has been sabotaged."
+    },
+    {
+      "id": "cistern_eels",
+      "name": "The Cistern Eels",
+      "kind": "hazard",
+      "skill": 7,
+      "stamina": 8,
+      "special": "Metal equipment attracts the largest eel."
+    },
+    {
+      "id": "beast_of_the_pits",
+      "name": "The Beast of the Pits",
+      "kind": "combat",
+      "skill": 9,
+      "stamina": 14,
+      "special": "It fears open flame but becomes stronger if wounded by forged iron."
+    },
+    {
+      "id": "guardian_ninth_lock",
+      "name": "Guardian of the Ninth Lock",
+      "kind": "boss",
+      "skill": 10,
+      "stamina": 16,
+      "special": "It can be defeated, formally released, or compelled by proving an ancient debt."
+    },
+    {
+      "id": "warden_below",
+      "name": "The Warden Below",
+      "kind": "boss",
+      "skill": 11,
+      "stamina": 18,
+      "special": "The Warden recognises lawful authority, ancient debts and the voice of the Crown."
+    }
+  ],
+  "nodes": [
+    {
+      "id": "barrowgate_square",
+      "type": "hub",
+      "region": "town",
+      "title": "Barrowgate",
+      "summary": "A hard little town built around the legal, illegal and memorial economy of dungeon delving.",
+      "read_aloud": "Rust-red dust moves along the street like smoke. Above the gatehouse hangs a board: DELVERS MUST BE LICENSED. NO REFUNDS.",
+      "tags": [
+        "start",
+        "safe",
+        "commerce"
+      ]
+    },
+    {
+      "id": "bent_nail_inn",
+      "type": "social",
+      "region": "town",
+      "title": "The Bent Nail Inn",
+      "summary": "The principal market for rumours, boastful survivors and people selling maps they definitely drew themselves.",
+      "knowledge_grants": [
+        "rumour_crown_ember_salt",
+        "rumour_ninth_lock"
+      ]
+    },
+    {
+      "id": "market_last_chances",
+      "type": "service",
+      "region": "town",
+      "title": "Market of Last Chances",
+      "summary": "A row of stalls selling rope, spikes, charms, questionable tonics and second-hand armour with suspicious dents."
+    },
+    {
+      "id": "torchbearers_yard",
+      "type": "service",
+      "region": "town",
+      "title": "Torchbearers' Yard",
+      "summary": "Labourers wait beneath a sign reading: HALF PAY IN ADVANCE. FULL PAY IF WE RETURN."
+    },
+    {
+      "id": "temple_cinders",
+      "type": "service",
+      "region": "town",
+      "title": "Temple of the Last Cinder",
+      "summary": "A narrow shrine where delvers may purchase absolution before creating the need for it."
+    },
+    {
+      "id": "licensing_hall",
+      "type": "bureaucracy",
+      "region": "town",
+      "title": "The Licensing Hall",
+      "summary": "A civic hall whose clerks treat dungeon access as a revenue stream with unfortunate mortality statistics."
+    },
+    {
+      "id": "forgery_cellar",
+      "type": "secret_service",
+      "region": "town",
+      "title": "The Red Quill Cellar",
+      "summary": "A concealed workshop below a cobbler's shop. Its proprietor forges permits but refuses responsibility for iron registrars."
+    },
+    {
+      "id": "road_rust_wind_hills",
+      "type": "transit",
+      "region": "town",
+      "title": "Road to the Rust Wind Hills",
+      "summary": "The last maintained road before the land becomes red stone, thorn scrub and old warnings."
+    },
+    {
+      "id": "wind_carved_cairns",
+      "type": "location",
+      "region": "surface",
+      "title": "Wind-Carved Cairns",
+      "summary": "Ancient cairns sing in the gale. One stone bears a half-erased treasury sigil."
+    },
+    {
+      "id": "goblin_toll_path",
+      "type": "encounter",
+      "region": "surface",
+      "title": "Goblin Toll Path",
+      "summary": "A rope barrier, a dented bell and six goblins who have independently invented infrastructure finance.",
+      "encounter_id": "goblin_toll_collectors"
+    },
+    {
+      "id": "collapsed_watchtower",
+      "type": "location",
+      "region": "surface",
+      "title": "Collapsed Watchtower",
+      "summary": "A fallen imperial watchtower overlooking all three known dungeon approaches."
+    },
+    {
+      "id": "old_quarry_entrance",
+      "type": "entrance",
+      "region": "surface",
+      "title": "Old Quarry Entrance",
+      "summary": "A broad, obvious descent used by licensed parties, tax inspectors and ambushers."
+    },
+    {
+      "id": "smugglers_sinkhole",
+      "type": "entrance",
+      "region": "surface",
+      "title": "Smugglers' Sinkhole",
+      "summary": "A cramped shaft concealed beneath thorn mats and a carved sign reading NOTHING HERE."
+    },
+    {
+      "id": "dust_saint_shrine",
+      "type": "shrine",
+      "region": "surface",
+      "title": "Shrine of the Dust Saint",
+      "summary": "A weathered roadside shrine to the patron of hidden roads, lost names and inconvenient truths."
+    },
+    {
+      "id": "main_stair",
+      "type": "transit",
+      "region": "surface",
+      "title": "The Main Stair",
+      "summary": "A monumental stair descending to the Gate of Tithes. Every seventh step is engraved with a fee."
+    },
+    {
+      "id": "hidden_shaft",
+      "type": "transit",
+      "region": "surface",
+      "title": "The Hidden Shaft",
+      "summary": "A narrow vertical route descending behind the upper garrison rooms."
+    },
+    {
+      "id": "flooded_tunnel",
+      "type": "hazard",
+      "region": "surface",
+      "title": "The Flooded Tunnel",
+      "summary": "A submerged service tunnel carrying black water into the dungeon cisterns."
+    },
+    {
+      "id": "gate_of_tithes",
+      "type": "checkpoint",
+      "region": "upper_dungeon",
+      "title": "Gate of Tithes",
+      "summary": "An iron gate guarded by mechanisms that recognise seals, coins and blood in that order."
+    },
+    {
+      "id": "hall_broken_spears",
+      "type": "location",
+      "region": "upper_dungeon",
+      "title": "Hall of Broken Spears",
+      "summary": "A barracks hall where snapped weapons have been planted upright like a dead forest."
+    },
+    {
+      "id": "rat_king_warren",
+      "type": "encounter",
+      "region": "upper_dungeon",
+      "title": "Rat-King Warren",
+      "summary": "A nest built around the old quartermaster's throne. The Rat-King wears twelve keys and none fit normal locks.",
+      "encounter_id": "rat_king"
+    },
+    {
+      "id": "chained_well",
+      "type": "puzzle",
+      "region": "upper_dungeon",
+      "title": "The Chained Well",
+      "summary": "A dry well sealed by chains bearing treasury seals. Something below repeatedly asks for the correct form."
+    },
+    {
+      "id": "mapmakers_bones",
+      "type": "discovery",
+      "region": "upper_dungeon",
+      "title": "The Mapmaker's Bones",
+      "summary": "A dead surveyor lies clutching a map drawn on the inside of his own shield."
+    },
+    {
+      "id": "chapel_of_ash",
+      "type": "shrine",
+      "region": "upper_dungeon",
+      "title": "Chapel of Ash",
+      "summary": "A roofless chapel where old vows remain audible as whispers beneath the ash."
+    },
+    {
+      "id": "iron_registrar",
+      "type": "checkpoint",
+      "region": "upper_dungeon",
+      "title": "The Iron Registrar",
+      "summary": "An armoured undead official who has continued inspecting permits for three hundred and eleven years.",
+      "encounter_id": "iron_registrar"
+    },
+    {
+      "id": "gaol_cells",
+      "type": "hazard",
+      "region": "upper_dungeon",
+      "title": "The Delvers' Gaol",
+      "summary": "Cells for trespassers, fraudulent applicants and parties unable to produce itemised expenses."
+    },
+    {
+      "id": "fungal_cloister",
+      "type": "hazard",
+      "region": "mid_dungeon",
+      "title": "Fungal Cloister",
+      "summary": "Monastic arches choked with pale fungus that mimics whispered prayers."
+    },
+    {
+      "id": "mirror_maze",
+      "type": "puzzle",
+      "region": "mid_dungeon",
+      "title": "Mirror Maze",
+      "summary": "Silvered passages reflect possible choices, including several the delver has not yet made."
+    },
+    {
+      "id": "cistern_of_eels",
+      "type": "hazard",
+      "region": "mid_dungeon",
+      "title": "Cistern of Eels",
+      "summary": "A circular reservoir alive with blind electric eels and drifting scraps of official parchment.",
+      "encounter_id": "cistern_eels"
+    },
+    {
+      "id": "taxmans_ledger_room",
+      "type": "discovery",
+      "region": "mid_dungeon",
+      "title": "The Taxman's Ledger Room",
+      "summary": "Stone shelves hold accounts of tribute, fines, exemptions and debts inherited by the dead."
+    },
+    {
+      "id": "bridge_of_sighs",
+      "type": "challenge",
+      "region": "mid_dungeon",
+      "title": "Bridge of Sighs",
+      "summary": "A narrow bridge over an immeasurable drop. The wind repeats the final words of those who fell."
+    },
+    {
+      "id": "beast_pits",
+      "type": "encounter",
+      "region": "mid_dungeon",
+      "title": "The Beast Pits",
+      "summary": "An arena of rusted gates and old bones. One gate remains closed from the inside.",
+      "encounter_id": "beast_of_the_pits"
+    },
+    {
+      "id": "black_wind_forge",
+      "type": "location",
+      "region": "mid_dungeon",
+      "title": "Black Wind Forge",
+      "summary": "An extinguished forge where cold wind blows from cracks in the anvil."
+    },
+    {
+      "id": "vault_antechamber",
+      "type": "checkpoint",
+      "region": "deep_ruins",
+      "title": "Vault Antechamber",
+      "summary": "A nine-sided chamber with doors that open only for recognised authority, recognised debt or overwhelming force."
+    },
+    {
+      "id": "hall_whispered_debts",
+      "type": "hazard",
+      "region": "deep_ruins",
+      "title": "Hall of Whispered Debts",
+      "summary": "Every unpaid promise ever made in the dungeon is whispered here by a voice that knows the listener's name."
+    },
+    {
+      "id": "ossuary_market",
+      "type": "social",
+      "region": "deep_ruins",
+      "title": "The Ossuary Market",
+      "summary": "Dead merchants trade memories, names, years of life and occasionally useful equipment."
+    },
+    {
+      "id": "guardian_ninth_lock",
+      "type": "boss",
+      "region": "deep_ruins",
+      "title": "Guardian of the Ninth Lock",
+      "summary": "A bronze giant kneels before the final seal, awaiting either a challenger or a lawful release.",
+      "encounter_id": "guardian_ninth_lock"
+    },
+    {
+      "id": "abyssal_stair",
+      "type": "transit",
+      "region": "deep_ruins",
+      "title": "Abyssal Stair",
+      "summary": "A stair descending around an open void. The lower steps are visible only when not directly observed."
+    },
+    {
+      "id": "sunken_archive",
+      "type": "discovery",
+      "region": "deep_ruins",
+      "title": "The Sunken Archive",
+      "summary": "A drowned archive preserving the legal memory of the lost kingdom beneath black water."
+    },
+    {
+      "id": "gilded_maw",
+      "type": "hazard",
+      "region": "final_region",
+      "title": "The Gilded Maw",
+      "summary": "A trap-lined passage shaped like a golden throat. Its teeth are doors; its tongue is a bridge."
+    },
+    {
+      "id": "warden_below",
+      "type": "boss",
+      "region": "final_region",
+      "title": "The Warden Below",
+      "summary": "The last custodian of the vault, bound to defend the Crown until confronted by stronger authority.",
+      "encounter_id": "warden_below"
+    },
+    {
+      "id": "vault_mythic_treasure",
+      "type": "location",
+      "region": "final_region",
+      "title": "Vault of the Mythic Treasure",
+      "summary": "A silent chamber containing one pedestal, one crown and the accumulated heat of a fallen dynasty."
+    },
+    {
+      "id": "crown_ember_salt",
+      "type": "treasure",
+      "region": "final_region",
+      "title": "The Crown of Ember Salt",
+      "summary": "The mythic treasure of the Rust Wind Hills. It offers sovereignty before it offers safety."
+    },
+    {
+      "id": "ending_escape_riches",
+      "type": "ending",
+      "region": "final_region",
+      "title": "Escape, Riches in Hand",
+      "summary": "The delver returns to Barrowgate wealthy, famous and sufficiently alive to become unreliable in taverns.",
+      "ending_type": "victory"
+    },
+    {
+      "id": "ending_cursed_possession",
+      "type": "ending",
+      "region": "final_region",
+      "title": "Cursed Possession",
+      "summary": "The Crown leaves the dungeon wearing the delver rather than the other way around.",
+      "ending_type": "dark_victory"
+    },
+    {
+      "id": "ending_dungeon_lordship",
+      "type": "ending",
+      "region": "final_region",
+      "title": "Claim the Dungeon Lordship",
+      "summary": "The delver becomes lawful ruler of the ruins, inheriting their wealth, monsters, debts and licensing obligations.",
+      "ending_type": "transformative_victory"
+    },
+    {
+      "id": "ending_gaol_ruin",
+      "type": "ending",
+      "region": "upper_dungeon",
+      "title": "Indefinite Administrative Detention",
+      "summary": "The delver's adventure ends in a cell while the appeal is referred to a committee that no longer exists.",
+      "ending_type": "failure"
+    },
+    {
+      "id": "ending_dead",
+      "type": "ending",
+      "region": "final_region",
+      "title": "A Delver's Memorial Plaque",
+      "summary": "Barrowgate adds another small brass name beneath the licensing hall stairs.",
+      "ending_type": "death"
+    }
+  ],
+  "routes": [
+    {
+      "id": "r001",
+      "from": "barrowgate_square",
+      "to": "bent_nail_inn",
+      "label": "Seek rumours at the Bent Nail Inn",
+      "kind": "choice"
+    },
+    {
+      "id": "r002",
+      "from": "barrowgate_square",
+      "to": "market_last_chances",
+      "label": "Buy equipment",
+      "kind": "choice"
+    },
+    {
+      "id": "r003",
+      "from": "barrowgate_square",
+      "to": "torchbearers_yard",
+      "label": "Hire a torchbearer",
+      "kind": "choice"
+    },
+    {
+      "id": "r004",
+      "from": "barrowgate_square",
+      "to": "temple_cinders",
+      "label": "Seek a blessing",
+      "kind": "choice"
+    },
+    {
+      "id": "r005",
+      "from": "barrowgate_square",
+      "to": "licensing_hall",
+      "label": "Apply for a delver licence",
+      "kind": "choice"
+    },
+    {
+      "id": "r006",
+      "from": "barrowgate_square",
+      "to": "forgery_cellar",
+      "label": "Follow the red-quill sign",
+      "kind": "secret",
+      "visibility": {
+        "mode": "secret",
+        "conditions": [
+          {
+            "op": "knows",
+            "fact": "rumour_red_quill"
+          }
+        ]
+      }
+    },
+    {
+      "id": "r007",
+      "from": "barrowgate_square",
+      "to": "road_rust_wind_hills",
+      "label": "Leave for the hills",
+      "kind": "choice",
+      "conditions": [
+        {
+          "op": "resource_at_least",
+          "resource": "torch_turns",
+          "value": 1
+        }
+      ]
+    },
+    {
+      "id": "r008",
+      "from": "bent_nail_inn",
+      "to": "barrowgate_square",
+      "label": "Return to the square",
+      "kind": "choice",
+      "effects": [
+        {
+          "op": "add_knowledge",
+          "fact": "rumour_red_quill"
+        },
+        {
+          "op": "add_knowledge",
+          "fact": "rumour_dust_saint"
+        },
+        {
+          "op": "add_knowledge",
+          "fact": "rumour_ninth_lock"
+        }
+      ]
+    },
+    {
+      "id": "r009",
+      "from": "market_last_chances",
+      "to": "barrowgate_square",
+      "label": "Buy the delver's pack and return",
+      "kind": "choice",
+      "costs": [
+        {
+          "resource": "gold",
+          "amount": 5
+        }
+      ],
+      "effects": [
+        {
+          "op": "add_item",
+          "item": "supplies_pack"
+        },
+        {
+          "op": "modify_resource",
+          "resource": "torch_turns",
+          "amount": 6
+        },
+        {
+          "op": "modify_resource",
+          "resource": "provisions",
+          "amount": 2
+        }
+      ]
+    },
+    {
+      "id": "r010",
+      "from": "market_last_chances",
+      "to": "barrowgate_square",
+      "label": "Buy nothing and return",
+      "kind": "choice"
+    },
+    {
+      "id": "r011",
+      "from": "torchbearers_yard",
+      "to": "barrowgate_square",
+      "label": "Hire Pell Vane",
+      "kind": "choice",
+      "costs": [
+        {
+          "resource": "gold",
+          "amount": 4
+        }
+      ],
+      "effects": [
+        {
+          "op": "add_item",
+          "item": "torchbearer_contract"
+        },
+        {
+          "op": "modify_resource",
+          "resource": "torch_turns",
+          "amount": 8
+        }
+      ]
+    },
+    {
+      "id": "r012",
+      "from": "torchbearers_yard",
+      "to": "barrowgate_square",
+      "label": "Decline the contract",
+      "kind": "choice"
+    },
+    {
+      "id": "r013",
+      "from": "temple_cinders",
+      "to": "barrowgate_square",
+      "label": "Make an offering",
+      "kind": "choice",
+      "costs": [
+        {
+          "resource": "gold",
+          "amount": 2
+        }
+      ],
+      "effects": [
+        {
+          "op": "modify_stat",
+          "stat": "luck",
+          "amount": 1
+        },
+        {
+          "op": "add_condition",
+          "condition": "last_cinder_blessing"
+        }
+      ]
+    },
+    {
+      "id": "r014",
+      "from": "temple_cinders",
+      "to": "barrowgate_square",
+      "label": "Leave without donating",
+      "kind": "choice"
+    },
+    {
+      "id": "r015",
+      "from": "licensing_hall",
+      "to": "barrowgate_square",
+      "label": "Purchase a standard licence",
+      "kind": "choice",
+      "costs": [
+        {
+          "resource": "gold",
+          "amount": 6
+        }
+      ],
+      "effects": [
+        {
+          "op": "add_item",
+          "item": "standard_delver_licence"
+        },
+        {
+          "op": "set_flag",
+          "flag": "permit_status",
+          "value": "licensed"
+        },
+        {
+          "op": "modify_stat",
+          "stat": "reputation",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "id": "r016",
+      "from": "licensing_hall",
+      "to": "forgery_cellar",
+      "label": "Ask where one might obtain cheaper paperwork",
+      "kind": "secret",
+      "test": {
+        "type": "skill",
+        "stat": "skill",
+        "modifier": 0,
+        "failure_to": "barrowgate_square",
+        "failure_effects": [
+          {
+            "op": "modify_stat",
+            "stat": "reputation",
+            "amount": -1
+          }
+        ]
+      },
+      "effects": [
+        {
+          "op": "add_knowledge",
+          "fact": "rumour_red_quill"
+        }
+      ]
+    },
+    {
+      "id": "r017",
+      "from": "licensing_hall",
+      "to": "barrowgate_square",
+      "label": "Refuse the fee and leave",
+      "kind": "choice"
+    },
+    {
+      "id": "r018",
+      "from": "forgery_cellar",
+      "to": "barrowgate_square",
+      "label": "Purchase a counterfeit permit",
+      "kind": "choice",
+      "costs": [
+        {
+          "resource": "gold",
+          "amount": 2
+        }
+      ],
+      "effects": [
+        {
+          "op": "add_item",
+          "item": "counterfeit_permit"
+        },
+        {
+          "op": "set_flag",
+          "flag": "permit_status",
+          "value": "counterfeit"
+        },
+        {
+          "op": "modify_stat",
+          "stat": "reputation",
+          "amount": -1
+        }
+      ]
+    },
+    {
+      "id": "r019",
+      "from": "forgery_cellar",
+      "to": "barrowgate_square",
+      "label": "Decide against fraud",
+      "kind": "choice"
+    },
+    {
+      "id": "r020",
+      "from": "road_rust_wind_hills",
+      "to": "wind_carved_cairns",
+      "label": "Follow the ridge markers",
+      "kind": "choice"
+    },
+    {
+      "id": "r021",
+      "from": "road_rust_wind_hills",
+      "to": "goblin_toll_path",
+      "label": "Take the shortest path",
+      "kind": "choice"
+    },
+    {
+      "id": "r022",
+      "from": "road_rust_wind_hills",
+      "to": "collapsed_watchtower",
+      "label": "Climb towards the old watchtower",
+      "kind": "choice"
+    },
+    {
+      "id": "r023",
+      "from": "wind_carved_cairns",
+      "to": "old_quarry_entrance",
+      "label": "Follow the treasury sigil",
+      "kind": "choice"
+    },
+    {
+      "id": "r024",
+      "from": "wind_carved_cairns",
+      "to": "goblin_toll_path",
+      "label": "Cross the saddle towards the toll bell",
+      "kind": "choice"
+    },
+    {
+      "id": "r025",
+      "from": "wind_carved_cairns",
+      "to": "dust_saint_shrine",
+      "label": "Follow the warm clay dust",
+      "kind": "secret",
+      "visibility": {
+        "mode": "secret",
+        "conditions": [
+          {
+            "op": "knows",
+            "fact": "rumour_dust_saint"
+          }
+        ]
+      }
+    },
+    {
+      "id": "r026",
+      "from": "goblin_toll_path",
+      "to": "smugglers_sinkhole",
+      "label": "Pay the goblin toll",
+      "kind": "choice",
+      "costs": [
+        {
+          "resource": "gold",
+          "amount": 2
+        }
+      ],
+      "effects": [
+        {
+          "op": "add_item",
+          "item": "goblin_toll_chit"
+        }
+      ]
+    },
+    {
+      "id": "r027",
+      "from": "goblin_toll_path",
+      "to": "collapsed_watchtower",
+      "label": "Bluff with official paperwork",
+      "kind": "choice",
+      "conditions": [
+        {
+          "any": [
+            {
+              "op": "has_item",
+              "item": "standard_delver_licence"
+            },
+            {
+              "op": "has_item",
+              "item": "counterfeit_permit"
+            }
+          ]
+        }
+      ],
+      "test": {
+        "type": "skill",
+        "stat": "skill",
+        "modifier": 1,
+        "failure_to": "goblin_toll_path",
+        "failure_effects": [
+          {
+            "op": "modify_stat",
+            "stat": "stamina",
+            "amount": -2
+          }
+        ]
+      }
+    },
+    {
+      "id": "r028",
+      "from": "goblin_toll_path",
+      "to": "old_quarry_entrance",
+      "label": "Fight through",
+      "kind": "choice",
+      "test": {
+        "type": "combat",
+        "encounter_id": "goblin_toll_collectors",
+        "failure_to": "ending_dead"
+      },
+      "effects": [
+        {
+          "op": "modify_stat",
+          "stat": "reputation",
+          "amount": -1
+        }
+      ]
+    },
+    {
+      "id": "r029",
+      "from": "collapsed_watchtower",
+      "to": "old_quarry_entrance",
+      "label": "Descend the exposed path",
+      "kind": "choice",
+      "effects": [
+        {
+          "op": "add_knowledge",
+          "fact": "map_three_entrances"
+        }
+      ]
+    },
+    {
+      "id": "r030",
+      "from": "collapsed_watchtower",
+      "to": "smugglers_sinkhole",
+      "label": "Use the smuggler marks",
+      "kind": "secret",
+      "visibility": {
+        "mode": "secret",
+        "conditions": [
+          {
+            "op": "has_item",
+            "item": "supplies_pack"
+          }
+        ]
+      }
+    },
+    {
+      "id": "r031",
+      "from": "collapsed_watchtower",
+      "to": "flooded_tunnel",
+      "label": "Climb down to the water channel",
+      "kind": "choice",
+      "conditions": [
+        {
+          "op": "has_item",
+          "item": "supplies_pack"
+        }
+      ]
+    },
+    {
+      "id": "r032",
+      "from": "dust_saint_shrine",
+      "to": "hidden_shaft",
+      "label": "Place a coin in the saint's blind eye",
+      "kind": "choice",
+      "costs": [
+        {
+          "resource": "gold",
+          "amount": 1
+        }
+      ],
+      "effects": [
+        {
+          "op": "add_item",
+          "item": "dust_saint_token"
+        },
+        {
+          "op": "add_knowledge",
+          "fact": "hidden_shaft_location"
+        }
+      ]
+    },
+    {
+      "id": "r033",
+      "from": "dust_saint_shrine",
+      "to": "old_quarry_entrance",
+      "label": "Return to the obvious road",
+      "kind": "choice"
+    },
+    {
+      "id": "r034",
+      "from": "old_quarry_entrance",
+      "to": "main_stair",
+      "label": "Enter by the public stair",
+      "kind": "choice"
+    },
+    {
+      "id": "r035",
+      "from": "smugglers_sinkhole",
+      "to": "hidden_shaft",
+      "label": "Descend the concealed shaft",
+      "kind": "choice"
+    },
+    {
+      "id": "r036",
+      "from": "flooded_tunnel",
+      "to": "cistern_of_eels",
+      "label": "Swim through the black water",
+      "kind": "choice",
+      "test": {
+        "type": "skill",
+        "stat": "skill",
+        "modifier": -1,
+        "failure_to": "cistern_of_eels",
+        "failure_effects": [
+          {
+            "op": "modify_stat",
+            "stat": "stamina",
+            "amount": -3
+          },
+          {
+            "op": "add_condition",
+            "condition": "soaked"
+          }
+        ]
+      }
+    },
+    {
+      "id": "r037",
+      "from": "main_stair",
+      "to": "gate_of_tithes",
+      "label": "Approach the Gate of Tithes",
+      "kind": "choice"
+    },
+    {
+      "id": "r038",
+      "from": "hidden_shaft",
+      "to": "mapmakers_bones",
+      "label": "Drop into the surveyor's chamber",
+      "kind": "choice"
+    },
+    {
+      "id": "r039",
+      "from": "gate_of_tithes",
+      "to": "hall_broken_spears",
+      "label": "Present the standard licence",
+      "kind": "choice",
+      "conditions": [
+        {
+          "op": "has_item",
+          "item": "standard_delver_licence"
+        }
+      ]
+    },
+    {
+      "id": "r040",
+      "from": "gate_of_tithes",
+      "to": "hall_broken_spears",
+      "label": "Present the counterfeit permit",
+      "kind": "choice",
+      "conditions": [
+        {
+          "op": "has_item",
+          "item": "counterfeit_permit"
+        }
+      ],
+      "test": {
+        "type": "skill",
+        "stat": "skill",
+        "modifier": 0,
+        "failure_to": "gaol_cells",
+        "failure_effects": [
+          {
+            "op": "set_flag",
+            "flag": "registrar_alerted",
+            "value": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "r041",
+      "from": "gate_of_tithes",
+      "to": "rat_king_warren",
+      "label": "Force the maintenance grille",
+      "kind": "secret",
+      "conditions": [
+        {
+          "op": "has_item",
+          "item": "supplies_pack"
+        }
+      ],
+      "test": {
+        "type": "skill",
+        "stat": "skill",
+        "modifier": -1,
+        "failure_to": "gate_of_tithes",
+        "failure_effects": [
+          {
+            "op": "modify_stat",
+            "stat": "stamina",
+            "amount": -2
+          }
+        ]
+      }
+    },
+    {
+      "id": "r042",
+      "from": "gate_of_tithes",
+      "to": "hall_broken_spears",
+      "label": "Pay the historic access tithe",
+      "kind": "choice",
+      "costs": [
+        {
+          "resource": "gold",
+          "amount": 3
+        }
+      ]
+    },
+    {
+      "id": "r043",
+      "from": "hall_broken_spears",
+      "to": "rat_king_warren",
+      "label": "Follow the sound of keys",
+      "kind": "choice"
+    },
+    {
+      "id": "r044",
+      "from": "hall_broken_spears",
+      "to": "fungal_cloister",
+      "label": "Descend the broken officers' stair",
+      "kind": "choice"
+    },
+    {
+      "id": "r045",
+      "from": "hall_broken_spears",
+      "to": "chapel_of_ash",
+      "label": "Follow the old processional passage",
+      "kind": "secret",
+      "visibility": {
+        "mode": "secret",
+        "conditions": [
+          {
+            "op": "has_item",
+            "item": "dust_saint_token"
+          }
+        ]
+      }
+    },
+    {
+      "id": "r046",
+      "from": "rat_king_warren",
+      "to": "chained_well",
+      "label": "Defeat the Rat-King and take the treasury seal",
+      "kind": "choice",
+      "test": {
+        "type": "combat",
+        "encounter_id": "rat_king",
+        "failure_to": "ending_dead"
+      },
+      "effects": [
+        {
+          "op": "add_item",
+          "item": "brass_seal"
+        },
+        {
+          "op": "set_flag",
+          "flag": "rat_king_dead",
+          "value": true
+        }
+      ],
+      "conditions": [
+        {
+          "op": "flag_is",
+          "flag": "rat_king_dead",
+          "value": false
+        }
+      ]
+    },
+    {
+      "id": "r047",
+      "from": "rat_king_warren",
+      "to": "mapmakers_bones",
+      "label": "Offer provisions for safe passage",
+      "kind": "choice",
+      "costs": [
+        {
+          "resource": "provisions",
+          "amount": 1
+        }
+      ],
+      "effects": [
+        {
+          "op": "add_knowledge",
+          "fact": "rat_tunnels"
+        }
+      ],
+      "conditions": [
+        {
+          "op": "flag_is",
+          "flag": "rat_king_dead",
+          "value": false
+        }
+      ]
+    },
+    {
+      "id": "r048",
+      "from": "chained_well",
+      "to": "taxmans_ledger_room",
+      "label": "Open the sealed treasury lift",
+      "kind": "choice",
+      "conditions": [
+        {
+          "op": "has_item",
+          "item": "brass_seal"
+        }
+      ]
+    },
+    {
+      "id": "r049",
+      "from": "chained_well",
+      "to": "hall_broken_spears",
+      "label": "Climb away from the voice below",
+      "kind": "choice"
+    },
+    {
+      "id": "r050",
+      "from": "mapmakers_bones",
+      "to": "chapel_of_ash",
+      "label": "Take the mapped route",
+      "kind": "choice",
+      "effects": [
+        {
+          "op": "add_knowledge",
+          "fact": "loose_stone_bridge"
+        }
+      ]
+    },
+    {
+      "id": "r051",
+      "from": "mapmakers_bones",
+      "to": "mirror_maze",
+      "label": "Follow the map's impossible line",
+      "kind": "secret",
+      "conditions": [
+        {
+          "op": "has_item",
+          "item": "dust_saint_token"
+        }
+      ]
+    },
+    {
+      "id": "r052",
+      "from": "chapel_of_ash",
+      "to": "iron_registrar",
+      "label": "Pass through the ash doors",
+      "kind": "choice",
+      "effects": [
+        {
+          "op": "add_knowledge",
+          "fact": "registrar_values_procedure"
+        }
+      ]
+    },
+    {
+      "id": "r053",
+      "from": "chapel_of_ash",
+      "to": "fungal_cloister",
+      "label": "Descend beneath the altar",
+      "kind": "secret",
+      "conditions": [
+        {
+          "op": "has_item",
+          "item": "dust_saint_token"
+        }
+      ]
+    },
+    {
+      "id": "r054",
+      "from": "iron_registrar",
+      "to": "fungal_cloister",
+      "label": "Submit a valid licence",
+      "kind": "choice",
+      "conditions": [
+        {
+          "op": "has_item",
+          "item": "standard_delver_licence"
+        },
+        {
+          "op": "flag_not",
+          "flag": "permit_status",
+          "value": "revoked"
+        },
+        {
+          "op": "flag_is",
+          "flag": "registrar_alerted",
+          "value": false
+        }
+      ],
+      "effects": [
+        {
+          "op": "modify_stat",
+          "stat": "reputation",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "id": "r055",
+      "from": "iron_registrar",
+      "to": "fungal_cloister",
+      "label": "Submit the counterfeit permit",
+      "kind": "choice",
+      "conditions": [
+        {
+          "op": "has_item",
+          "item": "counterfeit_permit"
+        },
+        {
+          "op": "flag_is",
+          "flag": "registrar_alerted",
+          "value": false
+        }
+      ],
+      "test": {
+        "type": "skill",
+        "stat": "skill",
+        "modifier": -2,
+        "failure_to": "gaol_cells",
+        "failure_effects": [
+          {
+            "op": "set_flag",
+            "flag": "permit_status",
+            "value": "revoked"
+          },
+          {
+            "op": "set_flag",
+            "flag": "registrar_alerted",
+            "value": true
+          }
+        ]
+      },
+      "effects": [
+        {
+          "op": "modify_stat",
+          "stat": "reputation",
+          "amount": -2
+        }
+      ]
+    },
+    {
+      "id": "r056",
+      "from": "iron_registrar",
+      "to": "fungal_cloister",
+      "label": "Cite the forgotten exemption",
+      "kind": "choice",
+      "conditions": [
+        {
+          "op": "knows",
+          "fact": "registrar_values_procedure"
+        },
+        {
+          "op": "flag_is",
+          "flag": "registrar_alerted",
+          "value": false
+        }
+      ],
+      "test": {
+        "type": "skill",
+        "stat": "skill",
+        "modifier": 1,
+        "failure_to": "gaol_cells"
+      }
+    },
+    {
+      "id": "r057",
+      "from": "iron_registrar",
+      "to": "fungal_cloister",
+      "label": "Destroy the Registrar",
+      "kind": "choice",
+      "test": {
+        "type": "combat",
+        "encounter_id": "iron_registrar",
+        "failure_to": "ending_dead"
+      },
+      "effects": [
+        {
+          "op": "add_item",
+          "item": "registrars_key"
+        },
+        {
+          "op": "set_flag",
+          "flag": "registrar_alerted",
+          "value": true
+        }
+      ]
+    },
+    {
+      "id": "r058",
+      "from": "gaol_cells",
+      "to": "hall_broken_spears",
+      "label": "Unlock the service door",
+      "kind": "choice",
+      "conditions": [
+        {
+          "op": "has_item",
+          "item": "registrars_key"
+        }
+      ]
+    },
+    {
+      "id": "r059",
+      "from": "gaol_cells",
+      "to": "mirror_maze",
+      "label": "Crawl through the condemned drain",
+      "kind": "choice",
+      "conditions": [
+        {
+          "op": "has_item",
+          "item": "supplies_pack"
+        }
+      ],
+      "test": {
+        "type": "skill",
+        "stat": "skill",
+        "modifier": -2,
+        "failure_to": "ending_gaol_ruin"
+      }
+    },
+    {
+      "id": "r060",
+      "from": "gaol_cells",
+      "to": "ending_gaol_ruin",
+      "label": "Wait for the appeal",
+      "kind": "choice"
+    },
+    {
+      "id": "r061",
+      "from": "fungal_cloister",
+      "to": "mirror_maze",
+      "label": "Cross the whispering cloister",
+      "kind": "choice",
+      "test": {
+        "type": "luck",
+        "stat": "luck",
+        "modifier": 0,
+        "failure_to": "mirror_maze",
+        "failure_effects": [
+          {
+            "op": "add_condition",
+            "condition": "spore_dreams"
+          }
+        ]
+      }
+    },
+    {
+      "id": "r062",
+      "from": "fungal_cloister",
+      "to": "cistern_of_eels",
+      "label": "Descend through the irrigation channel",
+      "kind": "choice",
+      "conditions": [
+        {
+          "op": "has_item",
+          "item": "supplies_pack"
+        }
+      ]
+    },
+    {
+      "id": "r063",
+      "from": "mirror_maze",
+      "to": "cistern_of_eels",
+      "label": "Follow the reflection that moves first",
+      "kind": "choice",
+      "test": {
+        "type": "skill",
+        "stat": "luck",
+        "modifier": 0,
+        "failure_to": "mirror_maze",
+        "failure_effects": [
+          {
+            "op": "modify_resource",
+            "resource": "torch_turns",
+            "amount": -2
+          }
+        ]
+      }
+    },
+    {
+      "id": "r064",
+      "from": "mirror_maze",
+      "to": "taxmans_ledger_room",
+      "label": "Unlock the moon-door",
+      "kind": "choice",
+      "conditions": [
+        {
+          "op": "has_item",
+          "item": "moon_key"
+        }
+      ]
+    },
+    {
+      "id": "r065",
+      "from": "mirror_maze",
+      "to": "mirror_maze",
+      "label": "Reach into the cold reflection",
+      "kind": "choice",
+      "test": {
+        "type": "luck",
+        "stat": "luck",
+        "modifier": -1,
+        "failure_to": "mirror_maze",
+        "failure_effects": [
+          {
+            "op": "modify_stat",
+            "stat": "stamina",
+            "amount": -2
+          }
+        ]
+      },
+      "effects": [
+        {
+          "op": "add_item",
+          "item": "moon_key"
+        }
+      ],
+      "one_time": true
+    },
+    {
+      "id": "r066",
+      "from": "cistern_of_eels",
+      "to": "taxmans_ledger_room",
+      "label": "Cross the maintenance gantry",
+      "kind": "choice",
+      "test": {
+        "type": "combat",
+        "encounter_id": "cistern_eels",
+        "failure_to": "ending_dead"
+      }
+    },
+    {
+      "id": "r067",
+      "from": "cistern_of_eels",
+      "to": "black_wind_forge",
+      "label": "Take the submerged forge conduit",
+      "kind": "secret",
+      "conditions": [
+        {
+          "op": "has_item",
+          "item": "goblin_toll_chit"
+        }
+      ],
+      "effects": [
+        {
+          "op": "add_condition",
+          "condition": "soaked"
+        }
+      ]
+    },
+    {
+      "id": "r068",
+      "from": "taxmans_ledger_room",
+      "to": "bridge_of_sighs",
+      "label": "Follow the authorised vault route",
+      "kind": "choice",
+      "conditions": [
+        {
+          "op": "has_item",
+          "item": "brass_seal"
+        }
+      ]
+    },
+    {
+      "id": "r069",
+      "from": "taxmans_ledger_room",
+      "to": "bridge_of_sighs",
+      "label": "Steal the loose ledger page",
+      "kind": "choice",
+      "effects": [
+        {
+          "op": "add_item",
+          "item": "stolen_ledger_fragment"
+        },
+        {
+          "op": "add_knowledge",
+          "fact": "debt_of_ninth_guardian"
+        }
+      ]
+    },
+    {
+      "id": "r070",
+      "from": "taxmans_ledger_room",
+      "to": "mirror_maze",
+      "label": "Use the moon-door",
+      "kind": "choice",
+      "conditions": [
+        {
+          "op": "has_item",
+          "item": "moon_key"
+        }
+      ]
+    },
+    {
+      "id": "r071",
+      "from": "bridge_of_sighs",
+      "to": "beast_pits",
+      "label": "Cross openly",
+      "kind": "choice",
+      "test": {
+        "type": "skill",
+        "stat": "skill",
+        "modifier": 0,
+        "failure_to": "ending_dead"
+      }
+    },
+    {
+      "id": "r072",
+      "from": "bridge_of_sighs",
+      "to": "black_wind_forge",
+      "label": "Find the loose stone",
+      "kind": "secret",
+      "visibility": {
+        "mode": "secret",
+        "conditions": [
+          {
+            "op": "knows",
+            "fact": "loose_stone_bridge"
+          }
+        ]
+      }
+    },
+    {
+      "id": "r073",
+      "from": "bridge_of_sighs",
+      "to": "taxmans_ledger_room",
+      "label": "Retreat from the wind",
+      "kind": "choice"
+    },
+    {
+      "id": "r074",
+      "from": "beast_pits",
+      "to": "black_wind_forge",
+      "label": "Defeat the beast",
+      "kind": "choice",
+      "test": {
+        "type": "combat",
+        "encounter_id": "beast_of_the_pits",
+        "failure_to": "ending_dead"
+      },
+      "effects": [
+        {
+          "op": "modify_stat",
+          "stat": "reputation",
+          "amount": 2
+        }
+      ]
+    },
+    {
+      "id": "r075",
+      "from": "beast_pits",
+      "to": "vault_antechamber",
+      "label": "Open the beast-master's lift",
+      "kind": "secret",
+      "conditions": [
+        {
+          "op": "has_item",
+          "item": "brass_seal"
+        },
+        {
+          "op": "has_item",
+          "item": "registrars_key"
+        }
+      ]
+    },
+    {
+      "id": "r076",
+      "from": "black_wind_forge",
+      "to": "vault_antechamber",
+      "label": "Light the hidden runes",
+      "kind": "choice",
+      "conditions": [
+        {
+          "op": "has_item",
+          "item": "rune_candle"
+        }
+      ]
+    },
+    {
+      "id": "r077",
+      "from": "black_wind_forge",
+      "to": "vault_antechamber",
+      "label": "Rekindle the forge",
+      "kind": "choice",
+      "conditions": [
+        {
+          "op": "has_item",
+          "item": "supplies_pack"
+        }
+      ],
+      "costs": [
+        {
+          "resource": "torch_turns",
+          "amount": 2
+        }
+      ],
+      "test": {
+        "type": "skill",
+        "stat": "skill",
+        "modifier": -1,
+        "failure_to": "black_wind_forge",
+        "failure_effects": [
+          {
+            "op": "modify_stat",
+            "stat": "stamina",
+            "amount": -3
+          }
+        ]
+      }
+    },
+    {
+      "id": "r078",
+      "from": "black_wind_forge",
+      "to": "black_wind_forge",
+      "label": "Take the Rune-Candle from the cold anvil",
+      "kind": "choice",
+      "effects": [
+        {
+          "op": "add_item",
+          "item": "rune_candle"
+        }
+      ],
+      "one_time": true
+    },
+    {
+      "id": "r079",
+      "from": "black_wind_forge",
+      "to": "bridge_of_sighs",
+      "label": "Return by the secret passage",
+      "kind": "choice"
+    },
+    {
+      "id": "r080",
+      "from": "vault_antechamber",
+      "to": "hall_whispered_debts",
+      "label": "Present the Brass Seal",
+      "kind": "choice",
+      "conditions": [
+        {
+          "op": "has_item",
+          "item": "brass_seal"
+        }
+      ]
+    },
+    {
+      "id": "r081",
+      "from": "vault_antechamber",
+      "to": "ossuary_market",
+      "label": "Unlock the moon-door",
+      "kind": "choice",
+      "conditions": [
+        {
+          "op": "has_item",
+          "item": "moon_key"
+        }
+      ]
+    },
+    {
+      "id": "r082",
+      "from": "vault_antechamber",
+      "to": "guardian_ninth_lock",
+      "label": "Invoke the hidden authority clause",
+      "kind": "choice",
+      "conditions": [
+        {
+          "op": "has_item",
+          "item": "rune_candle"
+        },
+        {
+          "op": "has_item",
+          "item": "stolen_ledger_fragment"
+        }
+      ],
+      "effects": [
+        {
+          "op": "add_knowledge",
+          "fact": "lawful_release_phrase"
+        }
+      ]
+    },
+    {
+      "id": "r083",
+      "from": "hall_whispered_debts",
+      "to": "ossuary_market",
+      "label": "Confess one true debt",
+      "kind": "choice",
+      "effects": [
+        {
+          "op": "modify_stat",
+          "stat": "reputation",
+          "amount": -1
+        },
+        {
+          "op": "add_knowledge",
+          "fact": "the_dead_trade_in_names"
+        }
+      ]
+    },
+    {
+      "id": "r084",
+      "from": "hall_whispered_debts",
+      "to": "guardian_ninth_lock",
+      "label": "Refuse the voices",
+      "kind": "choice",
+      "test": {
+        "type": "luck",
+        "stat": "luck",
+        "modifier": -1,
+        "failure_to": "hall_whispered_debts",
+        "failure_effects": [
+          {
+            "op": "modify_stat",
+            "stat": "stamina",
+            "amount": -2
+          }
+        ]
+      }
+    },
+    {
+      "id": "r085",
+      "from": "ossuary_market",
+      "to": "sunken_archive",
+      "label": "Trade a year of memory for archive access",
+      "kind": "choice",
+      "effects": [
+        {
+          "op": "modify_stat",
+          "stat": "luck",
+          "amount": -1
+        },
+        {
+          "op": "add_condition",
+          "condition": "missing_year"
+        }
+      ]
+    },
+    {
+      "id": "r086",
+      "from": "ossuary_market",
+      "to": "guardian_ninth_lock",
+      "label": "Purchase the guardian's true name",
+      "kind": "choice",
+      "costs": [
+        {
+          "resource": "gold",
+          "amount": 4
+        }
+      ],
+      "effects": [
+        {
+          "op": "add_knowledge",
+          "fact": "guardian_true_name"
+        }
+      ]
+    },
+    {
+      "id": "r087",
+      "from": "ossuary_market",
+      "to": "hall_whispered_debts",
+      "label": "Leave the market",
+      "kind": "choice"
+    },
+    {
+      "id": "r088",
+      "from": "sunken_archive",
+      "to": "vault_antechamber",
+      "label": "Use the ledger-indexed maintenance passage",
+      "kind": "secret",
+      "conditions": [
+        {
+          "op": "has_item",
+          "item": "stolen_ledger_fragment"
+        }
+      ],
+      "effects": [
+        {
+          "op": "add_knowledge",
+          "fact": "warden_bound_by_crown_law"
+        }
+      ]
+    },
+    {
+      "id": "r089",
+      "from": "sunken_archive",
+      "to": "guardian_ninth_lock",
+      "label": "Read the Ninth Lock decree",
+      "kind": "choice",
+      "conditions": [
+        {
+          "op": "has_item",
+          "item": "rune_candle"
+        }
+      ],
+      "effects": [
+        {
+          "op": "add_knowledge",
+          "fact": "lawful_release_phrase"
+        },
+        {
+          "op": "add_knowledge",
+          "fact": "warden_bound_by_crown_law"
+        }
+      ]
+    },
+    {
+      "id": "r090",
+      "from": "guardian_ninth_lock",
+      "to": "abyssal_stair",
+      "label": "Defeat the Guardian",
+      "kind": "choice",
+      "test": {
+        "type": "combat",
+        "encounter_id": "guardian_ninth_lock",
+        "failure_to": "ending_dead"
+      },
+      "effects": [
+        {
+          "op": "set_flag",
+          "flag": "ninth_lock_open",
+          "value": true
+        }
+      ],
+      "conditions": [
+        {
+          "op": "missing_item",
+          "item": "torchbearer_contract"
+        }
+      ]
+    },
+    {
+      "id": "r091",
+      "from": "guardian_ninth_lock",
+      "to": "abyssal_stair",
+      "label": "Release the Guardian lawfully",
+      "kind": "choice",
+      "conditions": [
+        {
+          "op": "knows",
+          "fact": "lawful_release_phrase"
+        },
+        {
+          "op": "has_item",
+          "item": "brass_seal"
+        },
+        {
+          "op": "missing_item",
+          "item": "torchbearer_contract"
+        }
+      ],
+      "effects": [
+        {
+          "op": "set_flag",
+          "flag": "ninth_lock_open",
+          "value": true
+        },
+        {
+          "op": "modify_stat",
+          "stat": "reputation",
+          "amount": 2
+        }
+      ]
+    },
+    {
+      "id": "r092",
+      "from": "guardian_ninth_lock",
+      "to": "abyssal_stair",
+      "label": "Compel the Guardian with its true name",
+      "kind": "choice",
+      "conditions": [
+        {
+          "op": "knows",
+          "fact": "guardian_true_name"
+        },
+        {
+          "op": "missing_item",
+          "item": "torchbearer_contract"
+        }
+      ],
+      "test": {
+        "type": "skill",
+        "stat": "skill",
+        "modifier": 1,
+        "failure_to": "guardian_ninth_lock",
+        "failure_effects": [
+          {
+            "op": "modify_stat",
+            "stat": "stamina",
+            "amount": -4
+          }
+        ]
+      },
+      "effects": [
+        {
+          "op": "set_flag",
+          "flag": "ninth_lock_open",
+          "value": true
+        }
+      ]
+    },
+    {
+      "id": "r093",
+      "from": "abyssal_stair",
+      "to": "gilded_maw",
+      "label": "Descend without looking at the lower steps",
+      "kind": "choice",
+      "test": {
+        "type": "luck",
+        "stat": "luck",
+        "modifier": 0,
+        "failure_to": "abyssal_stair",
+        "failure_effects": [
+          {
+            "op": "modify_stat",
+            "stat": "stamina",
+            "amount": -3
+          }
+        ]
+      }
+    },
+    {
+      "id": "r094",
+      "from": "abyssal_stair",
+      "to": "sunken_archive",
+      "label": "Take the drowned side stair",
+      "kind": "secret",
+      "conditions": [
+        {
+          "op": "has_item",
+          "item": "dust_saint_token"
+        }
+      ]
+    },
+    {
+      "id": "r095",
+      "from": "gilded_maw",
+      "to": "warden_below",
+      "label": "Pass through the trap-lined throat",
+      "kind": "choice",
+      "test": {
+        "type": "skill",
+        "stat": "skill",
+        "modifier": -1,
+        "failure_to": "ending_dead",
+        "failure_effects": [
+          {
+            "op": "modify_stat",
+            "stat": "stamina",
+            "amount": -5
+          }
+        ]
+      }
+    },
+    {
+      "id": "r096",
+      "from": "gilded_maw",
+      "to": "warden_below",
+      "label": "Reveal the invisible safe path",
+      "kind": "choice",
+      "conditions": [
+        {
+          "op": "has_item",
+          "item": "rune_candle"
+        }
+      ],
+      "effects": [
+        {
+          "op": "modify_resource",
+          "resource": "torch_turns",
+          "amount": -1
+        }
+      ]
+    },
+    {
+      "id": "r097",
+      "from": "warden_below",
+      "to": "vault_mythic_treasure",
+      "label": "Defeat the Warden",
+      "kind": "choice",
+      "test": {
+        "type": "combat",
+        "encounter_id": "warden_below",
+        "failure_to": "ending_dead"
+      }
+    },
+    {
+      "id": "r098",
+      "from": "warden_below",
+      "to": "vault_mythic_treasure",
+      "label": "Command the Warden to stand aside",
+      "kind": "choice",
+      "conditions": [
+        {
+          "op": "knows",
+          "fact": "warden_bound_by_crown_law"
+        },
+        {
+          "op": "has_item",
+          "item": "brass_seal"
+        },
+        {
+          "op": "stat_at_least",
+          "stat": "reputation",
+          "value": 1
+        },
+        {
+          "op": "flag_is",
+          "flag": "registrar_alerted",
+          "value": false
+        }
+      ],
+      "effects": [
+        {
+          "op": "modify_stat",
+          "stat": "reputation",
+          "amount": 2
+        }
+      ]
+    },
+    {
+      "id": "r099",
+      "from": "warden_below",
+      "to": "vault_mythic_treasure",
+      "label": "Present the debt of the Ninth Guardian",
+      "kind": "choice",
+      "conditions": [
+        {
+          "op": "has_item",
+          "item": "stolen_ledger_fragment"
+        },
+        {
+          "op": "knows",
+          "fact": "debt_of_ninth_guardian"
+        }
+      ]
+    },
+    {
+      "id": "r100",
+      "from": "vault_mythic_treasure",
+      "to": "crown_ember_salt",
+      "label": "Approach the Crown",
+      "kind": "choice"
+    },
+    {
+      "id": "r101",
+      "from": "crown_ember_salt",
+      "to": "ending_escape_riches",
+      "label": "Take the Crown but refuse its oath",
+      "kind": "choice",
+      "test": {
+        "type": "luck",
+        "stat": "luck",
+        "modifier": -2,
+        "failure_to": "ending_cursed_possession",
+        "failure_effects": [
+          {
+            "op": "set_flag",
+            "flag": "crown_attunement",
+            "value": "bound"
+          },
+          {
+            "op": "set_flag",
+            "flag": "crown_claimed",
+            "value": true
+          }
+        ]
+      },
+      "effects": [
+        {
+          "op": "add_item",
+          "item": "crown_of_ember_salt"
+        },
+        {
+          "op": "set_flag",
+          "flag": "crown_attunement",
+          "value": "resisted"
+        },
+        {
+          "op": "set_flag",
+          "flag": "crown_claimed",
+          "value": true
+        }
+      ]
+    },
+    {
+      "id": "r102",
+      "from": "crown_ember_salt",
+      "to": "ending_dungeon_lordship",
+      "label": "Accept the Crown's oath and claim the ruins",
+      "kind": "choice",
+      "conditions": [
+        {
+          "op": "has_item",
+          "item": "brass_seal"
+        },
+        {
+          "op": "stat_at_least",
+          "stat": "reputation",
+          "value": 2
+        }
+      ],
+      "effects": [
+        {
+          "op": "add_item",
+          "item": "crown_of_ember_salt"
+        },
+        {
+          "op": "set_flag",
+          "flag": "crown_attunement",
+          "value": "mastered"
+        },
+        {
+          "op": "set_flag",
+          "flag": "crown_claimed",
+          "value": true
+        }
+      ]
+    },
+    {
+      "id": "r103",
+      "from": "crown_ember_salt",
+      "to": "ending_cursed_possession",
+      "label": "Place the Crown upon your head immediately",
+      "kind": "choice",
+      "effects": [
+        {
+          "op": "add_item",
+          "item": "crown_of_ember_salt"
+        },
+        {
+          "op": "set_flag",
+          "flag": "crown_attunement",
+          "value": "bound"
+        },
+        {
+          "op": "set_flag",
+          "flag": "crown_claimed",
+          "value": true
+        }
+      ]
+    },
+    {
+      "id": "r104",
+      "from": "bridge_of_sighs",
+      "to": "beast_pits",
+      "label": "Let Pell secure the crossing",
+      "kind": "choice",
+      "conditions": [
+        {
+          "op": "has_item",
+          "item": "torchbearer_contract"
+        }
+      ],
+      "effects": [
+        {
+          "op": "emit_event",
+          "event": "follower.assisted",
+          "data": {
+            "follower": "Pell Vane",
+            "challenge": "bridge_of_sighs"
+          }
+        }
+      ],
+      "one_time": true
+    },
+    {
+      "id": "r107",
+      "from": "guardian_ninth_lock",
+      "to": "guardian_ninth_lock",
+      "label": "Release Pell from his contract before the Ninth Lock",
+      "kind": "choice",
+      "conditions": [
+        {
+          "op": "has_item",
+          "item": "torchbearer_contract"
+        }
+      ],
+      "effects": [
+        {
+          "op": "remove_item",
+          "item": "torchbearer_contract"
+        },
+        {
+          "op": "add_knowledge",
+          "fact": "pell_waits_above_ninth_lock"
+        },
+        {
+          "op": "emit_event",
+          "event": "follower.departed",
+          "data": {
+            "follower": "Pell Vane",
+            "reason": "refused_to_cross_ninth_lock"
+          }
+        }
+      ]
+    },
+    {
+      "id": "r105",
+      "from": "rat_king_warren",
+      "to": "chained_well",
+      "label": "Cross the cleared warren to the Chained Well",
+      "kind": "choice",
+      "conditions": [
+        {
+          "op": "flag_is",
+          "flag": "rat_king_dead",
+          "value": true
+        }
+      ]
+    },
+    {
+      "id": "r106",
+      "from": "rat_king_warren",
+      "to": "mapmakers_bones",
+      "label": "Search the abandoned rat tunnels",
+      "kind": "choice",
+      "conditions": [
+        {
+          "op": "flag_is",
+          "flag": "rat_king_dead",
+          "value": true
+        }
+      ],
+      "effects": [
+        {
+          "op": "add_knowledge",
+          "fact": "rat_tunnels"
+        }
+      ]
+    },
+    {
+      "id": "r108",
+      "from": "warden_below",
+      "to": "vault_mythic_treasure",
+      "label": "Quash the active arrest writ with the Registrar's key",
+      "kind": "choice",
+      "conditions": [
+        {
+          "op": "flag_is",
+          "flag": "registrar_alerted",
+          "value": true
+        },
+        {
+          "op": "has_item",
+          "item": "registrars_key"
+        },
+        {
+          "op": "has_item",
+          "item": "brass_seal"
+        },
+        {
+          "op": "has_item",
+          "item": "rune_candle"
+        },
+        {
+          "op": "knows",
+          "fact": "warden_bound_by_crown_law"
+        }
+      ],
+      "effects": [
+        {
+          "op": "modify_stat",
+          "stat": "reputation",
+          "amount": 1
+        },
+        {
+          "op": "emit_event",
+          "event": "registrar_alert_overridden",
+          "data": {
+            "authority": "registrars_key",
+            "witness": "warden_below"
+          }
+        }
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "subject": "barrowgate_square",
+      "predicate": "connects_to",
+      "object": "bent_nail_inn"
+    },
+    {
+      "subject": "barrowgate_square",
+      "predicate": "connects_to",
+      "object": "market_last_chances"
+    },
+    {
+      "subject": "barrowgate_square",
+      "predicate": "connects_to",
+      "object": "torchbearers_yard"
+    },
+    {
+      "subject": "barrowgate_square",
+      "predicate": "connects_to",
+      "object": "temple_cinders"
+    },
+    {
+      "subject": "barrowgate_square",
+      "predicate": "connects_to",
+      "object": "licensing_hall"
+    },
+    {
+      "subject": "barrowgate_square",
+      "predicate": "connects_to",
+      "object": "forgery_cellar"
+    },
+    {
+      "subject": "main_stair",
+      "predicate": "is_entrance_to",
+      "object": "upper_dungeon"
+    },
+    {
+      "subject": "hidden_shaft",
+      "predicate": "is_entrance_to",
+      "object": "upper_dungeon"
+    },
+    {
+      "subject": "flooded_tunnel",
+      "predicate": "is_entrance_to",
+      "object": "upper_dungeon"
+    },
+    {
+      "subject": "licensing_hall",
+      "predicate": "issues",
+      "object": "standard_delver_licence"
+    },
+    {
+      "subject": "forgery_cellar",
+      "predicate": "produces",
+      "object": "counterfeit_permit"
+    },
+    {
+      "subject": "iron_registrar",
+      "predicate": "inspects",
+      "object": "standard_delver_licence"
+    },
+    {
+      "subject": "iron_registrar",
+      "predicate": "detects",
+      "object": "counterfeit_permit"
+    },
+    {
+      "subject": "brass_seal",
+      "predicate": "opens",
+      "object": "chained_well"
+    },
+    {
+      "subject": "brass_seal",
+      "predicate": "authorises",
+      "object": "guardian_ninth_lock"
+    },
+    {
+      "subject": "moon_key",
+      "predicate": "opens",
+      "object": "moon_locked_routes"
+    },
+    {
+      "subject": "rune_candle",
+      "predicate": "reveals",
+      "object": "hidden_truths"
+    },
+    {
+      "subject": "stolen_ledger_fragment",
+      "predicate": "indexes",
+      "object": "sunken_archive"
+    },
+    {
+      "subject": "stolen_ledger_fragment",
+      "predicate": "records_debt_of",
+      "object": "guardian_ninth_lock"
+    },
+    {
+      "subject": "guardian_ninth_lock",
+      "predicate": "guards",
+      "object": "abyssal_stair"
+    },
+    {
+      "subject": "warden_below",
+      "predicate": "guards",
+      "object": "vault_mythic_treasure"
+    },
+    {
+      "subject": "vault_mythic_treasure",
+      "predicate": "contains",
+      "object": "crown_of_ember_salt"
+    },
+    {
+      "subject": "crown_of_ember_salt",
+      "predicate": "can_cause",
+      "object": "ending_escape_riches"
+    },
+    {
+      "subject": "crown_of_ember_salt",
+      "predicate": "can_cause",
+      "object": "ending_cursed_possession"
+    },
+    {
+      "subject": "crown_of_ember_salt",
+      "predicate": "can_cause",
+      "object": "ending_dungeon_lordship"
+    },
+    {
+      "subject": "town",
+      "predicate": "monetises_access_to",
+      "object": "rust-wind-hills-dungeon"
+    },
+    {
+      "subject": "standard_delver_licence",
+      "predicate": "reduces_risk_at",
+      "object": "gate_of_tithes"
+    },
+    {
+      "subject": "counterfeit_permit",
+      "predicate": "increases_risk_at",
+      "object": "iron_registrar"
+    },
+    {
+      "subject": "dust_saint_token",
+      "predicate": "reveals",
+      "object": "secret_routes"
+    },
+    {
+      "subject": "ossuary_market",
+      "predicate": "trades_in",
+      "object": "memories"
+    },
+    {
+      "subject": "hall_whispered_debts",
+      "predicate": "tests",
+      "object": "unpaid_promises"
+    },
+    {
+      "subject": "torchbearer_contract",
+      "predicate": "assists_at",
+      "object": "bridge_of_sighs"
+    },
+    {
+      "subject": "torchbearer_contract",
+      "predicate": "terminates_at",
+      "object": "guardian_ninth_lock"
+    },
+    {
+      "subject": "rat_king_dead",
+      "predicate": "changes_available_routes_at",
+      "object": "rat_king_warren"
+    },
+    {
+      "subject": "registrar_alerted",
+      "predicate": "blocks_peaceful_resolution_at",
+      "object": "iron_registrar"
+    },
+    {
+      "subject": "registrar_alerted",
+      "predicate": "changes_authority_check_at",
+      "object": "warden_below"
+    }
+  ],
+  "validation": {
+    "status": "passed",
+    "node_count": 47,
+    "route_count": 108,
+    "relation_count": 36,
+    "reachable_node_count": 47,
+    "mechanical_checks": {
+      "torchbearer_contract_checked_by": [
+        "r090",
+        "r091",
+        "r092",
+        "r104",
+        "r107"
+      ],
+      "registrar_alerted_checked_by": [
+        "r054",
+        "r055",
+        "r056",
+        "r098",
+        "r108"
+      ],
+      "rat_king_dead_checked_by": [
+        "r046",
+        "r047",
+        "r105",
+        "r106"
+      ]
+    },
+    "errors": []
+  }
+}
