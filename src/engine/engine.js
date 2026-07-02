@@ -91,7 +91,13 @@ function createEngine({ adventure, store, now = () => new Date().toISOString(), 
 
   function publicNode(node) {
     const out = { id: node.id, title: node.title, summary: node.summary };
-    if ("read_aloud" in node) out.read_aloud = node.read_aloud;
+    // Explicit read_aloud (hand-authored, only on a handful of nodes) wins
+    // where present; narrative.arrival_text (added in content revision
+    // 0.2.0, present on every node) fills in everywhere else, so a caller
+    // always gets proper arrival prose to read out rather than falling
+    // back to summary.
+    const readAloud = node.read_aloud ?? node.narrative?.arrival_text;
+    if (readAloud) out.read_aloud = readAloud;
     return out;
   }
 

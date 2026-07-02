@@ -50,6 +50,30 @@ test("new_run seeds state, writes the run doc, and rejects unknown adventures", 
   await rejects(engine.newRun("some-other-dungeon"), "unknown_adventure");
 });
 
+test("read_aloud falls back to narrative.arrival_text, but an explicit read_aloud wins", async () => {
+  const { engine, adventure } = makeEngine();
+  const { run_id } = await engine.newRun(ADVENTURE_ID);
+
+  // barrowgate_square (entry node) has both fields, deliberately different —
+  // the explicit one must win.
+  const entryNode = adventure.doc.nodes.find((n) => n.id === "barrowgate_square");
+  assert.ok(entryNode.read_aloud);
+  assert.notEqual(entryNode.read_aloud, entryNode.narrative.arrival_text);
+  let view = await engine.getNode(run_id);
+  assert.equal(view.node.read_aloud, entryNode.read_aloud);
+
+  // bent_nail_inn has no explicit read_aloud, only narrative.arrival_text —
+  // that must be exposed as read_aloud rather than left off entirely.
+  const innNode = adventure.doc.nodes.find((n) => n.id === "bent_nail_inn");
+  assert.ok(!("read_aloud" in innNode));
+  assert.ok(innNode.narrative.arrival_text);
+  const step = await engine.walk(run_id, "r001", 0);
+  assert.equal(step.node.id, "bent_nail_inn");
+  assert.equal(step.node.read_aloud, innNode.narrative.arrival_text);
+  view = await engine.getNode(run_id);
+  assert.equal(view.node.read_aloud, innNode.narrative.arrival_text);
+});
+
 test("get_node filters routes on visibility, legality, affordability and consumption", async () => {
   const { engine, store } = makeEngine();
   const { run_id } = await engine.newRun(ADVENTURE_ID);

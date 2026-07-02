@@ -137,14 +137,18 @@ revision (verified diff, not just a version bump). What's new is a
 and region, plus a top-level `semantic_layer` block (world history, factions,
 named characters, motifs, dramatic threads, a rumour/knowledge catalogue) —
 material for whatever's narrating the game, not consumed by the engine or
-validated beyond "the file parses." **None of it is currently surfaced by any
-tool** — `get_node`/`walk`'s public node and route projections only carry
-`id`/`title`/`summary`/`read_aloud` and `id`/`label`/`costs`/`test`
-respectively, so today's callers see no difference in tool output versus
-0.1.1 beyond the changed `adventure_hash` (which, per spec, invalidates
-existing runs on any content change, formatting-only or not). Surfacing the
-narrative layer would be a deliberate follow-up, not something this update
-did silently.
+validated beyond "the file parses."
+
+One piece of it is surfaced: `node.read_aloud` in `get_node`/`walk` responses
+falls back to `node.narrative.arrival_text` when a node has no explicit
+`read_aloud` (only `barrowgate_square` has ever had one, in both 0.1.1 and
+0.2.0 — the other 46 nodes previously returned no `read_aloud` at all). Since
+0.2.0 gives every node `narrative.arrival_text`, every node now gets proper
+arrival prose; an explicit `read_aloud` still wins where one exists, since
+it's deliberately different, hand-authored text. The rest of `narrative`
+(`local_history`, `present_tension`, `hidden_truth`, `sensory_details`,
+`semantic_refs`, `narrative_hooks`) and the whole `semantic_layer` block
+remain unexposed — a further follow-up, not something this covers.
 
 Random-playthrough simulation (300 runs, rerun against 0.2.0) surfaces the
 same two *content* soft-locks the runtime deliberately does not paper over,
