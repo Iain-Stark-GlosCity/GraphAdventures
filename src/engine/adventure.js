@@ -31,6 +31,7 @@ function loadAdventure(filePath) {
     routesById: new Map(doc.routes.map((r) => [r.id, r])),
     routesByFrom: new Map(),
     encountersById: new Map(doc.encounters.map((e) => [e.id, e])),
+    itemsById: new Map(doc.items.map((i) => [i.id, i])),
   };
   for (const route of doc.routes) {
     if (!adventure.routesByFrom.has(route.from)) adventure.routesByFrom.set(route.from, []);

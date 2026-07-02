@@ -50,28 +50,60 @@ test("new_run seeds state, writes the run doc, and rejects unknown adventures", 
   await rejects(engine.newRun("some-other-dungeon"), "unknown_adventure");
 });
 
-test("read_aloud falls back to narrative.arrival_text, but an explicit read_aloud wins", async () => {
+test("an explicit read_aloud wins over narrative.arrival_text", async () => {
   const { engine, adventure } = makeEngine();
-  const { run_id } = await engine.newRun(ADVENTURE_ID);
-
   // barrowgate_square (entry node) has both fields, deliberately different —
-  // the explicit one must win.
+  // the explicit one must win. True as of content revision 0.2.1, where
+  // every node has an explicit read_aloud; this pins that precedence.
   const entryNode = adventure.doc.nodes.find((n) => n.id === "barrowgate_square");
   assert.ok(entryNode.read_aloud);
   assert.notEqual(entryNode.read_aloud, entryNode.narrative.arrival_text);
-  let view = await engine.getNode(run_id);
-  assert.equal(view.node.read_aloud, entryNode.read_aloud);
+  const { node } = await engine.newRun(ADVENTURE_ID);
+  assert.equal(node.read_aloud, entryNode.read_aloud);
+});
 
-  // bent_nail_inn has no explicit read_aloud, only narrative.arrival_text —
-  // that must be exposed as read_aloud rather than left off entirely.
+test("read_aloud_revisit is passed through raw, unswitched", async () => {
+  const { engine, adventure } = makeEngine();
+  const entryNode = adventure.doc.nodes.find((n) => n.id === "barrowgate_square");
+  assert.ok(entryNode.read_aloud_revisit);
+  const { node } = await engine.newRun(ADVENTURE_ID);
+  assert.equal(node.read_aloud_revisit, entryNode.read_aloud_revisit);
+});
+
+test("read_aloud falls back to narrative.arrival_text when a node has none of its own", async () => {
+  // Content currently gives every node an explicit read_aloud, so this
+  // exercises the fallback directly against a synthetic node rather than
+  // depending on the asset happening to have a gap — the guarantee is
+  // about the engine's behaviour, not today's content.
+  const { engine, adventure } = makeEngine();
+  const nodeId = "bent_nail_inn";
+  const original = adventure.nodesById.get(nodeId);
+  const synthetic = { ...original, narrative: { ...original.narrative, arrival_text: "SYNTHETIC ARRIVAL" } };
+  delete synthetic.read_aloud;
+  adventure.nodesById.set(nodeId, synthetic);
+  try {
+    const { run_id } = await engine.newRun(ADVENTURE_ID);
+    const step = await engine.walk(run_id, "r001", 0);
+    assert.equal(step.node.id, nodeId);
+    assert.equal(step.node.read_aloud, "SYNTHETIC ARRIVAL");
+  } finally {
+    adventure.nodesById.set(nodeId, original);
+  }
+});
+
+test("get_node/walk expose the rest of node.narrative, minus the arrival_text folded into read_aloud", async () => {
+  const { engine, adventure } = makeEngine();
   const innNode = adventure.doc.nodes.find((n) => n.id === "bent_nail_inn");
-  assert.ok(!("read_aloud" in innNode));
-  assert.ok(innNode.narrative.arrival_text);
+  const { run_id } = await engine.newRun(ADVENTURE_ID);
   const step = await engine.walk(run_id, "r001", 0);
-  assert.equal(step.node.id, "bent_nail_inn");
-  assert.equal(step.node.read_aloud, innNode.narrative.arrival_text);
-  view = await engine.getNode(run_id);
-  assert.equal(view.node.read_aloud, innNode.narrative.arrival_text);
+  assert.ok(!("arrival_text" in step.node.narrative));
+  assert.equal(step.node.narrative.local_history, innNode.narrative.local_history);
+  assert.equal(step.node.narrative.hidden_truth, innNode.narrative.hidden_truth);
+  assert.deepEqual(step.node.narrative.sensory_details, innNode.narrative.sensory_details);
+  assert.deepEqual(step.node.narrative.semantic_refs, innNode.narrative.semantic_refs);
+
+  const view = await engine.getNode(run_id);
+  assert.deepEqual(view.node.narrative, step.node.narrative);
 });
 
 test("get_node filters routes on visibility, legality, affordability and consumption", async () => {
@@ -84,12 +116,15 @@ test("get_node filters routes on visibility, legality, affordability and consump
   assert.deepEqual(ids, ["r001", "r002", "r003", "r004", "r005", "r007"]);
   // Public route objects never leak failure or visibility details.
   for (const r of view.available_routes) {
-    assert.deepEqual(Object.keys(r).sort(), ["costs", "id", "label", "test"]);
+    assert.deepEqual(Object.keys(r).sort(), ["costs", "id", "label", "narrative", "test"]);
     if (r.test) {
       assert.ok(!("failure_to" in r.test));
       assert.ok(!("failure_effects" in r.test));
     }
   }
+  // Route narrative is passed through (player_intent, dramatic_role, etc.).
+  const r001 = view.available_routes.find((r) => r.id === "r001");
+  assert.equal(typeof r001.narrative.player_intent, "string");
   // State projection matches the spec sample: no current_node/consumed_routes.
   assert.deepEqual(
     Object.keys(view.state).sort(),
@@ -191,7 +226,7 @@ test("steps 5-9 all collapse into the same generic route_unavailable", async () 
 });
 
 test("costs are deducted and recorded as negative amounts; effects apply", async () => {
-  const { engine, store } = makeEngine();
+  const { engine, store, adventure } = makeEngine();
   const { run_id } = await engine.newRun(ADVENTURE_ID);
   stored(store, run_id).state.current_node = "licensing_hall";
 
@@ -201,11 +236,26 @@ test("costs are deducted and recorded as negative amounts; effects apply", async
   assert.ok(step.state_after.inventory.includes("standard_delver_licence"));
   assert.equal(step.state_after.flags.permit_status, "licensed");
   assert.equal(step.state_after.stats.reputation, 1);
+
+  // add_item is enriched with the item's name/description/narrative_semantics
+  // on the live response; the other effect records are untouched.
+  const licence = adventure.doc.items.find((i) => i.id === "standard_delver_licence");
   assert.deepEqual(step.effects_applied, [
-    { op: "add_item", item: "standard_delver_licence" },
+    {
+      op: "add_item",
+      item: "standard_delver_licence",
+      name: licence.name,
+      description: licence.description,
+      narrative: licence.narrative_semantics,
+    },
     { op: "set_flag", flag: "permit_status", value: "licensed" },
     { op: "modify_stat", stat: "reputation", amount: 1 },
   ]);
+
+  // But what's actually persisted stays lean — get_log never sees the
+  // enrichment, only the { op, item } shape the spec documents.
+  const log = await engine.getLog(run_id);
+  assert.deepEqual(log.log[0].effects_applied[0], { op: "add_item", item: "standard_delver_licence" });
 });
 
 test("walk's node/available_routes match a follow-up get_node, with no extra storage read", async () => {
@@ -316,17 +366,35 @@ test("r063 is typed skill but tests luck: stat is read, never inferred from type
   assert.equal(step.state_after.resources.torch_turns, 10);
 });
 
+test("a combat route names its encounter before it's engaged", async () => {
+  const { engine, store, adventure } = makeEngine();
+  const { run_id } = await engine.newRun(ADVENTURE_ID);
+  stored(store, run_id).state.current_node = "goblin_toll_path";
+
+  const view = await engine.getNode(run_id);
+  const r028 = view.available_routes.find((r) => r.id === "r028");
+  const encounter = adventure.doc.encounters.find((e) => e.id === "goblin_toll_collectors");
+  assert.equal(r028.test.encounter_name, encounter.name);
+  assert.equal(r028.test.encounter_kind, encounter.kind);
+  assert.ok(!("skill" in r028.test) && !("stamina" in r028.test)); // no combat-math leak
+});
+
 test("combat: rounds run until a side drops; victory takes route.to", async () => {
   // r028 vs goblin_toll_collectors (skill 6, stamina 7). Player rolls 6+6,
   // enemy 1+1 every round: 20 vs 8, enemy loses 2 per round -> 4 rounds.
   const faces = [6, 6, 1, 1, 6, 6, 1, 1, 6, 6, 1, 1, 6, 6, 1, 1];
-  const { engine, store } = makeEngine({ faces });
+  const { engine, store, adventure } = makeEngine({ faces });
   const { run_id } = await engine.newRun(ADVENTURE_ID);
   stored(store, run_id).state.current_node = "goblin_toll_path";
 
   const step = await engine.walk(run_id, "r028", 0);
+  const encounter = adventure.doc.encounters.find((e) => e.id === "goblin_toll_collectors");
   assert.equal(step.resolution.type, "combat");
   assert.equal(step.resolution.encounter_id, "goblin_toll_collectors");
+  assert.equal(step.resolution.encounter_name, encounter.name);
+  assert.equal(step.resolution.encounter_kind, encounter.kind);
+  assert.equal(step.resolution.special, encounter.special);
+  assert.deepEqual(step.resolution.narrative, encounter.narrative_semantics);
   assert.equal(step.resolution.success, true);
   assert.equal(step.resolution.rounds.length, 4);
   assert.deepEqual(step.resolution.rounds[0], {
