@@ -49,6 +49,14 @@ az storage container create \
   --connection-string "$CONNECTION_STRING" \
   --output none
 
+# Holds the immutable, SHA-named deployment zips the GitHub Actions workflow
+# points WEBSITE_RUN_FROM_PACKAGE at (read-only run-from-package deploys).
+echo "==> Blob container function-releases"
+az storage container create \
+  --name function-releases \
+  --connection-string "$CONNECTION_STRING" \
+  --output none
+
 echo "==> Function app ${FUNCTION_APP} (Windows consumption, Node 24, Functions v4)"
 # --storage-account also sets AzureWebJobsStorage in the app settings.
 # If your az version doesn't accept --runtime-version 24 yet, use 22 here;
@@ -80,17 +88,24 @@ cat <<EOF
 
 Provisioned:
   resource group:   $RESOURCE_GROUP
-  storage account:  $STORAGE_ACCOUNT (container: adventure-runs)
+  storage account:  $STORAGE_ACCOUNT (containers: adventure-runs, function-releases)
   function app:     $FUNCTION_APP
 
 Next steps:
-  1. Deploy the app:
+  1. Wire up CI deployment (one-time):
+       GITHUB_REPO=<owner>/<repo> RESOURCE_GROUP=$RESOURCE_GROUP \\
+       STORAGE_ACCOUNT=$STORAGE_ACCOUNT FUNCTION_APP=$FUNCTION_APP \\
+         ./scripts/setup-github-oidc.sh
+     then add the printed values as GitHub Actions secrets. Every push to
+     main then deploys via WEBSITE_RUN_FROM_PACKAGE — a read-only package
+     mounted straight from function-releases, never unpacked onto disk.
+  2. Or deploy once by hand while testing:
        func azure functionapp publish $FUNCTION_APP
-  2. Fetch the MCP system key (exists only after a deployment that includes
+  3. Fetch the MCP system key (exists only after a deployment that includes
      the MCP trigger):
        az functionapp keys list --name $FUNCTION_APP --resource-group $RESOURCE_GROUP \\
          --query systemKeys.mcp_extension --output tsv
-  3. Point an MCP client at:
+  4. Point an MCP client at:
        https://$FUNCTION_APP.azurewebsites.net/runtime/webhooks/mcp
      with header  x-functions-key: <mcp_extension key>
      (or /runtime/webhooks/mcp/sse for the SSE transport).
