@@ -129,12 +129,26 @@ mid-walk on bad content.
 
 ## Content notes
 
-The shipped graph is content revision 0.1.1, which already wires up the
-torchbearer contract and the previously dangling flags called out in the spec's
-"known content bugs" section.
+The shipped graph is content revision 0.2.0 — a purely additive narrative
+enrichment over 0.1.1. Same 47 nodes, 108 routes, entry node and terminals;
+every condition, effect, test and cost is byte-identical to the previous
+revision (verified diff, not just a version bump). What's new is a
+`narrative`/`narrative_semantics` field on every node, route, item, encounter
+and region, plus a top-level `semantic_layer` block (world history, factions,
+named characters, motifs, dramatic threads, a rumour/knowledge catalogue) —
+material for whatever's narrating the game, not consumed by the engine or
+validated beyond "the file parses." **None of it is currently surfaced by any
+tool** — `get_node`/`walk`'s public node and route projections only carry
+`id`/`title`/`summary`/`read_aloud` and `id`/`label`/`costs`/`test`
+respectively, so today's callers see no difference in tool output versus
+0.1.1 beyond the changed `adventure_hash` (which, per spec, invalidates
+existing runs on any content change, formatting-only or not). Surfacing the
+narrative layer would be a deliberate follow-up, not something this update
+did silently.
 
-Random-playthrough simulation (300 runs) surfaces two *content* soft-locks the
-runtime deliberately does not paper over: a player can reach `vault_antechamber`
-(all three exits need items) or `gate_of_tithes` (all four exits need a permit,
-a supplies pack, or 3 gold) without the means to leave. Per the spec, content
-fixes belong in the JSON, not the engine.
+Random-playthrough simulation (300 runs, rerun against 0.2.0) surfaces the
+same two *content* soft-locks the runtime deliberately does not paper over,
+unchanged from 0.1.1: a player can reach `vault_antechamber` (all three exits
+need items) or `gate_of_tithes` (all four exits need a permit, a supplies
+pack, or 3 gold) without the means to leave. Per the spec, content fixes
+belong in the JSON, not the engine.
