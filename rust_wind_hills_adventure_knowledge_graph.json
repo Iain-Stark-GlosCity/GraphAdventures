@@ -1,7 +1,7 @@
 {
   "schema": {
     "name": "adventure-knowledge-graph",
-    "version": "0.2.1",
+    "version": "0.2.2",
     "description": "A stateful, directed knowledge graph for a classic gamebook-style dungeon adventure. The graph separates executable traversal rules from a narrative-semantic layer containing world truths, rumours, characters, factions, motifs, dramatic threads, knowledge definitions and node-level story affordances."
   },
   "graph": {
@@ -35,16 +35,16 @@
       "The graph contains loops, shortcuts, optional encounters, delayed consequences and several endings."
     ],
     "content_revision": {
-      "version": "0.2.1",
-      "summary": "Restores runtime-facing read_aloud content to every playable node. The richer semantic narrative from 0.2.0 is retained unchanged.",
-      "compatibility": "Top-level node.read_aloud remains a string because that is the field consumed by the current Rust Wind Hills runner.",
+      "version": "0.2.2",
+      "summary": "Adds concise player-facing stakes and flavour hooks to every route while preserving the short mechanical labels used for choice selection.",
+      "compatibility": "Additive route-content update. Existing labels, nodes, mechanics, conditions and effects are unchanged.",
       "node_count_changed": false,
       "route_count_changed": false,
       "fixes": [
-        "Adds top-level read_aloud text to all 47 nodes.",
-        "Preserves node.narrative.arrival_text and the wider semantic layer.",
-        "Adds read_aloud_revisit text for future runtime support.",
-        "Adds validation for runtime-facing narration coverage."
+        "Adds route.stakes to all 108 routes.",
+        "Adds route.hook to all 108 routes.",
+        "Keeps route.label short and mechanically stable.",
+        "Defines a runtime route-presentation contract."
       ]
     },
     "narrative_premise": "Barrowgate treats the dungeon beneath the Rust Wind Hills as a regulated natural resource. The joke is that the bureaucracy works: the old dungeon recognises permits, seals, debts and claims of office because it was never merely a tomb. It was the Ninth Treasury of a fallen kingdom, built to bind a crown that turns promises into law.",
@@ -2273,8 +2273,15 @@
         "player_intent": "Seek rumours at the Bent Nail Inn",
         "dramatic_role": "Express player preference or state through movement and consequence.",
         "continuity_refs": [],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Spend time instead of gold to uncover leads, lies and warnings before committing to the delve.",
+      "hook": "The Bent Nail sells no certainty, but somebody there has survived long enough to be usefully afraid."
     },
     {
       "id": "r002",
@@ -2286,8 +2293,15 @@
         "player_intent": "Buy equipment",
         "dramatic_role": "Express player preference or state through movement and consequence.",
         "continuity_refs": [],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Trade scarce gold for equipment that opens safer routes and extends your time underground.",
+      "hook": "Every item on the stalls has already failed to save someone else."
     },
     {
       "id": "r003",
@@ -2299,8 +2313,15 @@
         "player_intent": "Hire a torchbearer",
         "dramatic_role": "Express player preference or state through movement and consequence.",
         "continuity_refs": [],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "A hired torchbearer brings light and expertise, but also another life for your decisions to endanger.",
+      "hook": "The workers in the yard are judging you more carefully than you are judging them."
     },
     {
       "id": "r004",
@@ -2312,8 +2333,15 @@
         "player_intent": "Seek a blessing",
         "dramatic_role": "Express player preference or state through movement and consequence.",
         "continuity_refs": [],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Spend gold for luck and a ritual that may matter when the dungeon begins testing identity.",
+      "hook": "The priests offer no protection from death—only a better chance of remaining yourself."
     },
     {
       "id": "r005",
@@ -2325,8 +2353,15 @@
         "player_intent": "Apply for a delver licence",
         "dramatic_role": "Express player preference or state through movement and consequence.",
         "continuity_refs": [],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Pay for recognised authority that can ease checkpoints, while accepting Barrowgate's rules and costs.",
+      "hook": "The form is absurd until the ancient seal on the desk grows warm."
     },
     {
       "id": "r006",
@@ -2347,8 +2382,15 @@
         "player_intent": "Follow the red-quill sign",
         "dramatic_role": "Reward curiosity, prior knowledge or resistance to the official route.",
         "continuity_refs": [],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Seek cheaper illicit access and risk beginning the expedition under an adverse identity.",
+      "hook": "A red feather beneath a windowsill points towards paperwork the council never issued."
     },
     {
       "id": "r007",
@@ -2367,8 +2409,15 @@
         "player_intent": "Leave for the hills",
         "dramatic_role": "Express player preference or state through movement and consequence.",
         "continuity_refs": [],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "End your preparations and carry every unmade purchase and unanswered question into the hills.",
+      "hook": "Beyond the last signpost, Barrowgate can still charge you—but it can no longer help."
     },
     {
       "id": "r008",
@@ -2398,8 +2447,15 @@
           "rumour_ninth_lock",
           "rumour_red_quill"
         ],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Return with rumours that may reveal secret routes and hidden motives, but no material advantage.",
+      "hook": "The inn's stories follow you into daylight and become less funny there."
     },
     {
       "id": "r009",
@@ -2435,8 +2491,15 @@
         "continuity_refs": [
           "supplies_pack"
         ],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Lose five gold now to gain rope, provisions and enough light to survive longer below.",
+      "hook": "The merchant knots the pack as though tying it to a corpse."
     },
     {
       "id": "r010",
@@ -2448,8 +2511,15 @@
         "player_intent": "Buy nothing and return",
         "dramatic_role": "Express player preference or state through movement and consequence.",
         "continuity_refs": [],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Keep your gold, but enter the hills without the equipment needed for several safer options.",
+      "hook": "The merchant watches you leave with the expression reserved for future customers and present fools."
     },
     {
       "id": "r011",
@@ -2480,8 +2550,15 @@
         "continuity_refs": [
           "torchbearer_contract"
         ],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Pay Pell for extra light and practical help, while accepting that he has limits you cannot purchase away.",
+      "hook": "Pell signs only after adding one sentence in his own hand."
     },
     {
       "id": "r012",
@@ -2493,8 +2570,15 @@
         "player_intent": "Decline the contract",
         "dramatic_role": "Express player preference or state through movement and consequence.",
         "continuity_refs": [],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Keep your gold and travel alone, losing both Pell's expertise and his human warning at the Ninth Lock.",
+      "hook": "Nobody in the yard tries to change your mind."
     },
     {
       "id": "r013",
@@ -2525,8 +2609,15 @@
         "continuity_refs": [
           "last_cinder_blessing"
         ],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Sacrifice two gold for improved luck and a blessing tied to your true name.",
+      "hook": "Ash settles on your skin in the exact shape of letters."
     },
     {
       "id": "r014",
@@ -2538,8 +2629,15 @@
         "player_intent": "Leave without donating",
         "dramatic_role": "Express player preference or state through movement and consequence.",
         "continuity_refs": [],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Preserve your money, but refuse the only preparation aimed at protecting identity rather than flesh.",
+      "hook": "The priest does not curse you; somehow that feels less reassuring."
     },
     {
       "id": "r015",
@@ -2582,8 +2680,15 @@
           "legitimacy",
           "transaction",
           "accidental_authority"
-        ]
-      }
+        ],
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Spend six gold to become a recognised delver and gain safer passage through ancient administrative systems.",
+      "hook": "The seal bites into wax, and somewhere far below a lock quietly notices."
     },
     {
       "id": "r016",
@@ -2616,8 +2721,15 @@
         "continuity_refs": [
           "rumour_red_quill"
         ],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Risk your reputation to discover a cheaper, illegal route into the dungeon's systems.",
+      "hook": "The clerk's pause contains an address no honest official would ever speak aloud."
     },
     {
       "id": "r017",
@@ -2629,8 +2741,15 @@
         "player_intent": "Refuse the fee and leave",
         "dramatic_role": "Express player preference or state through movement and consequence.",
         "continuity_refs": [],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Keep your gold and reject formal recognition, leaving every official checkpoint to coin, deception or force.",
+      "hook": "The clerk closes your file with the tenderness of someone preparing evidence."
     },
     {
       "id": "r018",
@@ -2673,8 +2792,15 @@
           "forgery",
           "identity",
           "resistance"
-        ]
-      }
+        ],
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Pay less for forged authority that may pass simple checks but becomes dangerous under scrutiny.",
+      "hook": "Maera leaves one flaw in the seal because perfect copies are the first thing experts distrust."
     },
     {
       "id": "r019",
@@ -2686,8 +2812,15 @@
         "player_intent": "Decide against fraud",
         "dramatic_role": "Express player preference or state through movement and consequence.",
         "continuity_refs": [],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Leave without false papers, preserving your conscience but gaining no protection from official barriers.",
+      "hook": "Maera burns the unfinished permit before the wax has cooled."
     },
     {
       "id": "r020",
@@ -2699,8 +2832,15 @@
         "player_intent": "Follow the ridge markers",
         "dramatic_role": "Express player preference or state through movement and consequence.",
         "continuity_refs": [],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Take the slower ridge route to uncover old signs and possible hidden paths.",
+      "hook": "The cairns sing before you are close enough to blame the wind."
     },
     {
       "id": "r021",
@@ -2712,8 +2852,15 @@
         "player_intent": "Take the shortest path",
         "dramatic_role": "Express player preference or state through movement and consequence.",
         "continuity_refs": [],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Reach the dungeon approaches quickly, but walk straight into a toll operated by armed goblins.",
+      "hook": "The shortest road ends at a barrier freshly painted with the word LEGAL."
     },
     {
       "id": "r022",
@@ -2725,8 +2872,15 @@
         "player_intent": "Climb towards the old watchtower",
         "dramatic_role": "Express player preference or state through movement and consequence.",
         "continuity_refs": [],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Spend effort gaining a commanding view and information about alternate entrances.",
+      "hook": "The ruined tower promises perspective, not safety."
     },
     {
       "id": "r023",
@@ -2738,8 +2892,15 @@
         "player_intent": "Follow the treasury sigil",
         "dramatic_role": "Express player preference or state through movement and consequence.",
         "continuity_refs": [],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Follow signs of ancient authority towards the obvious licensed entrance.",
+      "hook": "The chipped treasury mark points towards the route most people were meant to use."
     },
     {
       "id": "r024",
@@ -2751,8 +2912,15 @@
         "player_intent": "Cross the saddle towards the toll bell",
         "dramatic_role": "Express player preference or state through movement and consequence.",
         "continuity_refs": [],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Trade exploration for speed and face the goblins before learning more about the hills.",
+      "hook": "A dented bell rings once, though nobody has touched it."
     },
     {
       "id": "r025",
@@ -2773,8 +2941,15 @@
         "player_intent": "Follow the warm clay dust",
         "dramatic_role": "Reward curiosity, prior knowledge or resistance to the official route.",
         "continuity_refs": [],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Follow a concealed clue towards the Dust Saint and a route outside official control.",
+      "hook": "Warm dust gathers against the wind, sketching the shape of a half-closed eye."
     },
     {
       "id": "r026",
@@ -2800,8 +2975,15 @@
         "continuity_refs": [
           "goblin_toll_chit"
         ],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Lose two gold but avoid violence and gain a toll chit that may carry unexpected social weight.",
+      "hook": "The goblin stamps your receipt three times to make it look especially lawful."
     },
     {
       "id": "r027",
@@ -2843,8 +3025,15 @@
           "counterfeit_permit",
           "standard_delver_licence"
         ],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Keep your money by gambling that confidence and paperwork matter more than actual authority.",
+      "hook": "The goblin clerk squints at the seal, then at you, deciding which looks more official."
     },
     {
       "id": "r028",
@@ -2870,8 +3059,15 @@
         "continuity_refs": [
           "goblin_toll_collectors"
         ],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Save your gold by accepting combat, injury and a worsening reputation among those who use the path.",
+      "hook": "The barrier is light enough to lift and heavy enough to start a war over."
     },
     {
       "id": "r029",
@@ -2891,8 +3087,15 @@
         "continuity_refs": [
           "map_three_entrances"
         ],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Take the exposed official approach and gain a clear understanding of the dungeon's three entrances.",
+      "hook": "From above, the entrances look less like doors than competing explanations."
     },
     {
       "id": "r030",
@@ -2913,8 +3116,15 @@
         "player_intent": "Use the smuggler marks",
         "dramatic_role": "Reward curiosity, prior knowledge or resistance to the official route.",
         "continuity_refs": [],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Use preparation and observation to reach the concealed smugglers' route without paying the goblins.",
+      "hook": "Old charcoal marks turn a collapsed wall into a sentence only the equipped can read."
     },
     {
       "id": "r031",
@@ -2934,8 +3144,15 @@
         "continuity_refs": [
           "supplies_pack"
         ],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Use your gear to reach a dangerous submerged approach that bypasses the upper checkpoints.",
+      "hook": "The channel below shines black, and something in it flashes blue."
     },
     {
       "id": "r032",
@@ -2972,8 +3189,15 @@
           "hidden_roads",
           "memory",
           "resistance"
-        ]
-      }
+        ],
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Spend one gold to activate a rebel mechanism and gain a charm that reveals hidden roads.",
+      "hook": "The coin falls sideways inside the saint's blind eye."
     },
     {
       "id": "r033",
@@ -2985,8 +3209,15 @@
         "player_intent": "Return to the obvious road",
         "dramatic_role": "Express player preference or state through movement and consequence.",
         "continuity_refs": [],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Abandon the hidden route and return to the safer, more visible quarry entrance.",
+      "hook": "The shrine keeps its secret without reproach."
     },
     {
       "id": "r034",
@@ -2998,8 +3229,15 @@
         "player_intent": "Enter by the public stair",
         "dramatic_role": "Express player preference or state through movement and consequence.",
         "continuity_refs": [],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Enter by the route designed for petitioners, placing yourself directly before the dungeon's bureaucracy.",
+      "hook": "Each seventh stair bears a fee no living clerk still collects."
     },
     {
       "id": "r035",
@@ -3011,8 +3249,15 @@
         "player_intent": "Descend the concealed shaft",
         "dramatic_role": "Express player preference or state through movement and consequence.",
         "continuity_refs": [],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Bypass the formal gate through a cramped route used by smugglers and fugitives.",
+      "hook": "The shaft is narrow enough to make every piece of equipment feel like a confession."
     },
     {
       "id": "r036",
@@ -3041,8 +3286,15 @@
         "player_intent": "Swim through the black water",
         "dramatic_role": "Express player preference or state through movement and consequence.",
         "continuity_refs": [],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Risk injury and soaked equipment to bypass the upper dungeon and emerge deep in the cisterns.",
+      "hook": "The black water has no current, yet it keeps pulling towards the archive numbers."
     },
     {
       "id": "r037",
@@ -3054,8 +3306,15 @@
         "player_intent": "Approach the Gate of Tithes",
         "dramatic_role": "Express player preference or state through movement and consequence.",
         "continuity_refs": [],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Commit to the first ancient checkpoint where licence, coin or blood will define your status.",
+      "hook": "The Gate of Tithes opens three slots and waits to learn what kind of person you are."
     },
     {
       "id": "r038",
@@ -3067,8 +3326,15 @@
         "player_intent": "Drop into the surveyor's chamber",
         "dramatic_role": "Express player preference or state through movement and consequence.",
         "continuity_refs": [],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Avoid the main checkpoint and land beside evidence that the dungeon's layout changes with authority.",
+      "hook": "Your boots strike stone beside a skeleton still arguing with its own map."
     },
     {
       "id": "r039",
@@ -3088,8 +3354,15 @@
         "continuity_refs": [
           "standard_delver_licence"
         ],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Use lawful recognition to pass safely and confirm that Barrowgate's modern seal genuinely works below.",
+      "hook": "The gate accepts the licence with more respect than the town clerk did."
     },
     {
       "id": "r040",
@@ -3122,8 +3395,15 @@
         "continuity_refs": [
           "counterfeit_permit"
         ],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Bet your freedom on a forged document before a mechanism less perceptive than the Iron Registrar.",
+      "hook": "The counterfeit seal warms, hesitates and asks no questions you can hear."
     },
     {
       "id": "r041",
@@ -3156,8 +3436,15 @@
         "continuity_refs": [
           "supplies_pack"
         ],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Use equipment to force an unofficial entry, risking injury and immediate contact with the Rat-King.",
+      "hook": "Behind the grille, many small voices are counting your tools."
     },
     {
       "id": "r042",
@@ -3175,8 +3462,15 @@
         "player_intent": "Pay the historic access tithe",
         "dramatic_role": "Express player preference or state through movement and consequence.",
         "continuity_refs": [],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Lose three gold to buy passage without proving identity or authority.",
+      "hook": "The gate values old coin more reliably than modern courage."
     },
     {
       "id": "r043",
@@ -3188,8 +3482,15 @@
         "player_intent": "Follow the sound of keys",
         "dramatic_role": "Express player preference or state through movement and consequence.",
         "continuity_refs": [],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Follow the sound of keys towards a dangerous creature holding the authority needed for deeper wards.",
+      "hook": "Metal chimes ahead, accompanied by the whisper: inventory, inventory, inventory."
     },
     {
       "id": "r044",
@@ -3201,8 +3502,15 @@
         "player_intent": "Descend the broken officers' stair",
         "dramatic_role": "Express player preference or state through movement and consequence.",
         "continuity_refs": [],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Descend quickly into the middle dungeon, bypassing both the Rat-King and several sources of useful knowledge.",
+      "hook": "The officers' stair has collapsed in exactly the places an officer would once have stood."
     },
     {
       "id": "r045",
@@ -3223,8 +3531,15 @@
         "player_intent": "Follow the old processional passage",
         "dramatic_role": "Reward curiosity, prior knowledge or resistance to the official route.",
         "continuity_refs": [],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Use hidden knowledge to reach the chapel, gaining context that may help with the Registrar.",
+      "hook": "A procession carved into the wall turns aside where the official corridor continues."
     },
     {
       "id": "r046",
@@ -3269,8 +3584,15 @@
           "memory",
           "violence",
           "office"
-        ]
-      }
+        ],
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Risk death to seize the Brass Seal, destroying the swarm identity that calls itself Orrick.",
+      "hook": "The Rat-King raises a crown of keys and addresses you as an unauthorised requisition."
     },
     {
       "id": "r047",
@@ -3304,8 +3626,15 @@
           "rat_king_dead",
           "rat_tunnels"
         ],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Lose provisions to avoid combat and learn a safer route through the Rat-King's domain.",
+      "hook": "The swarm values food, but it values being addressed as Quartermaster even more."
     },
     {
       "id": "r048",
@@ -3325,8 +3654,15 @@
         "continuity_refs": [
           "brass_seal"
         ],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Use recognised authority to descend directly into the treasury records and bypass much of the middle level.",
+      "hook": "The Brass Seal completes a shape in the chains, and the dry well begins to rise."
     },
     {
       "id": "r049",
@@ -3338,8 +3674,15 @@
         "player_intent": "Climb away from the voice below",
         "dramatic_role": "Express player preference or state through movement and consequence.",
         "continuity_refs": [],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Retreat from the unexplained mechanism and return to familiar ground without gaining deeper access.",
+      "hook": "The voice below files your departure under INCOMPLETE."
     },
     {
       "id": "r050",
@@ -3359,8 +3702,15 @@
         "continuity_refs": [
           "loose_stone_bridge"
         ],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Trust the dead surveyor's work to reach the chapel and gain procedural knowledge.",
+      "hook": "The line on the shield only makes sense when followed without looking ahead."
     },
     {
       "id": "r051",
@@ -3380,8 +3730,15 @@
         "continuity_refs": [
           "dust_saint_token"
         ],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Use the Dust Saint's insight to follow an impossible route straight into the identity-testing maze.",
+      "hook": "A route scratched across solid metal becomes a doorway when viewed from the corner of the eye."
     },
     {
       "id": "r052",
@@ -3401,8 +3758,15 @@
         "continuity_refs": [
           "registrar_values_procedure"
         ],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Proceed to the Iron Registrar with knowledge that procedure may offer alternatives to force.",
+      "hook": "The ash doors open only after repeating a vow nobody living remembers making."
     },
     {
       "id": "r053",
@@ -3422,8 +3786,15 @@
         "continuity_refs": [
           "dust_saint_token"
         ],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Use a hidden rebel passage to avoid the Registrar and enter the fungal cloister unseen.",
+      "hook": "Beneath the altar, saints and smugglers have used the same handholds."
     },
     {
       "id": "r054",
@@ -3468,8 +3839,15 @@
           "procedure",
           "legitimacy",
           "unintended_consequence"
-        ]
-      }
+        ],
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Use genuine authority to pass peacefully, strengthening your recognised standing within the dungeon.",
+      "hook": "Halvek stamps the licence, and distant locks accept the judgement."
     },
     {
       "id": "r055",
@@ -3520,8 +3898,15 @@
           "counterfeit_permit",
           "registrar_alerted"
         ],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Risk imprisonment by placing forged identity before the dungeon's most exacting inspector.",
+      "hook": "The Registrar holds the permit close enough for the iron visor to reflect its flaw."
     },
     {
       "id": "r056",
@@ -3553,8 +3938,15 @@
           "registrar_alerted",
           "registrar_values_procedure"
         ],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Use recovered procedural knowledge to win passage without licence, payment or violence.",
+      "hook": "For the first time in centuries, the Registrar is forced to consult a rule it hoped was forgotten."
     },
     {
       "id": "r057",
@@ -3592,8 +3984,15 @@
           "violence",
           "adverse_record",
           "institutional_memory"
-        ]
-      }
+        ],
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Risk death to remove the checkpoint, gaining its key but creating an adverse record that follows you deeper.",
+      "hook": "The armour can be broken; the paperwork continues moving without it."
     },
     {
       "id": "r058",
@@ -3613,8 +4012,15 @@
         "continuity_refs": [
           "registrars_key"
         ],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Use the Registrar's key to escape gaol and return to the upper dungeon with your official hostility intact.",
+      "hook": "The service lock recognises the key without asking who now carries it."
     },
     {
       "id": "r059",
@@ -3640,8 +4046,15 @@
         "continuity_refs": [
           "supplies_pack"
         ],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Risk a cramped, dangerous escape that bypasses the upper level and deposits you in the Mirror Maze.",
+      "hook": "The condemned drain was built for waste, not people, which may be why nobody watches it."
     },
     {
       "id": "r060",
@@ -3653,8 +4066,15 @@
         "player_intent": "Wait for the appeal",
         "dramatic_role": "Express player preference or state through movement and consequence.",
         "continuity_refs": [],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Abandon action and trust a dead administrative process that has not resolved a case in centuries.",
+      "hook": "A courteous notice promises review by a committee whose members are all dust."
     },
     {
       "id": "r061",
@@ -3678,8 +4098,15 @@
         "player_intent": "Cross the whispering cloister",
         "dramatic_role": "Express player preference or state through movement and consequence.",
         "continuity_refs": [],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Risk spore-induced memory distortion to reach the maze and continue deeper.",
+      "hook": "The fungus begins praying in a voice that remembers being yours."
     },
     {
       "id": "r062",
@@ -3699,8 +4126,15 @@
         "continuity_refs": [
           "supplies_pack"
         ],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Use equipment to avoid the maze, trading psychological danger for black water and eels.",
+      "hook": "The irrigation channel smells sweet at first and metallic after the first bend."
     },
     {
       "id": "r063",
@@ -3725,8 +4159,15 @@
         "player_intent": "Follow the reflection that moves first",
         "dramatic_role": "Express player preference or state through movement and consequence.",
         "continuity_refs": [],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Bet luck and time on a reflection that may lead forward—or teach the maze how you move.",
+      "hook": "One reflection turns away before you decide to follow it."
     },
     {
       "id": "r064",
@@ -3746,8 +4187,15 @@
         "continuity_refs": [
           "moon_key"
         ],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Use the Moon Key to bypass the cistern and reach the ledger room without combat.",
+      "hook": "The silver door has no lock until its reflection is touched."
     },
     {
       "id": "r065",
@@ -3781,8 +4229,15 @@
         "continuity_refs": [
           "moon_key"
         ],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Risk stamina and luck to pull an impossible key out of your own reflection.",
+      "hook": "The hand in the mirror closes around yours from the wrong side."
     },
     {
       "id": "r066",
@@ -3801,8 +4256,15 @@
         "continuity_refs": [
           "cistern_eels"
         ],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Fight or outlast the eels to reach records that can turn ancient debts into leverage.",
+      "hook": "The gantry is safe only while the water remains dark."
     },
     {
       "id": "r067",
@@ -3829,8 +4291,15 @@
           "goblin_toll_chit",
           "soaked"
         ],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Use an unlikely token to enter a submerged shortcut, arriving soaked but avoiding the ledger route.",
+      "hook": "A goblin stamp matches a maintenance symbol no goblin could have understood."
     },
     {
       "id": "r068",
@@ -3850,8 +4319,15 @@
         "continuity_refs": [
           "brass_seal"
         ],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Use the Brass Seal to follow the official route, preserving legitimacy but leaving the ledger fragment behind.",
+      "hook": "A red line appears across the floor like a route drawn by an invisible clerk."
     },
     {
       "id": "r069",
@@ -3882,8 +4358,15 @@
           "evidence",
           "debt",
           "erasure"
-        ]
-      }
+        ],
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Take evidence that unlocks secret history and peaceful resolutions, while making yourself a thief in the records.",
+      "hook": "The loose page names a debt so precisely that even the dead may have to honour it."
     },
     {
       "id": "r070",
@@ -3903,8 +4386,15 @@
         "continuity_refs": [
           "moon_key"
         ],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Return to the Mirror Maze through a moon-locked route, exchanging progress for exploration or unfinished business.",
+      "hook": "The key opens the door backwards, into a room you thought you had already left."
     },
     {
       "id": "r071",
@@ -3922,8 +4412,15 @@
         "player_intent": "Cross openly",
         "dramatic_role": "Express player preference or state through movement and consequence.",
         "continuity_refs": [],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Risk a deadly crossing to reach the Beast Pits without spending resources or finding the secret passage.",
+      "hook": "The bridge repeats your last words before you have spoken them."
     },
     {
       "id": "r072",
@@ -3944,8 +4441,15 @@
         "player_intent": "Find the loose stone",
         "dramatic_role": "Reward curiosity, prior knowledge or resistance to the official route.",
         "continuity_refs": [],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Use mapped knowledge to bypass the Beast Pits and reach the forge safely.",
+      "hook": "The loose stone moves only when pressed by someone who already knows it is loose."
     },
     {
       "id": "r073",
@@ -3957,8 +4461,15 @@
         "player_intent": "Retreat from the wind",
         "dramatic_role": "Express player preference or state through movement and consequence.",
         "continuity_refs": [],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Retreat from the crossing and return to the ledgers, losing time but avoiding immediate danger.",
+      "hook": "The wind sighs in relief using somebody else's voice."
     },
     {
       "id": "r074",
@@ -3984,8 +4495,15 @@
         "continuity_refs": [
           "beast_of_the_pits"
         ],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Risk death against a creature shaped by captivity, gaining reputation and access to the forge.",
+      "hook": "The beast's royal collar is older than the arena around it."
     },
     {
       "id": "r075",
@@ -4010,8 +4528,15 @@
           "brass_seal",
           "registrars_key"
         ],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Combine two forms of stolen authority to bypass the remaining middle dungeon and reach the deep vault approach.",
+      "hook": "The lift accepts the seal and key without noticing that both previous owners are dead."
     },
     {
       "id": "r076",
@@ -4031,8 +4556,15 @@
         "continuity_refs": [
           "rune_candle"
         ],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Spend Rune-Candle light to reveal a safe route into the deep ruins.",
+      "hook": "Black flame writes a doorway across a wall that had never admitted being one."
     },
     {
       "id": "r077",
@@ -4071,8 +4603,15 @@
         "continuity_refs": [
           "supplies_pack"
         ],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Risk injury and consume light to restart the forge and force open the deep route.",
+      "hook": "The forge wakes hungry for heat, oath and something it calls authorised fuel."
     },
     {
       "id": "r078",
@@ -4099,8 +4638,15 @@
           "truth",
           "light",
           "witness"
-        ]
-      }
+        ],
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Claim a tool that reveals hidden writing and opens later peaceful solutions.",
+      "hook": "The cold anvil releases the candle only after your shadow reaches for it first."
     },
     {
       "id": "r079",
@@ -4112,8 +4658,15 @@
         "player_intent": "Return by the secret passage",
         "dramatic_role": "Express player preference or state through movement and consequence.",
         "continuity_refs": [],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Backtrack through the secret passage to reconsider the bridge or unresolved routes.",
+      "hook": "The hidden corridor returns you to the sound of voices falling upward."
     },
     {
       "id": "r080",
@@ -4133,8 +4686,15 @@
         "continuity_refs": [
           "brass_seal"
         ],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Use official authority to enter a hall that exposes concealed obligations and personal debts.",
+      "hook": "One of the nine doors opens under the word OFFICE."
     },
     {
       "id": "r081",
@@ -4154,8 +4714,15 @@
         "continuity_refs": [
           "moon_key"
         ],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Use erased access to enter the market of the dead, where identity itself becomes currency.",
+      "hook": "The moon-door opens onto stalls whose merchants have forgotten being alive."
     },
     {
       "id": "r082",
@@ -4187,8 +4754,15 @@
           "rune_candle",
           "stolen_ledger_fragment"
         ],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Combine hidden law and evidence to confront the Ninth Guardian with a claim rather than a weapon.",
+      "hook": "Two doors close, seven remain silent and the wall marked WITNESS opens."
     },
     {
       "id": "r083",
@@ -4213,8 +4787,15 @@
         "continuity_refs": [
           "the_dead_trade_in_names"
         ],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Surrender reputation by admitting a real debt, gaining passage and knowledge the hall cannot extract by force.",
+      "hook": "The whispers fall quiet when you finally tell them something true."
     },
     {
       "id": "r084",
@@ -4239,8 +4820,15 @@
         "player_intent": "Refuse the voices",
         "dramatic_role": "Express player preference or state through movement and consequence.",
         "continuity_refs": [],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Risk luck and injury by resisting the hall's demands and forcing your way towards the Guardian.",
+      "hook": "Every denied promise becomes another voice at your back."
     },
     {
       "id": "r085",
@@ -4271,8 +4859,15 @@
           "memory",
           "cost",
           "identity"
-        ]
-      }
+        ],
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Lose a year of personal memory to enter the archive and recover truths unavailable anywhere else.",
+      "hook": "The merchant removes the year gently; the absence only hurts when you look for it."
     },
     {
       "id": "r086",
@@ -4298,8 +4893,15 @@
         "continuity_refs": [
           "guardian_true_name"
         ],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Spend four gold for supernatural leverage against the Guardian, without resolving the debt beneath its duty.",
+      "hook": "The merchant wraps the true name in paper made from an obituary."
     },
     {
       "id": "r087",
@@ -4311,8 +4913,15 @@
         "player_intent": "Leave the market",
         "dramatic_role": "Express player preference or state through movement and consequence.",
         "continuity_refs": [],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Leave without trading memory or gold, returning to the hall of debts and its unresolved demands.",
+      "hook": "The dead merchants do not call after customers who still own themselves."
     },
     {
       "id": "r088",
@@ -4339,8 +4948,15 @@
           "stolen_ledger_fragment",
           "warden_bound_by_crown_law"
         ],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Use the stolen ledger to uncover a shortcut and learn how Crown law binds the Warden.",
+      "hook": "The archive recognises the torn page as evidence rather than theft."
     },
     {
       "id": "r089",
@@ -4372,8 +4988,15 @@
           "rune_candle",
           "warden_bound_by_crown_law"
         ],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Use the Rune-Candle to recover the lawful words that can release the Guardian without combat.",
+      "hook": "Black flame restores a sentence the water has spent centuries trying to erase."
     },
     {
       "id": "r090",
@@ -4407,8 +5030,15 @@
           "ninth_lock_open",
           "torchbearer_contract"
         ],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Risk death to open the Ninth Lock by force, ending the Guardian without understanding or release.",
+      "hook": "Varn rises slowly, carrying nine centuries of obedience into the first blow."
     },
     {
       "id": "r091",
@@ -4457,8 +5087,15 @@
           "release",
           "debt",
           "recognition"
-        ]
-      }
+        ],
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Use authority and recovered law to end the Guardian's service without violence.",
+      "hook": "For the first time in centuries, Varn is permitted to stop."
     },
     {
       "id": "r092",
@@ -4504,8 +5141,15 @@
           "ninth_lock_open",
           "torchbearer_contract"
         ],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Use the Guardian's true name to compel passage, gaining compliance without granting release.",
+      "hook": "The name bends bronze, but it does not sound like mercy."
     },
     {
       "id": "r093",
@@ -4530,8 +5174,15 @@
         "player_intent": "Descend without looking at the lower steps",
         "dramatic_role": "Express player preference or state through movement and consequence.",
         "continuity_refs": [],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Risk injury on impossible steps to reach the final approach without detouring for further knowledge.",
+      "hook": "The stair exists only where you are not looking directly."
     },
     {
       "id": "r094",
@@ -4551,8 +5202,15 @@
         "continuity_refs": [
           "dust_saint_token"
         ],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Use the Dust Saint's guidance to reach the Sunken Archive and trade speed for deeper understanding.",
+      "hook": "A drowned stair appears beneath a symbol meant for people official maps denied."
     },
     {
       "id": "r095",
@@ -4577,8 +5235,15 @@
         "player_intent": "Pass through the trap-lined throat",
         "dramatic_role": "Express player preference or state through movement and consequence.",
         "continuity_refs": [],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Risk severe injury in the Crown's final trap before facing the Warden.",
+      "hook": "The golden passage narrows whenever you imagine owning what waits beyond it."
     },
     {
       "id": "r096",
@@ -4605,8 +5270,15 @@
         "continuity_refs": [
           "rune_candle"
         ],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Spend Rune-Candle light to expose the Maw's safe route and preserve strength for the Warden.",
+      "hook": "Invisible instructions appear across the teeth: CLAIMANTS WALK BETWEEN APPETITES."
     },
     {
       "id": "r097",
@@ -4625,8 +5297,15 @@
         "continuity_refs": [
           "warden_below"
         ],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Risk death to prove capability by conquest, while giving the Warden no reason to believe you are fit to rule.",
+      "hook": "Serath draws a weapon only after asking whether victory is your entire claim."
     },
     {
       "id": "r098",
@@ -4675,8 +5354,15 @@
           "succession",
           "fitness",
           "restraint"
-        ]
-      }
+        ],
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Use recognised authority, knowledge and reputation to pass by judgement rather than force.",
+      "hook": "The Warden does not kneel; stepping aside is the more serious concession."
     },
     {
       "id": "r099",
@@ -4701,8 +5387,15 @@
           "debt_of_ninth_guardian",
           "stolen_ledger_fragment"
         ],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Use acknowledged debt to show that you understand the custodians as obligations, not obstacles.",
+      "hook": "Serath reads the ledger fragment and looks older when finished."
     },
     {
       "id": "r100",
@@ -4714,8 +5407,15 @@
         "player_intent": "Approach the Crown",
         "dramatic_role": "Express player preference or state through movement and consequence.",
         "continuity_refs": [],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Leave the last guardian behind and confront the treasure whose promise has shaped the entire dungeon.",
+      "hook": "There are no coins in the vault—only a crown waiting for somebody to misunderstand it."
     },
     {
       "id": "r101",
@@ -4771,8 +5471,15 @@
           "boundary",
           "power",
           "selfhood"
-        ]
-      }
+        ],
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Take the Crown while resisting its oath, gambling luck and identity for wealth without office.",
+      "hook": "The Crown learns the shape of your refusal and begins testing every edge."
     },
     {
       "id": "r102",
@@ -4822,8 +5529,15 @@
           "sovereignty",
           "identity",
           "inheritance"
-        ]
-      }
+        ],
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Accept rulership and every unresolved debt of the ruins, preserving yourself only if your claim is strong enough.",
+      "hook": "A thousand locks wait to discover whether your name survives the title."
     },
     {
       "id": "r103",
@@ -4861,8 +5575,15 @@
           "temptation",
           "identity_loss",
           "crown"
-        ]
-      }
+        ],
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Claim power immediately and surrender the best chance to separate your identity from the Crown's rulers.",
+      "hook": "The Crown fits perfectly because it changes what perfectly means."
     },
     {
       "id": "r104",
@@ -4900,8 +5621,15 @@
           "companionship",
           "skill",
           "human_scale"
-        ]
-      }
+        ],
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Let Pell turn a lethal crossing into skilled work, rewarding the decision to treat him as more than spare light.",
+      "hook": "He reduces terror to knots, breaths and instructions—and expects you to listen."
     },
     {
       "id": "r107",
@@ -4947,8 +5675,15 @@
           "boundary",
           "witness",
           "agency"
-        ]
-      }
+        ],
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Respect Pell's stated boundary and lose his future assistance before opening the Ninth Lock.",
+      "hook": "He returns the spare lamp, keeps the contract and waits where a living witness still can."
     },
     {
       "id": "r105",
@@ -4969,8 +5704,15 @@
         "continuity_refs": [
           "rat_king_dead"
         ],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Use the cleared warren to advance without repeating the fight, while moving through the remains of Orrick's identity.",
+      "hook": "Ordinary rats scatter around the little crown and refuse to touch it."
     },
     {
       "id": "r106",
@@ -4998,8 +5740,15 @@
           "rat_king_dead",
           "rat_tunnels"
         ],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Search the abandoned tunnels for knowledge and an alternate route after the Rat-King's death.",
+      "hook": "The swarm's grammar is gone, but its careful inventory remains."
     },
     {
       "id": "r108",
@@ -5056,8 +5805,15 @@
           "rune_candle",
           "warden_bound_by_crown_law"
         ],
-        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement."
-      }
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Use stolen office, hidden law and the Brass Seal to override an active arrest record before the Warden.",
+      "hook": "The Registrar's key cancels the writ only because the system recognises possession before justice."
     }
   ],
   "relations": [
@@ -5541,12 +6297,18 @@
       "knowledge_facts": 15,
       "narrative_relations": 46
     },
-    "status": "passed",
-    "schema_version": "0.2.1",
     "read_aloud_coverage": {
       "nodes_with_read_aloud": 47,
       "nodes_with_revisit_text": 47,
       "expected_nodes": 47
+    },
+    "status": "passed",
+    "schema_version": "0.2.2",
+    "route_content_coverage": {
+      "routes_with_labels": 108,
+      "routes_with_stakes": 108,
+      "routes_with_hooks": 108,
+      "expected_routes": 108
     },
     "warnings": [],
     "errors": []
@@ -6822,6 +7584,22 @@
         "read_aloud is player-facing prose and is safe to present directly.",
         "narrative.hidden_truth and similar semantic fields should not be exposed without discovery.",
         "The current runner is expected to read node.read_aloud as a plain string."
+      ]
+    },
+    "route_presentation": {
+      "choice_label_field": "label",
+      "stakes_field": "stakes",
+      "hook_field": "hook",
+      "recommended_compact_display": "{label} — {stakes}",
+      "recommended_expanded_display": [
+        "label",
+        "stakes",
+        "hook"
+      ],
+      "notes": [
+        "label remains mechanically stable and suitable for numbered choice menus.",
+        "stakes is player-facing and should not reveal hidden_truth fields.",
+        "hook provides flavour without replacing node read_aloud narration."
       ]
     }
   }

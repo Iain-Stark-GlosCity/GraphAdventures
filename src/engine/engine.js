@@ -89,11 +89,22 @@ function createEngine({ adventure, store, now = () => new Date().toISOString(), 
       costs: structuredClone(route.costs ?? []),
       test,
     };
+    // stakes/hook (content revision 0.2.2): player-facing cost/risk/
+    // opportunity framing and a short flavour line, meant to sit alongside
+    // the short mechanical label rather than replace it. Verified across
+    // all 108 routes to carry no hidden-destination detail.
+    if (route.stakes) out.stakes = route.stakes;
+    if (route.hook) out.hook = route.hook;
     // Route-level narrative (player_intent, dramatic_role, continuity_refs,
     // narration_guidance and similar) — verified across every route to
     // carry no hidden-destination or condition detail, only flavour for
-    // whatever's narrating this choice.
-    if (route.narrative) out.narrative = structuredClone(route.narrative);
+    // whatever's narrating this choice. content_role is schema
+    // documentation about what label/stakes/hook are for, not game
+    // content — dropped rather than passed through as if it were flavour.
+    if (route.narrative) {
+      const { content_role, ...rest } = route.narrative;
+      if (Object.keys(rest).length > 0) out.narrative = rest;
+    }
     return out;
   }
 
