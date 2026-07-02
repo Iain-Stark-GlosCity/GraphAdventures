@@ -136,6 +136,22 @@ function createEngine({ adventure, store, now = () => new Date().toISOString(), 
     };
   }
 
+  // Shared by get_node and walk's response (not by what walk persists to
+  // doc.log — see the comment on walk's return below). Needs only the
+  // state already held in memory, no storage read.
+  function availableRoutesFor(state, status) {
+    if (status !== "active") return [];
+    return (adventure.routesByFrom.get(state.current_node) ?? [])
+      .filter(
+        (r) =>
+          isVisible(r, state) &&
+          isLegal(r, state) &&
+          isAffordable(r, state) &&
+          isNotConsumed(r, state)
+      )
+      .map(publicRoute);
+  }
+
   // Strictly read-only: no mutation, no revision bump, no ETag write. Also
   // serves completed runs (with no routes) so the caller can narrate the
   // ending after the final walk.
@@ -144,25 +160,13 @@ function createEngine({ adventure, store, now = () => new Date().toISOString(), 
     assertAdventureMatches(doc);
     const state = doc.state;
     const node = adventure.nodesById.get(state.current_node);
-    let availableRoutes = [];
-    if (doc.status === "active") {
-      availableRoutes = (adventure.routesByFrom.get(state.current_node) ?? [])
-        .filter(
-          (r) =>
-            isVisible(r, state) &&
-            isLegal(r, state) &&
-            isAffordable(r, state) &&
-            isNotConsumed(r, state)
-        )
-        .map(publicRoute);
-    }
     return {
       run_id: doc.run_id,
       revision: doc.revision,
       status: doc.status,
       state: publicState(state),
       node: publicNode(node),
-      available_routes: availableRoutes,
+      available_routes: availableRoutesFor(state, doc.status),
     };
   }
 
@@ -263,7 +267,18 @@ function createEngine({ adventure, store, now = () => new Date().toISOString(), 
       }
       throw e;
     }
-    return step;
+
+    // The step above is exactly what's persisted in doc.log — get_log will
+    // always return that unmodified. node and available_routes are computed
+    // fresh from the state already in memory (no extra storage read) and
+    // appended only to this live response, so the common case of "walk,
+    // then narrate" doesn't need a follow-up get_node round trip. They are
+    // never written to the log.
+    return {
+      ...step,
+      node: publicNode(destinationNode),
+      available_routes: availableRoutesFor(state, status),
+    };
   }
 
   // Exempt from the adventure-hash hard-stop: still returns the log, just

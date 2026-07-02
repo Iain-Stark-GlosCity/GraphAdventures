@@ -105,10 +105,16 @@ test("walk without a test is an automatic success; arrival knowledge_grants conv
   ]);
   assert.deepEqual(step.state_after.knowledge, ["rumour_crown_ember_salt", "rumour_ninth_lock"]);
 
-  // Returned step is identical to what was logged.
+  // walk's response is the logged step plus node/available_routes computed
+  // fresh (not persisted) — everything logged is still identical to what
+  // was returned, just without those two extra convenience fields.
+  const { node, available_routes, ...loggedShape } = step;
   const log = await engine.getLog(run_id);
-  assert.deepEqual(log.log, [step]);
+  assert.deepEqual(log.log, [loggedShape]);
   assert.equal(log.revision, 1);
+  assert.equal(node.id, "bent_nail_inn");
+  assert.ok(!("node" in log.log[0]));
+  assert.ok(!("available_routes" in log.log[0]));
 
   // Back to the square: r008's route effects add three facts, one of which
   // (rumour_ninth_lock) is already known — the add is an idempotent no-op.
@@ -176,6 +182,30 @@ test("costs are deducted and recorded as negative amounts; effects apply", async
     { op: "set_flag", flag: "permit_status", value: "licensed" },
     { op: "modify_stat", stat: "reputation", amount: 1 },
   ]);
+});
+
+test("walk's node/available_routes match a follow-up get_node, with no extra storage read", async () => {
+  const { engine } = makeEngine();
+  const { run_id } = await engine.newRun(ADVENTURE_ID);
+
+  const step = await engine.walk(run_id, "r001", 0); // barrowgate_square -> bent_nail_inn
+  const view = await engine.getNode(run_id);
+
+  assert.deepEqual(step.node, view.node);
+  assert.deepEqual(step.available_routes, view.available_routes);
+  assert.ok(step.available_routes.some((r) => r.id === "r008")); // bent_nail_inn -> barrowgate_square
+});
+
+test("walk's node/available_routes reflect the terminal node on death, empty routes", async () => {
+  const faces = Array.from({ length: 8 }, () => [1, 1, 6, 6]).flat();
+  const { engine, store } = makeEngine({ faces });
+  const { run_id } = await engine.newRun(ADVENTURE_ID);
+  stored(store, run_id).state.current_node = "goblin_toll_path";
+
+  const step = await engine.walk(run_id, "r028", 0);
+  assert.equal(step.status_after, "completed");
+  assert.equal(step.node.id, "ending_dead");
+  assert.deepEqual(step.available_routes, []);
 });
 
 test("skill test: success takes route.to and route.effects", async () => {
