@@ -1,26 +1,13 @@
-# Docs:
-#   Run From Package (external URL / blob):
-#     https://learn.microsoft.com/azure/azure-functions/run-functions-from-deployment-package
-#   OIDC federated login for GitHub Actions:
-#     https://learn.microsoft.com/azure/developer/github/connect-from-azure
+# Build and deploy to Azure Functions WITHOUT any third-party (Azure/*) action.
+# Uses run-from-package: the zip is stored by Kudu and mounted read-only by the
+# Functions host — no extraction step, no file locks, no crashes from files
+# being overwritten mid-process. Requires WEBSITE_RUN_FROM_PACKAGE=1 in the
+# Function App's Application Settings (Azure Portal -> Configuration; also set
+# by scripts/provision-azure.sh for freshly provisioned apps).
 #
-# Deploys by uploading a zip to a private blob container and pointing the
-# Function App's WEBSITE_RUN_FROM_PACKAGE setting at it via a short-lived,
-# read-only SAS URL. Azure then mounts that package as a read-only file
-# system rather than extracting it onto the site's local disk — no partial
-# deploys, no file locks, and the running app cannot write over its own
-# code. Each push is a new immutable blob named by commit SHA; nothing is
-# ever deleted here, so old releases stay available for rollback via
-# scripts/rollback-release.sh (set WEBSITE_RUN_FROM_PACKAGE back to an
-# older blob's URL).
-#
-# One-time setup this workflow depends on (see scripts/setup-github-oidc.sh):
-#   - An Azure AD app registration federated to this repo (no client secret)
-#   - That identity holds "Storage Blob Data Contributor" + "Storage Blob
-#     Delegator" on the storage account, and "Website Contributor" on the
-#     Function App
-#   - GitHub repo secrets: AZURE_CLIENT_ID, AZURE_TENANT_ID,
-#     AZURE_SUBSCRIPTION_ID, AZURE_RESOURCE_GROUP, AZURE_STORAGE_ACCOUNT
+# Single job on windows-latest to match the target Function App's OS. This
+# project has no native modules today, but building on the same OS as the
+# deployed host avoids any future platform-specific npm resolution surprises.
 
 name: Build and deploy Node.js project to Azure Function App - func-rust-wind-hills-26487
 
@@ -30,104 +17,192 @@ on:
       - main
   workflow_dispatch:
 
-env:
-  AZURE_FUNCTIONAPP_NAME: 'func-rust-wind-hills-26487'
-  DEPLOY_CONTAINER: 'function-releases'
-  NODE_VERSION: '24.x'
+# Serialise deploys so a new run never collides with an in-flight deployment
+# (Kudu rejects concurrent deployments with a "pending operation" lock).
+concurrency:
+  group: deploy-func-rust-wind-hills-26487
+  cancel-in-progress: false
 
-permissions:
-  contents: read
-  id-token: write # required for azure/login OIDC federation
+env:
+  NODE_VERSION: '24.x' # match the Function App runtime (Node 24)
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+  build-and-deploy:
+    runs-on: windows-latest
+    permissions:
+      contents: read # required for actions/checkout
 
-      - uses: actions/setup-node@v4
+    steps:
+      - name: 'Checkout GitHub Action'
+        uses: actions/checkout@v4
+
+      - name: Setup Node ${{ env.NODE_VERSION }} Environment
+        uses: actions/setup-node@v3
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
 
-      - name: Install, build, test
+      - name: 'Resolve Project Dependencies Using Npm'
+        shell: pwsh
         run: |
           npm ci
           npm run build --if-present
-          npm test
+          npm run smoke:entrypoint
+          npm run test --if-present
+          npm prune --omit=dev
+          node scripts/verify-functions-entrypoint.js
 
-      - name: Drop dev-only dependencies from the deployed package
-        run: npm prune --omit=dev
-
-      - name: Zip the deployment package
+      # Ship only the runtime artifact: the engine source, the adventure asset
+      # it loads at startup, production node_modules, and the manifests the
+      # host needs. 7-Zip is preinstalled on the runner and handles deep
+      # node_modules paths better than Compress-Archive.
+      - name: 'Package runtime artifact'
+        shell: pwsh
         run: |
-          zip -r ../release.zip . \
-            -x '.git/*' '.github/*' 'test/*' 'scratchpad/*' \
-            'local.settings*.json' '*.md' '.gitignore'
-          mv ../release.zip .
+          $items = @('src','rust_wind_hills_adventure_knowledge_graph.json','node_modules','host.json','package.json','package-lock.json','.funcignore') |
+            Where-Object { Test-Path $_ }
+          7z a -tzip app.zip @items | Out-Null
+          if (-not (Test-Path 'app.zip')) { throw 'app.zip was not created' }
+          "Packaged: $((Get-Item app.zip).Length) bytes" | Write-Host
 
-      - uses: actions/upload-artifact@v4
-        with:
-          name: release-package
-          path: release.zip
-          retention-days: 14
-
-  deploy:
-    runs-on: ubuntu-latest
-    needs: build
-    environment:
-      name: Production
-      url: https://${{ env.AZURE_FUNCTIONAPP_NAME }}.azurewebsites.net
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          name: release-package
-
-      - name: Azure login (OIDC, no stored secret)
-        uses: azure/login@v2
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-
-      - name: Upload the package as an immutable, SHA-named blob
+      # Deploy via Kudu zipdeploy with run-from-package. The zip is stored and
+      # mounted read-only by the Functions host — no extraction, instant swap.
+      - name: 'Deploy to Azure Functions (Kudu zipdeploy, run-from-package)'
+        shell: pwsh
+        env:
+          PUBLISH_PROFILE: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_C1729A9A004B4ADF90F007092812D33D }}
         run: |
-          az storage blob upload \
-            --account-name "${{ secrets.AZURE_STORAGE_ACCOUNT }}" \
-            --container-name "$DEPLOY_CONTAINER" \
-            --name "release-${{ github.sha }}.zip" \
-            --file release.zip \
-            --auth-mode login \
-            --overwrite true \
-            --only-show-errors
+          $ErrorActionPreference = 'Stop'
+          [xml]$pp = $env:PUBLISH_PROFILE
+          $profile = $pp.publishData.publishProfile |
+            Where-Object { $_.publishMethod -eq 'ZipDeploy' } | Select-Object -First 1
+          if (-not $profile) {
+            $profile = $pp.publishData.publishProfile |
+              Where-Object { $_.publishMethod -eq 'MSDeploy' } | Select-Object -First 1
+          }
+          if (-not $profile) { throw 'No ZipDeploy/MSDeploy entry in publish profile' }
 
-      - name: Mint a read-only, user-delegated SAS for the package
-        id: sas
-        run: |
-          expiry=$(date -u -d '+10 years' '+%Y-%m-%dT%H:%MZ')
-          sas=$(az storage blob generate-sas \
-            --account-name "${{ secrets.AZURE_STORAGE_ACCOUNT }}" \
-            --container-name "$DEPLOY_CONTAINER" \
-            --name "release-${{ github.sha }}.zip" \
-            --permissions r \
-            --https-only \
-            --expiry "$expiry" \
-            --auth-mode login --as-user \
-            --output tsv)
-          url="https://${{ secrets.AZURE_STORAGE_ACCOUNT }}.blob.core.windows.net/$DEPLOY_CONTAINER/release-${{ github.sha }}.zip?$sas"
-          echo "::add-mask::$sas"
-          echo "package_url=$url" >> "$GITHUB_OUTPUT"
+          $scmHost = ($profile.publishUrl -replace '^https?://','') -replace '/.*$','' -replace ':\d+$',''
+          $pair = "$($profile.userName):$($profile.userPWD)"
+          $auth = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes($pair))
+          $headers = @{ Authorization = "Basic $auth" }
 
-      - name: Point the Function App at the package (read-only mount)
-        run: |
-          az functionapp config appsettings set \
-            --name "$AZURE_FUNCTIONAPP_NAME" \
-            --resource-group "${{ secrets.AZURE_RESOURCE_GROUP }}" \
-            --settings WEBSITE_RUN_FROM_PACKAGE="${{ steps.sas.outputs.package_url }}" \
-            --output none
+          # Verify WEBSITE_RUN_FROM_PACKAGE is set (warn if not — deploy will still
+          # work but falls back to extract mode, losing the read-only guarantee).
+          Write-Host "Checking WEBSITE_RUN_FROM_PACKAGE app setting..."
+          try {
+            $settings = Invoke-RestMethod -Uri "https://$scmHost/api/settings" `
+              -Headers $headers -TimeoutSec 30
+            $rfp = $settings.WEBSITE_RUN_FROM_PACKAGE
+            if ($rfp -eq '1' -or $rfp -eq 1) {
+              Write-Host "  WEBSITE_RUN_FROM_PACKAGE=1 confirmed (run-from-package active)."
+            } else {
+              Write-Host "::warning::WEBSITE_RUN_FROM_PACKAGE is not set to '1'. Deploy will extract instead of mount. Set it in Azure Portal > Configuration > Application Settings."
+            }
+          } catch {
+            Write-Host "  (could not verify setting: $($_.Exception.Message))"
+          }
 
-      - name: Sync triggers so the new package takes effect immediately
-        run: |
-          az functionapp sync-triggers \
-            --name "$AZURE_FUNCTIONAPP_NAME" \
-            --resource-group "${{ secrets.AZURE_RESOURCE_GROUP }}"
+          $deployUri = "https://$scmHost/api/zipdeploy?isAsync=true"
+          $resp = $null
+          $maxAttempts = 6
+          for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
+            try {
+              Write-Host "Upload attempt $attempt/$maxAttempts -> $deployUri"
+              $resp = Invoke-WebRequest -Uri $deployUri -Method POST -InFile 'app.zip' `
+                -ContentType 'application/zip' -Headers $headers -TimeoutSec 600
+              break
+            } catch {
+              $code = $null
+              try { $code = [int]$_.Exception.Response.StatusCode } catch {}
+              $msg = $_.Exception.Message
+              $locked = ($code -eq 409) -or ($msg -match 'pending') -or ($msg -match 'retry operation later')
+              if ($attempt -lt $maxAttempts -and $locked) {
+                $wait = 30 * $attempt
+                Write-Host "  deployment busy (HTTP $code). Waiting ${wait}s then retrying."
+                Start-Sleep -Seconds $wait
+                continue
+              }
+              throw
+            }
+          }
+          if (-not $resp) { throw 'Upload failed after retries' }
+          Write-Host "Upload accepted: HTTP $($resp.StatusCode)"
+
+          $pollUrl = $resp.Headers.Location
+          if ($pollUrl -is [array]) { $pollUrl = $pollUrl[0] }
+          if (-not $pollUrl) { $pollUrl = "https://$scmHost/api/deployments/latest" }
+          Write-Host "Polling deployment status at $pollUrl"
+
+          $deadline = (Get-Date).AddMinutes(5)
+          while ($true) {
+            Start-Sleep -Seconds 5
+            try {
+              $status = Invoke-RestMethod -Uri $pollUrl -Headers $headers -TimeoutSec 120
+            } catch {
+              if ((Get-Date) -gt $deadline) { throw }
+              Write-Host "  (transient poll error: $($_.Exception.Message))"
+              continue
+            }
+            Write-Host "  status=$($status.status) complete=$($status.complete) $($status.statusText)"
+            if ($status.complete -eq $true -or $status.status -eq 4 -or $status.status -eq 3) {
+              if ($status.status -eq 4) { Write-Host 'Deployment succeeded.'; break }
+              throw "Deployment failed (status=$($status.status)): $($status.statusText)"
+            }
+            if ((Get-Date) -gt $deadline) { throw 'Timed out waiting for deployment to complete.' }
+          }
+
+          # Force a trigger sync so the Functions host picks up the new package.
+          Write-Host "Syncing function triggers..."
+          try {
+            Invoke-RestMethod -Uri "https://$scmHost/api/functions/synctriggers" `
+              -Method POST -Headers $headers -TimeoutSec 60 | Out-Null
+            Write-Host "Trigger sync requested."
+          } catch {
+            Write-Host "  (trigger sync non-fatal: $($_.Exception.Message))"
+          }
+
+          # Health check — with run-from-package the host should come up fast
+          # since there's no extraction step.
+          $appHost = $scmHost -replace '\.scm\.', '.'
+          $healthUrl = "https://$appHost/api/mcp"
+          Write-Host "Polling app health at $healthUrl (up to 2 min)..."
+
+          $healthDeadline = (Get-Date).AddMinutes(2)
+          $healthy = $false
+          while ((Get-Date) -lt $healthDeadline) {
+            Start-Sleep -Seconds 10
+            try {
+              $h = Invoke-RestMethod -Uri $healthUrl -Method GET -TimeoutSec 20
+              if ($h.ok -eq $true) {
+                Write-Host "  App health OK. ready=$($h.data.configuration.ready)"
+                $healthy = $true
+                break
+              }
+              Write-Host "  ok=false; retrying..."
+            } catch {
+              Write-Host "  (not yet: $($_.Exception.Message))"
+            }
+          }
+
+          if (-not $healthy) {
+            Write-Host "Host did not come up within 2 min — triggering restart..."
+            try {
+              Invoke-RestMethod -Uri "https://$scmHost/api/restart" -Method POST `
+                -Headers $headers -TimeoutSec 60 | Out-Null
+              Write-Host "  Restart requested. Waiting 30s..."
+            } catch {
+              Write-Host "  (restart non-fatal: $($_.Exception.Message))"
+            }
+            Start-Sleep -Seconds 30
+
+            try {
+              $h = Invoke-RestMethod -Uri $healthUrl -Method GET -TimeoutSec 30
+              if ($h.ok -eq $true) {
+                Write-Host "  App recovered after restart."
+              } else {
+                throw "App health returned ok=false after restart. Check Azure portal logs."
+              }
+            } catch [System.Net.WebException] {
+              throw "App still unreachable after restart. Check Azure portal for errors."
+            }
+          }

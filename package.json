@@ -8,8 +8,9 @@
   },
   "scripts": {
     "start": "func start",
-    "test": "node --test test/",
-    "validate": "node scripts/validate-adventure.js"
+    "test": "node --test test/**/*.test.js",
+    "validate": "node scripts/validate-adventure.js",
+    "smoke:entrypoint": "node scripts/verify-functions-entrypoint.js"
   },
   "dependencies": {
     "@azure/functions": "^4.7.0",

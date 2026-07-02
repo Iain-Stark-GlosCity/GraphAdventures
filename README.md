@@ -22,8 +22,13 @@ src/
     memoryRunStore.js  same contract in memory, for tests
   functions/
     mcpTools.js        Azure Functions MCP tool triggers wiring the engine to the host
+    health.js          anonymous GET /api/mcp readiness probe, used by CI and for ops
 scripts/
-  validate-adventure.js  manual audit script (same validation the app runs at startup)
+  validate-adventure.js         manual audit script (same validation the app runs at startup)
+  verify-functions-entrypoint.js  CI smoke gate: requires every src/functions/*.js file cold
+  provision-azure.sh            one-shot resource group + storage + Function App bootstrap
+.github/workflows/
+  main_func-rust-wind-hills-26487.yml  build, test, zip and Kudu-deploy on push to main
 test/                    node:test suite (in-memory store, scripted dice)
 ```
 
@@ -56,8 +61,29 @@ Spec-mandated behaviours worth knowing when calling:
 | --- | --- |
 | `ADVENTURE_STORAGE_CONNECTION_STRING` | Blob storage connection string (falls back to `AzureWebJobsStorage`). Never hardcoded, never a tool parameter. |
 | `ADVENTURE_ASSET_PATH` | Optional override for the adventure JSON path. |
+| `WEBSITE_RUN_FROM_PACKAGE` | Set to `1` on the Function App (see deployment below) so the host mounts the deployed zip read-only instead of extracting it. |
 
 Runs live in one container, `adventure-runs`, one blob per run: `run:{run_id}.json`.
+
+## Deployment
+
+`scripts/provision-azure.sh` creates the resource group, storage account and a
+Windows/Node 24 consumption Function App, sets `ADVENTURE_STORAGE_CONNECTION_STRING`,
+and sets `WEBSITE_RUN_FROM_PACKAGE=1`.
+
+`.github/workflows/main_func-rust-wind-hills-26487.yml` builds and deploys on every
+push to `main` using only `az`/Kudu REST calls in PowerShell — no `Azure/*` third-party
+action. It installs, runs `smoke:entrypoint` (loads every `src/functions/*.js` file
+cold, same as the Functions worker would, catching a broken asset or bad require before
+it ships), runs the test suite, prunes dev dependencies, zips the runtime files, then
+uploads via Kudu `zipdeploy`, syncs triggers, and polls the anonymous `/api/mcp` health
+endpoint (retrying with a host restart once if it doesn't come up). Auth is the Function
+App's publish profile, stored as the `AZUREAPPSERVICE_PUBLISHPROFILE_...` GitHub secret
+(get it with `az functionapp deployment list-publishing-profiles --xml`).
+
+Because the app is deployed with `WEBSITE_RUN_FROM_PACKAGE=1`, each deploy is an atomic,
+read-only mount of the new zip rather than a file-by-file extraction over the running
+app — no partial-deploy window, no file locks.
 
 ## Running locally
 
