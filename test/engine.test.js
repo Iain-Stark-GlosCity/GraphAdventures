@@ -106,6 +106,21 @@ test("get_node/walk expose the rest of node.narrative, minus the arrival_text fo
   assert.deepEqual(view.node.narrative, step.node.narrative);
 });
 
+test("routes expose stakes/hook, and narrative.content_role is dropped as schema documentation, not content", async () => {
+  const { engine, adventure } = makeEngine();
+  const r001 = adventure.doc.routes.find((r) => r.id === "r001");
+  assert.ok(r001.stakes);
+  assert.ok(r001.hook);
+  assert.ok(r001.narrative.content_role);
+
+  const view = await engine.getNode(await engine.newRun(ADVENTURE_ID).then((r) => r.run_id));
+  const publicR001 = view.available_routes.find((r) => r.id === "r001");
+  assert.equal(publicR001.stakes, r001.stakes);
+  assert.equal(publicR001.hook, r001.hook);
+  assert.ok(!("content_role" in publicR001.narrative));
+  assert.equal(publicR001.narrative.player_intent, r001.narrative.player_intent);
+});
+
 test("get_node filters routes on visibility, legality, affordability and consumption", async () => {
   const { engine, store } = makeEngine();
   const { run_id } = await engine.newRun(ADVENTURE_ID);
@@ -116,7 +131,7 @@ test("get_node filters routes on visibility, legality, affordability and consump
   assert.deepEqual(ids, ["r001", "r002", "r003", "r004", "r005", "r007"]);
   // Public route objects never leak failure or visibility details.
   for (const r of view.available_routes) {
-    assert.deepEqual(Object.keys(r).sort(), ["costs", "id", "label", "narrative", "test"]);
+    assert.deepEqual(Object.keys(r).sort(), ["costs", "hook", "id", "label", "narrative", "stakes", "test"]);
     if (r.test) {
       assert.ok(!("failure_to" in r.test));
       assert.ok(!("failure_effects" in r.test));

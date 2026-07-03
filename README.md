@@ -88,9 +88,11 @@ and a `narrative` block (`local_history`, `present_tension`, `hidden_truth`,
 routes `transition_text`/`themes_activated`); every encounter a `narrative_semantics`
 block (`desire`, `fear`, `misconception`, `voice`, `non_combat_leverage`, `aftermath`);
 and every item a `narrative_semantics` block (`origin`, `symbolic_role`,
-`world_revelation`, `linked_threads`, `linked_motifs`). All of it is verified content-safe
-— no route or node narrative field reveals a hidden destination, failure branch, or
-visibility condition.
+`world_revelation`, `linked_threads`, `linked_motifs`). 0.2.2 adds `route.stakes` and
+`route.hook` — a player-facing cost/risk/opportunity line and a short flavour line,
+meant to sit alongside the short mechanical `label` rather than replace it. All of it is
+verified content-safe — no route or node narrative field reveals a hidden destination,
+failure branch, or visibility condition.
 
 What's exposed today, computed fresh on every call (never adding to what's persisted):
 
@@ -100,7 +102,10 @@ What's exposed today, computed fresh on every call (never adding to what's persi
   that wants that has to track it itself for now.
 - **`node.narrative`** — the rest of the node's narrative block (`arrival_text` is
   dropped here since it's already folded into `read_aloud`).
-- **`route.narrative`** — on every route in `available_routes`.
+- **`route.stakes` / `route.hook`** — on every route in `available_routes`.
+- **`route.narrative`** — on every route in `available_routes`, minus `content_role`,
+  which is schema documentation about what `label`/`stakes`/`hook` are for, not content
+  to narrate.
 - **A combat test's `encounter_name`/`encounter_kind`** — shown on the route before it's
   engaged, not just the bare `encounter_id`.
 - **A combat resolution's `encounter_name`/`encounter_kind`/`special`/`narrative`** —
@@ -121,6 +126,16 @@ threads, the rumour/knowledge/condition catalogues) and region-level `narrative`
 are large, mostly static reference material better suited to a separate, dedicated tool
 than repeated on every `get_node`/`walk` call — a real follow-up if wanted, not something
 this covers.
+
+Exposing the data is only half of it — the MCP `instructions` string returned in
+`initialize` (see `SERVER_INFO` in `src/functions/mcp.js`) explicitly directs the calling
+LLM to render every response as immersive second-person narrative prose, not surface the
+structured output as data: open a node with `read_aloud`, weave in `narrative` where it
+deepens the scene, voice route choices through `hook`/`stakes` rather than listing them,
+let a combat's `narrative` (desire/fear/misconception/voice) drive how it fights rather
+than just reporting stamina numbers, and narrate an item's `origin`/`symbolic_role` at
+the moment it's picked up. Raw ids, dice math, and JSON field names are for the caller's
+own reasoning, never for the player to see.
 
 ## Configuration
 
