@@ -35,6 +35,10 @@ test("new_run seeds state, writes the run doc, and rejects unknown adventures", 
   assert.equal(run.status, "active");
   assert.equal(run.node.id, "barrowgate_square");
   assert.deepEqual(run.arrival_effects_applied, []);
+  assert.equal(
+    run.opening_context,
+    adventure.doc.graph.opening_context.player_facing_introduction
+  );
 
   const doc = stored(store, run.run_id);
   assert.equal(doc.schema_version, "1.0");
@@ -112,6 +116,55 @@ test("a run persisted before visit tracking existed doesn't crash walk or get_no
 
   const step = await engine.walk(run.run_id, "r001", 0);
   assert.equal(step.node.visit_count, 1); // self-heals: records this as the first visit there
+});
+
+test("read_aloud_variants: the highest-priority matching variant wins over the usual selection", async () => {
+  const { engine, store, adventure } = makeEngine();
+  const { run_id } = await engine.newRun(ADVENTURE_ID);
+  const gate = adventure.doc.nodes.find((n) => n.id === "gate_of_tithes");
+  const unrecognised = gate.read_aloud_variants.find((v) => v.id === "gate_unrecognised");
+  const licensed = gate.read_aloud_variants.find((v) => v.id === "gate_licensed");
+  assert.ok(unrecognised.priority < licensed.priority);
+
+  // Default permit_status "none" matches only the unrecognised variant.
+  const doc = stored(store, run_id);
+  doc.state.current_node = "gate_of_tithes";
+  let view = await engine.getNode(run_id);
+  assert.equal(view.node.read_aloud, unrecognised.text);
+
+  // A licensed permit matches both gate_licensed (priority 100) and, since
+  // gate_unrecognised only fires on "none", just the higher one now —
+  // still: the highest priority among whatever currently matches wins.
+  doc.state.flags.permit_status = "licensed";
+  view = await engine.getNode(run_id);
+  assert.equal(view.node.read_aloud, licensed.text);
+  assert.notEqual(view.node.read_aloud, gate.read_aloud); // not the plain first-visit text
+});
+
+test("mandatory_exposition is present when a node has it, absent otherwise", async () => {
+  const { engine, store, adventure } = makeEngine();
+  const { run_id } = await engine.newRun(ADVENTURE_ID);
+  const warden = adventure.doc.nodes.find((n) => n.id === "warden_below");
+
+  const startView = await engine.getNode(run_id);
+  assert.ok(!("mandatory_exposition" in startView.node));
+
+  stored(store, run_id).state.current_node = "warden_below";
+  const view = await engine.getNode(run_id);
+  assert.deepEqual(view.node.mandatory_exposition, warden.mandatory_exposition);
+});
+
+test("route_resolution on a failed test surfaces failure_text, not success_text", async () => {
+  // r016 (licensing_hall) failing: faces 6+6 = 12 > skill 8.
+  const { engine, store, adventure } = makeEngine({ faces: [6, 6] });
+  const { run_id } = await engine.newRun(ADVENTURE_ID);
+  stored(store, run_id).state.current_node = "licensing_hall";
+
+  const step = await engine.walk(run_id, "r016", 0);
+  assert.equal(step.resolution.success, false);
+  const resolution = adventure.doc.semantic_layer.route_resolutions.r016;
+  assert.equal(step.route_resolution, resolution.failure_text);
+  assert.notEqual(step.route_resolution, resolution.success_text);
 });
 
 test("read_aloud falls back to narrative.arrival_text when a node has none of its own", async () => {
@@ -207,7 +260,7 @@ test("get_node filters routes on visibility, legality, affordability and consump
 });
 
 test("walk without a test is an automatic success; arrival knowledge_grants convert to records", async () => {
-  const { engine } = makeEngine();
+  const { engine, adventure } = makeEngine();
   const { run_id } = await engine.newRun(ADVENTURE_ID);
 
   const step = await engine.walk(run_id, "r001", 0);
@@ -217,25 +270,50 @@ test("walk without a test is an automatic success; arrival knowledge_grants conv
   assert.equal(step.revision_after, 1);
   assert.equal(step.status_after, "active");
   assert.equal(step.resolution, null);
+  assert.deepEqual(step.state_after.knowledge, ["rumour_crown_ember_salt", "rumour_ninth_lock"]);
+
+  // arrival_effects_applied is enriched with knowledge_revelations text on
+  // the live response...
+  const rev = adventure.doc.semantic_layer.knowledge_revelations;
   assert.deepEqual(step.arrival_effects_applied, [
+    {
+      op: "add_knowledge",
+      fact: "rumour_crown_ember_salt",
+      source: "bent_nail_inn",
+      title: rev.rumour_crown_ember_salt.title,
+      player_text: rev.rumour_crown_ember_salt.player_text,
+      meaning: rev.rumour_crown_ember_salt.meaning,
+    },
+    {
+      op: "add_knowledge",
+      fact: "rumour_ninth_lock",
+      source: "bent_nail_inn",
+      title: rev.rumour_ninth_lock.title,
+      player_text: rev.rumour_ninth_lock.player_text,
+      meaning: rev.rumour_ninth_lock.meaning,
+    },
+  ]);
+
+  // ...but what's persisted stays lean, and node/available_routes/
+  // route_resolution never make it into the log at all.
+  const log = await engine.getLog(run_id);
+  const loggedStep = log.log[0];
+  assert.deepEqual(loggedStep.arrival_effects_applied, [
     { op: "add_knowledge", fact: "rumour_crown_ember_salt", source: "bent_nail_inn" },
     { op: "add_knowledge", fact: "rumour_ninth_lock", source: "bent_nail_inn" },
   ]);
-  assert.deepEqual(step.state_after.knowledge, ["rumour_crown_ember_salt", "rumour_ninth_lock"]);
-
-  // walk's response is the logged step plus node/available_routes computed
-  // fresh (not persisted) — everything logged is still identical to what
-  // was returned, just without those two extra convenience fields.
-  const { node, available_routes, ...loggedShape } = step;
-  const log = await engine.getLog(run_id);
-  assert.deepEqual(log.log, [loggedShape]);
+  for (const key of ["step_id", "revision_before", "revision_after", "status_after", "from", "route_id", "costs_applied", "resolution", "to", "state_after"]) {
+    assert.deepEqual(step[key], loggedStep[key], `mismatch on ${key}`);
+  }
   assert.equal(log.revision, 1);
-  assert.equal(node.id, "bent_nail_inn");
-  assert.ok(!("node" in log.log[0]));
-  assert.ok(!("available_routes" in log.log[0]));
+  assert.equal(step.node.id, "bent_nail_inn");
+  assert.ok(!("node" in loggedStep));
+  assert.ok(!("available_routes" in loggedStep));
+  assert.ok(!("route_resolution" in loggedStep));
 
-  // Back to the square: r008's route effects add three facts, one of which
-  // (rumour_ninth_lock) is already known — the add is an idempotent no-op.
+  // Back to the square: r008's route effects add four facts, two of which
+  // (rumour_crown_ember_salt, rumour_ninth_lock) are already known — those
+  // adds are idempotent no-ops.
   const back = await engine.walk(run_id, "r008", 1);
   assert.deepEqual(back.state_after.knowledge, [
     "rumour_crown_ember_salt",
@@ -343,7 +421,7 @@ test("walk's node/available_routes reflect the terminal node on death, empty rou
 
 test("skill test: success takes route.to and route.effects", async () => {
   // r016 (licensing_hall): 2d6 <= skill 8 + 0. Faces 1+1 = 2 -> success.
-  const { engine, store } = makeEngine({ faces: [1, 1] });
+  const { engine, store, adventure } = makeEngine({ faces: [1, 1] });
   const { run_id } = await engine.newRun(ADVENTURE_ID);
   stored(store, run_id).state.current_node = "licensing_hall";
 
@@ -356,7 +434,21 @@ test("skill test: success takes route.to and route.effects", async () => {
     success: true,
   });
   assert.equal(step.to, "forgery_cellar");
-  assert.deepEqual(step.effects_applied, [{ op: "add_knowledge", fact: "rumour_red_quill" }]);
+  const revelation = adventure.doc.semantic_layer.knowledge_revelations.rumour_red_quill;
+  assert.deepEqual(step.effects_applied, [
+    {
+      op: "add_knowledge",
+      fact: "rumour_red_quill",
+      title: revelation.title,
+      player_text: revelation.player_text,
+      meaning: revelation.meaning,
+    },
+  ]);
+  // route_resolution surfaces semantic_layer.route_resolutions.r016.success_text.
+  assert.equal(
+    step.route_resolution,
+    adventure.doc.semantic_layer.route_resolutions.r016.success_text
+  );
 });
 
 test("skill test: failure takes failure_to and failure_effects; costs stay spent", async () => {

@@ -98,23 +98,43 @@ and every item a `narrative_semantics` block (`origin`, `symbolic_role`,
 `route.hook` — a player-facing cost/risk/opportunity line and a short flavour line,
 meant to sit alongside the short mechanical `label` rather than replace it. 0.2.3 adds
 `node.narrative.emotional_undertone` and `node.narrative.sensory_focus`, which need no
-engine changes since the rest of `node.narrative` is already a blanket pass-through. All
-of it is verified content-safe — no route or node narrative field reveals a hidden
-destination, failure branch, or visibility condition.
+engine changes since the rest of `node.narrative` is already a blanket pass-through. 0.2.5
+adds `graph.opening_context`, conditional `node.read_aloud_variants`, `node.
+mandatory_exposition`, `node.rumour_delivery`, and a `semantic_layer.route_resolutions` /
+`semantic_layer.knowledge_revelations` pair — and ships with its own `runtime_contract`
+block explicitly documenting how each field is meant to be used, which is what most of
+the exposure logic below follows. All of it is verified content-safe — no route or node
+narrative field reveals a hidden destination, failure branch, or visibility condition.
+Route resolution text is the one exception worth naming: where a `failure_text` names the
+failure destination, that destination is already exposed by the same walk response's own
+`to`/`node` fields, so it's narration, not a new leak.
 
 What's exposed today, computed fresh on every call (never adding to what's persisted):
 
 - **`node.read_aloud`** — the engine tracks visit count per node per run
   (`state.visited_nodes`, engine bookkeeping like `consumed_routes`, stripped from
-  `publicState`) and picks exactly one text itself: `read_aloud_revisit` on a return
-  visit if the node has one, explicit `read_aloud` otherwise, `narrative.arrival_text` as
-  the last resort either way. `read_aloud_revisit` is no longer exposed raw alongside
-  it — earlier revisions returned both and left the caller to guess which applied from
-  conversation memory; the node projection now also reports `visit_count` and
-  `presentation` (`"first_visit"` or `"revisit"`) so the choice is explicit rather than
-  inferred.
+  `publicState`) and picks exactly one text itself. Precedence, highest first: a matching
+  `node.read_aloud_variant` (see below); `read_aloud_revisit` on a return visit if the node
+  has one; explicit `read_aloud`; `narrative.arrival_text` as the last resort. Nothing here
+  is exposed raw alongside the choice — earlier revisions returned `read_aloud_revisit`
+  unconditionally and left the caller to guess which applied from conversation memory; the
+  node projection also reports `visit_count` and `presentation` (`"first_visit"` or
+  `"revisit"`) so the choice is explicit rather than inferred.
+- **`node.read_aloud_variants`** (0.2.5) — condition-gated read-aloud text (e.g. a gate
+  that reacts differently depending on `permit_status`), evaluated with the same condition
+  DSL routes use. All matching variants are ranked by `priority`; the highest wins outright
+  over the usual first-visit/revisit choice, since a variant is about current state truth,
+  not visit history.
+- **`node.mandatory_exposition`** (0.2.5) — a separate field, not concatenated into
+  `read_aloud`, so the narrator can judge whether it's already implied rather than
+  repeating it verbatim (currently on the Warden and the treasure vault).
+- **`node.rumour_delivery`** (0.2.5) — per-NPC rumour attribution (speaker/text/
+  truth_status) at the Bent Nail Inn. Not mentioned in the content's own `runtime_contract`,
+  but the same kind of verified-safe flavour as everything else here.
 - **`node.narrative`** — the rest of the node's narrative block (`arrival_text` is
   dropped here since it's already folded into `read_aloud`).
+- **`graph.opening_context.player_facing_introduction`** (0.2.5) — one-time scene-setting
+  text, returned as `opening_context` on `new_run` only, never repeated on `get_node`/`walk`.
 - **`route.stakes` / `route.hook`** — on every route in `available_routes`.
 - **`route.narrative`** — on every route in `available_routes`, minus `content_role`,
   which is schema documentation about what `label`/`stakes`/`hook` are for, not content
@@ -127,18 +147,28 @@ What's exposed today, computed fresh on every call (never adding to what's persi
   is being frozen in that wasn't already fully implied by the id) and bounded to 7
   encounters total, so keeping it as part of "what happened in this fight" strengthens the
   audit trail rather than bloating it.
+- **`walk`'s `route_resolution`** (0.2.5) — `semantic_layer.route_resolutions[route_id]`'s
+  `success_text` or `failure_text`, whichever branch actually happened. Live-response-only,
+  same treatment as node/route narrative, not persisted to `log`.
 - **`add_item` effect records** — enriched with the item's `name`/`description`/
   `narrative` (its `narrative_semantics`) at the moment it's picked up, in `walk`'s live
   `effects_applied` only. `get_log` still sees the lean `{ op, item }` shape the spec
   documents — narrative flavour belongs at the moment of acquisition, not repeated on
   every later read of the inventory.
+- **`add_knowledge` effect records** (0.2.5) — enriched the same way with
+  `semantic_layer.knowledge_revelations[fact]`'s `title`/`player_text`/`meaning`, in both
+  `effects_applied` and `arrival_effects_applied` (node `knowledge_grants` on arrival
+  synthesises the same shape), live-response-only. `meaning` is narrator subtext — same
+  treatment as `node.narrative.hidden_truth` — not something to state outright.
 
-Still unexposed, a deliberate scope boundary rather than an oversight: the whole
-top-level `semantic_layer` (world history, factions, named characters, motifs, dramatic
-threads, the rumour/knowledge/condition catalogues) and region-level `narrative`. Both
-are large, mostly static reference material better suited to a separate, dedicated tool
-than repeated on every `get_node`/`walk` call — a real follow-up if wanted, not something
-this covers.
+Still unexposed, a deliberate scope boundary rather than an oversight: everything in
+`semantic_layer` other than `route_resolutions` and `knowledge_revelations`, which are
+resolved server-side into `route_resolution`/enriched knowledge effects rather than
+exposed raw. That leaves world history, factions, named characters, motifs, dramatic
+threads, the rumour/knowledge/condition catalogues, `narrative_delivery_plan`, and
+region-level `narrative`. All of it is large, mostly static reference material better
+suited to a separate, dedicated tool than repeated on every `get_node`/`walk` call — a
+real follow-up if wanted, not something this covers.
 
 Exposing the data is only half of it — the MCP `instructions` string returned in
 `initialize` (see `SERVER_INFO` in `src/functions/mcp.js`) explicitly directs the calling

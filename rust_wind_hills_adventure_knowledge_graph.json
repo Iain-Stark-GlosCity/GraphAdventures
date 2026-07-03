@@ -1,7 +1,7 @@
 {
   "schema": {
     "name": "adventure-knowledge-graph",
-    "version": "0.2.3",
+    "version": "0.2.5",
     "description": "A stateful, directed knowledge graph for a classic gamebook-style dungeon adventure. The graph separates executable traversal rules from a narrative-semantic layer containing world truths, rumours, characters, factions, motifs, dramatic threads, knowledge definitions and node-level story affordances."
   },
   "graph": {
@@ -35,23 +35,35 @@
       "The graph contains loops, shortcuts, optional encounters, delayed consequences and several endings."
     ],
     "content_revision": {
-      "version": "0.2.3",
-      "summary": "Refines player-facing narration with restrained sensory detail and subtle emotional cues. No nodes, routes, mechanics, conditions or effects have changed.",
-      "compatibility": "Content-only revision. Existing runtime fields remain stable: node.read_aloud, node.read_aloud_revisit, route.label, route.stakes and route.hook.",
+      "version": "0.2.5",
+      "summary": "Improves end-to-end narrative delivery: rumours are spoken rather than merely flagged, knowledge gains carry explicit revelations, route outcomes have separate narrative resolutions, selected nodes react to prior state, and the final succession premise is made unavoidable.",
+      "compatibility": "Node and route IDs, topology, costs, tests, conditions and core effects are preserved. One idempotent knowledge effect is added to r008 so the Crown rumour is recorded when heard.",
       "node_count_changed": false,
       "route_count_changed": false,
-      "fixes": [
-        "Rewrites all 47 read-aloud passages to integrate sound, smell, touch, taste and sight across the adventure.",
-        "Adds a restrained emotional undertone and sensory focus to every node.",
-        "Adds emotional tells to named characters.",
-        "Refines selected route hooks so human reactions and uncertainty register without becoming melodramatic.",
-        "Adds sensory and emotional style guidance for semantic narration."
+      "major_additions": [
+        "Explicit Bent Nail rumour delivery",
+        "Player-facing revelation text for all knowledge facts",
+        "Narrative resolution records for all routes",
+        "State-aware read-aloud variants at key continuity points",
+        "Mandatory exposition at the Warden and treasure vault",
+        "A narrative delivery plan connecting the adventure's acts"
       ]
     },
     "narrative_premise": "Barrowgate treats the dungeon beneath the Rust Wind Hills as a regulated natural resource. The joke is that the bureaucracy works: the old dungeon recognises permits, seals, debts and claims of office because it was never merely a tomb. It was the Ninth Treasury of a fallen kingdom, built to bind a crown that turns promises into law.",
     "core_mystery": "Why do Barrowgate's crude licences interact with mechanisms three centuries older than the town, and what exactly is being licensed: entry to the dungeon, or succession to its buried authority?",
     "dramatic_question": "Can the delver take the Crown of Ember Salt without becoming another official in the machinery that has outlived every kingdom and every excuse for its existence?",
-    "hidden_truth": "The modern licence seal descends from fragments of the old treasury seal. Each issued licence creates a faint legal identity inside the dungeon's oath-bound systems. Barrowgate believes it is charging for access; in practice it is unknowingly maintaining a broken succession ritual."
+    "hidden_truth": "The modern licence seal descends from fragments of the old treasury seal. Each issued licence creates a faint legal identity inside the dungeon's oath-bound systems. Barrowgate believes it is charging for access; in practice it is unknowingly maintaining a broken succession ritual.",
+    "opening_context": {
+      "player_facing_introduction": "Rumours of a mythic treasure have drawn you to Barrowgate, a hard little town at the foot of the Rust Wind Hills. Beneath the hills lies an ancient dungeon complex that has swallowed generations of treasure-seekers. Barrowgate has turned that danger into a local industry: delvers buy licences, supplies, hired help and blessings before taking the road into the hills. Some return rich. Most return poorer. Many do not return at all.",
+      "premise_facts": [
+        "A mythic treasure is believed to lie in the deepest vault.",
+        "The dungeon predates Barrowgate by centuries.",
+        "Barrowgate licences and charges delvers for access.",
+        "A licence may affect how the ancient dungeon recognises a claimant.",
+        "The player begins in town and chooses how much to prepare before entering the hills."
+      ],
+      "narrative_function": "Orient the player before the first choices without revealing the hidden succession machinery."
+    }
   },
   "ruleset": {
     "mode": "single_player_gamebook",
@@ -821,17 +833,17 @@
       "type": "hub",
       "region": "town",
       "title": "Barrowgate",
-      "summary": "A hard little town built around the legal, illegal and memorial economy of dungeon delving.",
-      "read_aloud": "Rust-red dust moves along the street like smoke, carrying the faint iron smell of the hills. Above the gatehouse hangs a board: DELVERS MUST BE LICENSED. NO REFUNDS. A brass gong sounds for each departing expedition; the people nearby pause for it, though none look up.",
+      "summary": "A hard frontier town that has built a living around licensed expeditions into the ancient dungeons beneath the Rust Wind Hills.",
+      "read_aloud": "Rumours of a mythic treasure have drawn you to Barrowgate, a hard little town at the foot of the Rust Wind Hills. Beneath those iron-red slopes, ancient dungeons have swallowed generations of delvers. The town has made a business of the danger: licences, supplies, hired torchbearers, blessings and, when needed, memorial plaques. Rust-red dust moves along the street like smoke, carrying the faint iron smell of the hills. Above the gatehouse hangs a board: DELVERS MUST BE LICENSED. NO REFUNDS.",
       "tags": [
         "start",
         "safe",
         "commerce"
       ],
       "narrative": {
-        "arrival_text": "A brass gong sounds whenever another expedition leaves. Nobody rings it for those who return quietly.",
+        "arrival_text": "The player arrives because rumours of a mythic treasure have spread beyond the hills. Barrowgate immediately presents the dungeon as both mortal danger and ordinary local business.",
         "local_history": "The square was once a livestock market. The first dungeon licence was issued here after three rival parties killed one another over salvage rights.",
-        "present_tension": "Hope, commerce and anticipated grief occupy the same public space.",
+        "present_tension": "The town depends upon delvers while knowing that many of them will not return.",
         "hidden_truth": "Several memorial plaques are made from metal recovered from the old treasury seal.",
         "sensory_details": [
           "red dust collecting in boot seams",
@@ -845,8 +857,9 @@
           "motif_paper_and_seals"
         ],
         "narrative_hooks": [
-          "Show families reading departure boards.",
-          "Let successful delvers be treated like investors and omens."
+          "Make the dungeon, the treasure rumour and the licensing industry explicit before presenting choices.",
+          "Show that licences, equipment, hired help and blessings are normal parts of preparing a delve.",
+          "Keep the deeper reason the dungeon recognises paperwork hidden at this stage."
         ],
         "emotional_undertone": "Public confidence stretched over private unease.",
         "sensory_focus": [
@@ -855,7 +868,7 @@
           "a gong note hanging in the square"
         ]
       },
-      "read_aloud_revisit": "The square is still busy. Red grit rasps underfoot, and the gong's last note seems to linger between the buildings."
+      "read_aloud_revisit": "Barrowgate's square is still busy with the trade of dungeon-going. Red grit rasps underfoot, and the iron smell of the hills rides the wind between the licensing hall, market and inn."
     },
     {
       "id": "bent_nail_inn",
@@ -895,8 +908,34 @@
           "knife-cut maps beneath the hand"
         ]
       },
-      "read_aloud": "Warm, sour air rolls from the Bent Nail Inn. Low voices gather beneath the smoke-black beams, then thin for a moment as you enter. Every table bears a carved map, and no two agree.",
-      "read_aloud_revisit": "The inn's warmth closes around you again; someone stops speaking just before you catch the end of a story."
+      "read_aloud": "Warm, sour air rolls from the Bent Nail Inn. Low voices gather beneath the smoke-black beams, then thin as you enter. A scarred delver turns his cup between both hands. \"The treasure is a crown,\" he says, \"and the deep places listen when you make promises.\" A torchbearer at the next table adds, without looking up, \"No hired hand crosses the Ninth Lock twice.\" Before you leave, the innkeeper mentions two quieter leads: a red feather painted beneath certain windows, and a blind roadside saint whose shrines mark paths the council never licensed.",
+      "read_aloud_revisit": "The Bent Nail closes around you in smoke and low conversation. The same warnings are being told to someone newer.",
+      "rumour_delivery": [
+        {
+          "knowledge_id": "rumour_crown_ember_salt",
+          "speaker": "A scarred delver",
+          "text": "The treasure is a crown, and the deep places listen when you make promises.",
+          "truth_status": "distorted_but_useful"
+        },
+        {
+          "knowledge_id": "rumour_ninth_lock",
+          "speaker": "A hired torchbearer",
+          "text": "No hired hand crosses the Ninth Lock twice.",
+          "truth_status": "mostly_true"
+        },
+        {
+          "knowledge_id": "rumour_red_quill",
+          "speaker": "The innkeeper",
+          "text": "A red feather beneath a window marks someone who can make the council believe almost anything.",
+          "truth_status": "true_but_incomplete"
+        },
+        {
+          "knowledge_id": "rumour_dust_saint",
+          "speaker": "The innkeeper",
+          "text": "The blind saint keeps one road hidden from officials and another hidden from the lost.",
+          "truth_status": "metaphorically_true"
+        }
+      ]
     },
     {
       "id": "market_last_chances",
@@ -1477,7 +1516,48 @@
         ]
       },
       "read_aloud": "The iron gate stands beaded with cold moisture. Three slots wait at chest height: coin, seal and blood. Behind the bars, clockwork turns with the slow sound of something breathing in sleep.",
-      "read_aloud_revisit": "The gate's iron is slick beneath your fingers. The hidden mechanism continues its patient breathing."
+      "read_aloud_revisit": "The gate's iron is slick beneath your fingers. The hidden mechanism continues its patient breathing.",
+      "read_aloud_variants": [
+        {
+          "id": "gate_licensed",
+          "priority": 100,
+          "conditions": [
+            {
+              "op": "flag_is",
+              "flag": "permit_status",
+              "value": "licensed"
+            }
+          ],
+          "text": "The licence warms as you approach. One of the gate's mechanisms turns towards it with a soft, almost deferential click.",
+          "purpose": "Show that Barrowgate's licence has genuine ancient recognition."
+        },
+        {
+          "id": "gate_counterfeit",
+          "priority": 90,
+          "conditions": [
+            {
+              "op": "flag_is",
+              "flag": "permit_status",
+              "value": "counterfeit"
+            }
+          ],
+          "text": "The counterfeit permit grows warm, then cools. The gate's mechanism hesitates as though comparing two imperfect memories.",
+          "purpose": "Signal that the forgery may work but is not fully trusted."
+        },
+        {
+          "id": "gate_unrecognised",
+          "priority": 80,
+          "conditions": [
+            {
+              "op": "flag_is",
+              "flag": "permit_status",
+              "value": "none"
+            }
+          ],
+          "text": "No seal answers the gate. The coin and blood slots remain open while the mechanism waits for you to define yourself another way.",
+          "purpose": "Clarify the practical consequence of entering without paperwork."
+        }
+      ]
     },
     {
       "id": "hall_broken_spears",
@@ -1550,7 +1630,22 @@
         ]
       },
       "read_aloud": "The air is warm with grain dust and animal musk. Keys chime in the dark, first singly, then in a hundred small movements. When the voice speaks, its formality cannot quite hide its fear of being forgotten.",
-      "read_aloud_revisit": "Brass keys stir among the roots. The warren is quieter now, but not empty."
+      "read_aloud_revisit": "Brass keys stir among the roots. The warren is quieter now, but not empty.",
+      "read_aloud_variants": [
+        {
+          "id": "warren_cleared",
+          "priority": 100,
+          "conditions": [
+            {
+              "op": "flag_is",
+              "flag": "rat_king_dead",
+              "value": true
+            }
+          ],
+          "text": "The warren is quieter now. Ordinary rats scatter from the little crown, and the keys hang without the voice that once counted them.",
+          "purpose": "Prevent the Rat-King from feeling resurrected after death."
+        }
+      ]
     },
     {
       "id": "chained_well",
@@ -1695,7 +1790,22 @@
         ]
       },
       "read_aloud": "The armoured figure raises one hand, and every loose page in the room settles into line. Hot iron and dry ink sharpen the air. Behind the visor, the pause before it speaks feels almost like dread.",
-      "read_aloud_revisit": "Paper edges align with a dry whisper. The Registrar's gauntlet remains raised, very still."
+      "read_aloud_revisit": "Paper edges align with a dry whisper. The Registrar's gauntlet remains raised, very still.",
+      "read_aloud_variants": [
+        {
+          "id": "registrar_alerted_variant",
+          "priority": 100,
+          "conditions": [
+            {
+              "op": "flag_is",
+              "flag": "registrar_alerted",
+              "value": true
+            }
+          ],
+          "text": "Before you speak, a red strip of paper unrolls from the Registrar's desk. Your description is already written upon it. Halvek's posture becomes even more rigid.",
+          "purpose": "Make the adverse record visible rather than purely mechanical."
+        }
+      ]
     },
     {
       "id": "gaol_cells",
@@ -1914,7 +2024,21 @@
         ]
       },
       "read_aloud": "Wind catches the bridge and sends a tremor through the stone beneath your boots. Voices rise from the drop, some frightened, some resigned. The rope is rough and damp in your hand.",
-      "read_aloud_revisit": "The bridge shivers before you step onto it. One voice below sounds relieved that you came back."
+      "read_aloud_revisit": "The bridge shivers before you step onto it. One voice below sounds relieved that you came back.",
+      "read_aloud_variants": [
+        {
+          "id": "bridge_with_pell",
+          "priority": 100,
+          "conditions": [
+            {
+              "op": "has_item",
+              "item": "torchbearer_contract"
+            }
+          ],
+          "text": "Pell tests the damp rope, looks once into the drop and begins choosing anchor points. His attention steadies the scene more than any reassurance could.",
+          "purpose": "Make Pell present before his mechanical assistance is selected."
+        }
+      ]
     },
     {
       "id": "beast_pits",
@@ -2134,7 +2258,33 @@
         ]
       },
       "read_aloud": "The bronze giant kneels with both hands against the sealed door. Heat seeps from the metal into the stone. Its first breath is a low ceremonial hum; when it looks at you, there is no anger in the sound—only endurance.",
-      "read_aloud_revisit": "Bronze warmth reaches you before the Guardian speaks. Dust falls with each measured word."
+      "read_aloud_revisit": "Bronze warmth reaches you before the Guardian speaks. Dust falls with each measured word.",
+      "read_aloud_variants": [
+        {
+          "id": "pell_at_boundary",
+          "priority": 120,
+          "conditions": [
+            {
+              "op": "has_item",
+              "item": "torchbearer_contract"
+            }
+          ],
+          "text": "Pell stops several paces from the bronze giant. \"This is the Ninth Lock,\" he says quietly. \"My contract ends here.\"",
+          "purpose": "Deliver Pell's boundary before routes requiring his departure."
+        },
+        {
+          "id": "guardian_debt_known",
+          "priority": 100,
+          "conditions": [
+            {
+              "op": "knows",
+              "fact": "debt_of_ninth_guardian"
+            }
+          ],
+          "text": "The ledger's wording returns to you as Varn speaks. This is not simply a guard at a door; it is an unpaid obligation given a body.",
+          "purpose": "Reflect learned history in the encounter."
+        }
+      ]
     },
     {
       "id": "abyssal_stair",
@@ -2281,8 +2431,52 @@
           "the weight of a calm evaluating gaze"
         ]
       },
-      "read_aloud": "Serath waits in a silence so complete that your own breathing feels discourteous. Salt sparks drift from the armour and vanish before touching the floor. The Warden studies you without hostility, which is worse.",
-      "read_aloud_revisit": "The silence closes again. Serath's attention settles on what you carry, then on how you carry it."
+      "read_aloud": "Serath waits in a silence so complete that your breathing feels discourteous. Salt sparks drift from the armour. The Warden studies you without hostility and speaks before drawing any weapon. \"You entered these ruins as a delver seeking treasure. You stand now in a court of succession. The vault does not ask whether you can take the Crown. It asks what right you have to survive wearing it.\"",
+      "read_aloud_revisit": "The silence closes again. Serath's attention settles on what you carry, then on how you carry it.",
+      "read_aloud_variants": [
+        {
+          "id": "warden_alerted",
+          "priority": 120,
+          "conditions": [
+            {
+              "op": "flag_is",
+              "flag": "registrar_alerted",
+              "value": true
+            }
+          ],
+          "text": "A thin red writ hangs in the air beside Serath. The Warden has already received the Registrar's accusation.",
+          "purpose": "Carry the adverse record into the final judgement."
+        },
+        {
+          "id": "warden_law_known",
+          "priority": 110,
+          "conditions": [
+            {
+              "op": "knows",
+              "fact": "warden_bound_by_crown_law"
+            }
+          ],
+          "text": "You recognise the structure of Serath's questions: authority, acknowledged debt and restraint. The archive did not describe a battle. It described this judgement.",
+          "purpose": "Reward the archive route with clear interpretive context."
+        },
+        {
+          "id": "warden_seal_bearer",
+          "priority": 90,
+          "conditions": [
+            {
+              "op": "has_item",
+              "item": "brass_seal"
+            }
+          ],
+          "text": "Serath's gaze settles on the Brass Seal. For the first time, the Warden addresses you as a claimant rather than an intruder.",
+          "purpose": "Reflect accumulated authority."
+        }
+      ],
+      "mandatory_exposition": {
+        "always_present": true,
+        "text": "The final confrontation is a succession judgement, not merely a treasure-guarding battle.",
+        "player_takeaway": "Items, reputation, recovered debts, restraint and recognised authority are evidence supporting a claim."
+      }
     },
     {
       "id": "vault_mythic_treasure",
@@ -2317,8 +2511,13 @@
           "expectant silence"
         ]
       },
-      "read_aloud": "The vault is dry and warm, smelling faintly of rain on hot stone. There are no heaps of coin. Only the Crown rests on its pedestal, and the quiet around it feels expectant.",
-      "read_aloud_revisit": "Heat gathers on your skin. The Crown's red light seems to pulse with your breathing."
+      "read_aloud": "The vault is dry and warm, smelling faintly of rain on hot stone. There are no heaps of coin. Only the Crown rests on its pedestal. The emptiness is deliberate: this chamber was built to prevent any claimant confusing wealth with the right to rule. Whatever you do next will decide whether you leave with treasure, inherit the ruins, or become another voice inside the Crown.",
+      "read_aloud_revisit": "Heat gathers on your skin. The Crown's red light seems to pulse with your breathing.",
+      "mandatory_exposition": {
+        "always_present": true,
+        "text": "The Crown offers three distinct outcomes: possession resisted, identity consumed, or rulership accepted.",
+        "player_takeaway": "The final routes are choices about identity and responsibility, not merely different reward tiers."
+      }
     },
     {
       "id": "crown_ember_salt",
@@ -2394,7 +2593,21 @@
         ]
       },
       "read_aloud": "Barrowgate's bells begin before you reach the gate. The crowd smells of rain, wool and hot wax. Pell, if he waits there, lets out a breath and then looks at the Crown with quiet concern.",
-      "read_aloud_revisit": "The town celebrates, though people lower their voices whenever the Crown catches the light."
+      "read_aloud_revisit": "The town celebrates, though people lower their voices whenever the Crown catches the light.",
+      "read_aloud_variants": [
+        {
+          "id": "ending_pell_witness",
+          "priority": 100,
+          "conditions": [
+            {
+              "op": "knows",
+              "fact": "pell_waits_above_ninth_lock"
+            }
+          ],
+          "text": "Pell is waiting above the Lock and returns with you. His relief lasts only until he sees how the Crown catches the light.",
+          "purpose": "Pay off Pell's decision to remain as a living witness."
+        }
+      ]
     },
     {
       "id": "ending_cursed_possession",
@@ -2564,7 +2777,19 @@
         }
       },
       "stakes": "Spend time instead of gold to uncover leads, lies and warnings before committing to the delve.",
-      "hook": "Inside the Bent Nail, a survivor lowers his cup when he hears where you mean to go."
+      "hook": "Inside the Bent Nail, a survivor lowers his cup when he hears where you mean to go.",
+      "engine_action": {
+        "action_type": "move_to_target_node",
+        "route_id": "r001",
+        "source_node": "barrowgate_square",
+        "target_node": "bent_nail_inn",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [],
+          "test": null
+        }
+      },
+      "resolution_ref": "route_resolutions.r001"
     },
     {
       "id": "r002",
@@ -2584,7 +2809,19 @@
         }
       },
       "stakes": "Trade scarce gold for equipment that opens safer routes and extends your time underground.",
-      "hook": "Every item on the stalls has already failed to save someone else."
+      "hook": "Every item on the stalls has already failed to save someone else.",
+      "engine_action": {
+        "action_type": "move_to_target_node",
+        "route_id": "r002",
+        "source_node": "barrowgate_square",
+        "target_node": "market_last_chances",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [],
+          "test": null
+        }
+      },
+      "resolution_ref": "route_resolutions.r002"
     },
     {
       "id": "r003",
@@ -2604,7 +2841,19 @@
         }
       },
       "stakes": "A hired torchbearer brings light and expertise, but also another life for your decisions to endanger.",
-      "hook": "The workers assess your boots, your hands and whether you listen when they answer."
+      "hook": "The workers assess your boots, your hands and whether you listen when they answer.",
+      "engine_action": {
+        "action_type": "move_to_target_node",
+        "route_id": "r003",
+        "source_node": "barrowgate_square",
+        "target_node": "torchbearers_yard",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [],
+          "test": null
+        }
+      },
+      "resolution_ref": "route_resolutions.r003"
     },
     {
       "id": "r004",
@@ -2624,7 +2873,19 @@
         }
       },
       "stakes": "Spend gold for luck and a ritual that may matter when the dungeon begins testing identity.",
-      "hook": "The priest's kindness is practised, but not empty."
+      "hook": "The priest's kindness is practised, but not empty.",
+      "engine_action": {
+        "action_type": "move_to_target_node",
+        "route_id": "r004",
+        "source_node": "barrowgate_square",
+        "target_node": "temple_cinders",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [],
+          "test": null
+        }
+      },
+      "resolution_ref": "route_resolutions.r004"
     },
     {
       "id": "r005",
@@ -2644,7 +2905,19 @@
         }
       },
       "stakes": "Pay for recognised authority that can ease checkpoints, while accepting Barrowgate's rules and costs.",
-      "hook": "The clerk's pen pauses above the line marked NEXT OF KIN."
+      "hook": "The clerk's pen pauses above the line marked NEXT OF KIN.",
+      "engine_action": {
+        "action_type": "move_to_target_node",
+        "route_id": "r005",
+        "source_node": "barrowgate_square",
+        "target_node": "licensing_hall",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [],
+          "test": null
+        }
+      },
+      "resolution_ref": "route_resolutions.r005"
     },
     {
       "id": "r006",
@@ -2673,7 +2946,19 @@
         }
       },
       "stakes": "Seek cheaper illicit access and risk beginning the expedition under an adverse identity.",
-      "hook": "A red feather beneath a windowsill points towards paperwork the council never issued."
+      "hook": "A red feather beneath a windowsill points towards paperwork the council never issued.",
+      "engine_action": {
+        "action_type": "move_to_target_node",
+        "route_id": "r006",
+        "source_node": "barrowgate_square",
+        "target_node": "forgery_cellar",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [],
+          "test": null
+        }
+      },
+      "resolution_ref": "route_resolutions.r006"
     },
     {
       "id": "r007",
@@ -2700,7 +2985,19 @@
         }
       },
       "stakes": "End your preparations and carry every unmade purchase and unanswered question into the hills.",
-      "hook": "Beyond the last signpost, Barrowgate can still charge you—but it can no longer help."
+      "hook": "Beyond the last signpost, Barrowgate can still charge you—but it can no longer help.",
+      "engine_action": {
+        "action_type": "move_to_target_node",
+        "route_id": "r007",
+        "source_node": "barrowgate_square",
+        "target_node": "road_rust_wind_hills",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [],
+          "test": null
+        }
+      },
+      "resolution_ref": "route_resolutions.r007"
     },
     {
       "id": "r008",
@@ -2709,6 +3006,10 @@
       "label": "Return to the square",
       "kind": "choice",
       "effects": [
+        {
+          "op": "add_knowledge",
+          "fact": "rumour_crown_ember_salt"
+        },
         {
           "op": "add_knowledge",
           "fact": "rumour_red_quill"
@@ -2738,7 +3039,42 @@
         }
       },
       "stakes": "Return with rumours that may reveal secret routes and hidden motives, but no material advantage.",
-      "hook": "The innkeeper watches you sort rumour from warning and seems quietly relieved when you notice the difference."
+      "hook": "The innkeeper watches you sort rumour from warning and seems quietly relieved when you notice the difference.",
+      "engine_action": {
+        "action_type": "move_and_apply_effects",
+        "route_id": "r008",
+        "source_node": "bent_nail_inn",
+        "target_node": "barrowgate_square",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [
+            {
+              "op": "add_knowledge",
+              "fact": "rumour_crown_ember_salt"
+            },
+            {
+              "op": "add_knowledge",
+              "fact": "rumour_red_quill"
+            },
+            {
+              "op": "add_knowledge",
+              "fact": "rumour_dust_saint"
+            },
+            {
+              "op": "add_knowledge",
+              "fact": "rumour_ninth_lock"
+            }
+          ],
+          "test": null
+        }
+      },
+      "revelation_refs": [
+        "rumour_crown_ember_salt",
+        "rumour_red_quill",
+        "rumour_dust_saint",
+        "rumour_ninth_lock"
+      ],
+      "resolution_ref": "route_resolutions.r008"
     },
     {
       "id": "r009",
@@ -2782,7 +3118,39 @@
         }
       },
       "stakes": "Lose five gold now to gain rope, provisions and enough light to survive longer below.",
-      "hook": "The merchant knots the pack as though tying it to a corpse."
+      "hook": "The merchant knots the pack as though tying it to a corpse.",
+      "engine_action": {
+        "action_type": "apply_cost_and_effects",
+        "route_id": "r009",
+        "source_node": "market_last_chances",
+        "target_node": "barrowgate_square",
+        "deterministic_inputs": {
+          "costs": [
+            {
+              "resource": "gold",
+              "amount": 5
+            }
+          ],
+          "effects": [
+            {
+              "op": "add_item",
+              "item": "supplies_pack"
+            },
+            {
+              "op": "modify_resource",
+              "resource": "torch_turns",
+              "amount": 6
+            },
+            {
+              "op": "modify_resource",
+              "resource": "provisions",
+              "amount": 2
+            }
+          ],
+          "test": null
+        }
+      },
+      "resolution_ref": "route_resolutions.r009"
     },
     {
       "id": "r010",
@@ -2802,7 +3170,19 @@
         }
       },
       "stakes": "Keep your gold, but enter the hills without the equipment needed for several safer options.",
-      "hook": "The merchant watches you leave, then turns the best rope back towards the wall."
+      "hook": "The merchant watches you leave, then turns the best rope back towards the wall.",
+      "engine_action": {
+        "action_type": "move_to_target_node",
+        "route_id": "r010",
+        "source_node": "market_last_chances",
+        "target_node": "barrowgate_square",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [],
+          "test": null
+        }
+      },
+      "resolution_ref": "route_resolutions.r010"
     },
     {
       "id": "r011",
@@ -2841,7 +3221,34 @@
         }
       },
       "stakes": "Pay Pell for extra light and practical help, while accepting that he has limits you cannot purchase away.",
-      "hook": "Pell reads your face before he reads the contract."
+      "hook": "Pell reads your face before he reads the contract.",
+      "engine_action": {
+        "action_type": "apply_cost_and_effects",
+        "route_id": "r011",
+        "source_node": "torchbearers_yard",
+        "target_node": "barrowgate_square",
+        "deterministic_inputs": {
+          "costs": [
+            {
+              "resource": "gold",
+              "amount": 4
+            }
+          ],
+          "effects": [
+            {
+              "op": "add_item",
+              "item": "torchbearer_contract"
+            },
+            {
+              "op": "modify_resource",
+              "resource": "torch_turns",
+              "amount": 8
+            }
+          ],
+          "test": null
+        }
+      },
+      "resolution_ref": "route_resolutions.r011"
     },
     {
       "id": "r012",
@@ -2861,13 +3268,25 @@
         }
       },
       "stakes": "Keep your gold and travel alone, losing both Pell's expertise and his human warning at the Ninth Lock.",
-      "hook": "Pell nods once, neither offended nor reassured."
+      "hook": "Pell nods once, neither offended nor reassured.",
+      "engine_action": {
+        "action_type": "move_to_target_node",
+        "route_id": "r012",
+        "source_node": "torchbearers_yard",
+        "target_node": "barrowgate_square",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [],
+          "test": null
+        }
+      },
+      "resolution_ref": "route_resolutions.r012"
     },
     {
       "id": "r013",
       "from": "temple_cinders",
       "to": "barrowgate_square",
-      "label": "Make an offering",
+      "label": "Receive the Last Cinder blessing",
       "kind": "choice",
       "costs": [
         {
@@ -2887,8 +3306,8 @@
         }
       ],
       "narrative": {
-        "player_intent": "Make an offering",
-        "dramatic_role": "Express player preference or state through movement and consequence.",
+        "player_intent": "Receive the Last Cinder blessing",
+        "dramatic_role": "Exchange two gold for a small Luck improvement and the Last Cinder blessing condition.",
         "continuity_refs": [
           "last_cinder_blessing"
         ],
@@ -2899,8 +3318,35 @@
           "hook": "Short flavour line for the narrator or expanded choice display."
         }
       },
-      "stakes": "Sacrifice two gold for improved luck and a blessing tied to your true name.",
-      "hook": "The priest presses ash to your skin with the care of someone memorising a name."
+      "stakes": "Spend two gold to improve Luck and receive a protective blessing.",
+      "hook": "The priest marks your brow with warm ash and quietly repeats your name.",
+      "engine_action": {
+        "action_type": "purchase_blessing",
+        "route_id": "r013",
+        "source_node": "temple_cinders",
+        "target_node": "barrowgate_square",
+        "deterministic_inputs": {
+          "costs": [
+            {
+              "resource": "gold",
+              "amount": 2
+            }
+          ],
+          "effects": [
+            {
+              "op": "modify_stat",
+              "stat": "luck",
+              "amount": 1
+            },
+            {
+              "op": "add_condition",
+              "condition": "last_cinder_blessing"
+            }
+          ],
+          "test": null
+        }
+      },
+      "resolution_ref": "route_resolutions.r013"
     },
     {
       "id": "r014",
@@ -2920,7 +3366,19 @@
         }
       },
       "stakes": "Preserve your money, but refuse the only preparation aimed at protecting identity rather than flesh.",
-      "hook": "The priest does not curse you; somehow that feels less reassuring."
+      "hook": "The priest does not curse you; somehow that feels less reassuring.",
+      "engine_action": {
+        "action_type": "move_to_target_node",
+        "route_id": "r014",
+        "source_node": "temple_cinders",
+        "target_node": "barrowgate_square",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [],
+          "test": null
+        }
+      },
+      "resolution_ref": "route_resolutions.r014"
     },
     {
       "id": "r015",
@@ -2971,7 +3429,39 @@
         }
       },
       "stakes": "Spend six gold to become a recognised delver and gain safer passage through ancient administrative systems.",
-      "hook": "Ollis stamps the licence and briefly keeps one hand on it before letting go."
+      "hook": "Ollis stamps the licence and briefly keeps one hand on it before letting go.",
+      "engine_action": {
+        "action_type": "apply_cost_and_effects",
+        "route_id": "r015",
+        "source_node": "licensing_hall",
+        "target_node": "barrowgate_square",
+        "deterministic_inputs": {
+          "costs": [
+            {
+              "resource": "gold",
+              "amount": 6
+            }
+          ],
+          "effects": [
+            {
+              "op": "add_item",
+              "item": "standard_delver_licence"
+            },
+            {
+              "op": "set_flag",
+              "flag": "permit_status",
+              "value": "licensed"
+            },
+            {
+              "op": "modify_stat",
+              "stat": "reputation",
+              "amount": 1
+            }
+          ],
+          "test": null
+        }
+      },
+      "resolution_ref": "route_resolutions.r015"
     },
     {
       "id": "r016",
@@ -3012,7 +3502,39 @@
         }
       },
       "stakes": "Risk your reputation to discover a cheaper, illegal route into the dungeon's systems.",
-      "hook": "The clerk does not look at you when he gives the hint; that is how you know it matters."
+      "hook": "The clerk does not look at you when he gives the hint; that is how you know it matters.",
+      "engine_action": {
+        "action_type": "resolve_stat_test_route",
+        "route_id": "r016",
+        "source_node": "licensing_hall",
+        "target_node": "forgery_cellar",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [
+            {
+              "op": "add_knowledge",
+              "fact": "rumour_red_quill"
+            }
+          ],
+          "test": {
+            "type": "skill",
+            "stat": "skill",
+            "modifier": 0,
+            "failure_to": "barrowgate_square",
+            "failure_effects": [
+              {
+                "op": "modify_stat",
+                "stat": "reputation",
+                "amount": -1
+              }
+            ]
+          }
+        }
+      },
+      "revelation_refs": [
+        "rumour_red_quill"
+      ],
+      "resolution_ref": "route_resolutions.r016"
     },
     {
       "id": "r017",
@@ -3032,7 +3554,19 @@
         }
       },
       "stakes": "Keep your gold and reject formal recognition, leaving every official checkpoint to coin, deception or force.",
-      "hook": "The clerk closes your file with the tenderness of someone preparing evidence."
+      "hook": "The clerk closes your file with the tenderness of someone preparing evidence.",
+      "engine_action": {
+        "action_type": "move_to_target_node",
+        "route_id": "r017",
+        "source_node": "licensing_hall",
+        "target_node": "barrowgate_square",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [],
+          "test": null
+        }
+      },
+      "resolution_ref": "route_resolutions.r017"
     },
     {
       "id": "r018",
@@ -3083,7 +3617,39 @@
         }
       },
       "stakes": "Pay less for forged authority that may pass simple checks but becomes dangerous under scrutiny.",
-      "hook": "Maera's mouth almost forms a smile when you notice the deliberate flaw."
+      "hook": "Maera's mouth almost forms a smile when you notice the deliberate flaw.",
+      "engine_action": {
+        "action_type": "apply_cost_and_effects",
+        "route_id": "r018",
+        "source_node": "forgery_cellar",
+        "target_node": "barrowgate_square",
+        "deterministic_inputs": {
+          "costs": [
+            {
+              "resource": "gold",
+              "amount": 2
+            }
+          ],
+          "effects": [
+            {
+              "op": "add_item",
+              "item": "counterfeit_permit"
+            },
+            {
+              "op": "set_flag",
+              "flag": "permit_status",
+              "value": "counterfeit"
+            },
+            {
+              "op": "modify_stat",
+              "stat": "reputation",
+              "amount": -1
+            }
+          ],
+          "test": null
+        }
+      },
+      "resolution_ref": "route_resolutions.r018"
     },
     {
       "id": "r019",
@@ -3103,7 +3669,19 @@
         }
       },
       "stakes": "Leave without false papers, preserving your conscience but gaining no protection from official barriers.",
-      "hook": "Maera burns the unfinished permit before the wax has cooled."
+      "hook": "Maera burns the unfinished permit before the wax has cooled.",
+      "engine_action": {
+        "action_type": "move_to_target_node",
+        "route_id": "r019",
+        "source_node": "forgery_cellar",
+        "target_node": "barrowgate_square",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [],
+          "test": null
+        }
+      },
+      "resolution_ref": "route_resolutions.r019"
     },
     {
       "id": "r020",
@@ -3123,7 +3701,19 @@
         }
       },
       "stakes": "Take the slower ridge route to uncover old signs and possible hidden paths.",
-      "hook": "The cairns sing before you are close enough to blame the wind."
+      "hook": "The cairns sing before you are close enough to blame the wind.",
+      "engine_action": {
+        "action_type": "move_to_target_node",
+        "route_id": "r020",
+        "source_node": "road_rust_wind_hills",
+        "target_node": "wind_carved_cairns",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [],
+          "test": null
+        }
+      },
+      "resolution_ref": "route_resolutions.r020"
     },
     {
       "id": "r021",
@@ -3143,7 +3733,19 @@
         }
       },
       "stakes": "Reach the dungeon approaches quickly, but walk straight into a toll operated by armed goblins.",
-      "hook": "The shortest road ends at a barrier freshly painted with the word LEGAL."
+      "hook": "The shortest road ends at a barrier freshly painted with the word LEGAL.",
+      "engine_action": {
+        "action_type": "move_to_target_node",
+        "route_id": "r021",
+        "source_node": "road_rust_wind_hills",
+        "target_node": "goblin_toll_path",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [],
+          "test": null
+        }
+      },
+      "resolution_ref": "route_resolutions.r021"
     },
     {
       "id": "r022",
@@ -3163,7 +3765,19 @@
         }
       },
       "stakes": "Spend effort gaining a commanding view and information about alternate entrances.",
-      "hook": "The ruined tower promises perspective, not safety."
+      "hook": "The ruined tower promises perspective, not safety.",
+      "engine_action": {
+        "action_type": "move_to_target_node",
+        "route_id": "r022",
+        "source_node": "road_rust_wind_hills",
+        "target_node": "collapsed_watchtower",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [],
+          "test": null
+        }
+      },
+      "resolution_ref": "route_resolutions.r022"
     },
     {
       "id": "r023",
@@ -3183,7 +3797,19 @@
         }
       },
       "stakes": "Follow signs of ancient authority towards the obvious licensed entrance.",
-      "hook": "The chipped treasury mark points towards the route most people were meant to use."
+      "hook": "The chipped treasury mark points towards the route most people were meant to use.",
+      "engine_action": {
+        "action_type": "move_to_target_node",
+        "route_id": "r023",
+        "source_node": "wind_carved_cairns",
+        "target_node": "old_quarry_entrance",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [],
+          "test": null
+        }
+      },
+      "resolution_ref": "route_resolutions.r023"
     },
     {
       "id": "r024",
@@ -3203,7 +3829,19 @@
         }
       },
       "stakes": "Trade exploration for speed and face the goblins before learning more about the hills.",
-      "hook": "A dented bell rings once, though nobody has touched it."
+      "hook": "A dented bell rings once, though nobody has touched it.",
+      "engine_action": {
+        "action_type": "move_to_target_node",
+        "route_id": "r024",
+        "source_node": "wind_carved_cairns",
+        "target_node": "goblin_toll_path",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [],
+          "test": null
+        }
+      },
+      "resolution_ref": "route_resolutions.r024"
     },
     {
       "id": "r025",
@@ -3232,7 +3870,19 @@
         }
       },
       "stakes": "Follow a concealed clue towards the Dust Saint and a route outside official control.",
-      "hook": "Warm dust gathers against the wind, sketching the shape of a half-closed eye."
+      "hook": "Warm dust gathers against the wind, sketching the shape of a half-closed eye.",
+      "engine_action": {
+        "action_type": "move_to_target_node",
+        "route_id": "r025",
+        "source_node": "wind_carved_cairns",
+        "target_node": "dust_saint_shrine",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [],
+          "test": null
+        }
+      },
+      "resolution_ref": "route_resolutions.r025"
     },
     {
       "id": "r026",
@@ -3266,7 +3916,29 @@
         }
       },
       "stakes": "Lose two gold but avoid violence and gain a toll chit that may carry unexpected social weight.",
-      "hook": "The goblin clerk's chest lifts slightly when you ask for a receipt."
+      "hook": "The goblin clerk's chest lifts slightly when you ask for a receipt.",
+      "engine_action": {
+        "action_type": "apply_cost_and_effects",
+        "route_id": "r026",
+        "source_node": "goblin_toll_path",
+        "target_node": "smugglers_sinkhole",
+        "deterministic_inputs": {
+          "costs": [
+            {
+              "resource": "gold",
+              "amount": 2
+            }
+          ],
+          "effects": [
+            {
+              "op": "add_item",
+              "item": "goblin_toll_chit"
+            }
+          ],
+          "test": null
+        }
+      },
+      "resolution_ref": "route_resolutions.r026"
     },
     {
       "id": "r027",
@@ -3316,7 +3988,31 @@
         }
       },
       "stakes": "Keep your money by gambling that confidence and paperwork matter more than actual authority.",
-      "hook": "The goblin's suspicion competes visibly with his desire to be treated as an official."
+      "hook": "The goblin's suspicion competes visibly with his desire to be treated as an official.",
+      "engine_action": {
+        "action_type": "resolve_stat_test_route",
+        "route_id": "r027",
+        "source_node": "goblin_toll_path",
+        "target_node": "collapsed_watchtower",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [],
+          "test": {
+            "type": "skill",
+            "stat": "skill",
+            "modifier": 1,
+            "failure_to": "goblin_toll_path",
+            "failure_effects": [
+              {
+                "op": "modify_stat",
+                "stat": "stamina",
+                "amount": -2
+              }
+            ]
+          }
+        }
+      },
+      "resolution_ref": "route_resolutions.r027"
     },
     {
       "id": "r028",
@@ -3350,7 +4046,29 @@
         }
       },
       "stakes": "Save your gold by accepting combat, injury and a worsening reputation among those who use the path.",
-      "hook": "The barrier is light enough to lift and heavy enough to start a war over."
+      "hook": "The barrier is light enough to lift and heavy enough to start a war over.",
+      "engine_action": {
+        "action_type": "resolve_combat_route",
+        "route_id": "r028",
+        "source_node": "goblin_toll_path",
+        "target_node": "old_quarry_entrance",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [
+            {
+              "op": "modify_stat",
+              "stat": "reputation",
+              "amount": -1
+            }
+          ],
+          "test": {
+            "type": "combat",
+            "encounter_id": "goblin_toll_collectors",
+            "failure_to": "ending_dead"
+          }
+        }
+      },
+      "resolution_ref": "route_resolutions.r028"
     },
     {
       "id": "r029",
@@ -3378,7 +4096,27 @@
         }
       },
       "stakes": "Take the exposed official approach and gain a clear understanding of the dungeon's three entrances.",
-      "hook": "From above, the entrances look less like doors than competing explanations."
+      "hook": "From above, the entrances look less like doors than competing explanations.",
+      "engine_action": {
+        "action_type": "move_and_apply_effects",
+        "route_id": "r029",
+        "source_node": "collapsed_watchtower",
+        "target_node": "old_quarry_entrance",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [
+            {
+              "op": "add_knowledge",
+              "fact": "map_three_entrances"
+            }
+          ],
+          "test": null
+        }
+      },
+      "revelation_refs": [
+        "map_three_entrances"
+      ],
+      "resolution_ref": "route_resolutions.r029"
     },
     {
       "id": "r030",
@@ -3407,7 +4145,19 @@
         }
       },
       "stakes": "Use preparation and observation to reach the concealed smugglers' route without paying the goblins.",
-      "hook": "Old charcoal marks turn a collapsed wall into a sentence only the equipped can read."
+      "hook": "Old charcoal marks turn a collapsed wall into a sentence only the equipped can read.",
+      "engine_action": {
+        "action_type": "move_to_target_node",
+        "route_id": "r030",
+        "source_node": "collapsed_watchtower",
+        "target_node": "smugglers_sinkhole",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [],
+          "test": null
+        }
+      },
+      "resolution_ref": "route_resolutions.r030"
     },
     {
       "id": "r031",
@@ -3435,7 +4185,19 @@
         }
       },
       "stakes": "Use your gear to reach a dangerous submerged approach that bypasses the upper checkpoints.",
-      "hook": "The channel below shines black, and something in it flashes blue."
+      "hook": "The channel below shines black, and something in it flashes blue.",
+      "engine_action": {
+        "action_type": "move_to_target_node",
+        "route_id": "r031",
+        "source_node": "collapsed_watchtower",
+        "target_node": "flooded_tunnel",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [],
+          "test": null
+        }
+      },
+      "resolution_ref": "route_resolutions.r031"
     },
     {
       "id": "r032",
@@ -3480,7 +4242,36 @@
         }
       },
       "stakes": "Spend one gold to activate a rebel mechanism and gain a charm that reveals hidden roads.",
-      "hook": "The coin falls sideways inside the saint's blind eye."
+      "hook": "The coin falls sideways inside the saint's blind eye.",
+      "engine_action": {
+        "action_type": "apply_cost_and_effects",
+        "route_id": "r032",
+        "source_node": "dust_saint_shrine",
+        "target_node": "hidden_shaft",
+        "deterministic_inputs": {
+          "costs": [
+            {
+              "resource": "gold",
+              "amount": 1
+            }
+          ],
+          "effects": [
+            {
+              "op": "add_item",
+              "item": "dust_saint_token"
+            },
+            {
+              "op": "add_knowledge",
+              "fact": "hidden_shaft_location"
+            }
+          ],
+          "test": null
+        }
+      },
+      "revelation_refs": [
+        "hidden_shaft_location"
+      ],
+      "resolution_ref": "route_resolutions.r032"
     },
     {
       "id": "r033",
@@ -3500,7 +4291,19 @@
         }
       },
       "stakes": "Abandon the hidden route and return to the safer, more visible quarry entrance.",
-      "hook": "The shrine keeps its secret without reproach."
+      "hook": "The shrine keeps its secret without reproach.",
+      "engine_action": {
+        "action_type": "move_to_target_node",
+        "route_id": "r033",
+        "source_node": "dust_saint_shrine",
+        "target_node": "old_quarry_entrance",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [],
+          "test": null
+        }
+      },
+      "resolution_ref": "route_resolutions.r033"
     },
     {
       "id": "r034",
@@ -3520,7 +4323,19 @@
         }
       },
       "stakes": "Enter by the route designed for petitioners, placing yourself directly before the dungeon's bureaucracy.",
-      "hook": "Each seventh stair bears a fee no living clerk still collects."
+      "hook": "Each seventh stair bears a fee no living clerk still collects.",
+      "engine_action": {
+        "action_type": "move_to_target_node",
+        "route_id": "r034",
+        "source_node": "old_quarry_entrance",
+        "target_node": "main_stair",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [],
+          "test": null
+        }
+      },
+      "resolution_ref": "route_resolutions.r034"
     },
     {
       "id": "r035",
@@ -3540,7 +4355,19 @@
         }
       },
       "stakes": "Bypass the formal gate through a cramped route used by smugglers and fugitives.",
-      "hook": "The shaft is narrow enough to make every piece of equipment feel like a confession."
+      "hook": "The shaft is narrow enough to make every piece of equipment feel like a confession.",
+      "engine_action": {
+        "action_type": "move_to_target_node",
+        "route_id": "r035",
+        "source_node": "smugglers_sinkhole",
+        "target_node": "hidden_shaft",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [],
+          "test": null
+        }
+      },
+      "resolution_ref": "route_resolutions.r035"
     },
     {
       "id": "r036",
@@ -3577,7 +4404,35 @@
         }
       },
       "stakes": "Risk injury and soaked equipment to bypass the upper dungeon and emerge deep in the cisterns.",
-      "hook": "The black water has no current, yet it keeps pulling towards the archive numbers."
+      "hook": "The black water has no current, yet it keeps pulling towards the archive numbers.",
+      "engine_action": {
+        "action_type": "resolve_stat_test_route",
+        "route_id": "r036",
+        "source_node": "flooded_tunnel",
+        "target_node": "cistern_of_eels",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [],
+          "test": {
+            "type": "skill",
+            "stat": "skill",
+            "modifier": -1,
+            "failure_to": "cistern_of_eels",
+            "failure_effects": [
+              {
+                "op": "modify_stat",
+                "stat": "stamina",
+                "amount": -3
+              },
+              {
+                "op": "add_condition",
+                "condition": "soaked"
+              }
+            ]
+          }
+        }
+      },
+      "resolution_ref": "route_resolutions.r036"
     },
     {
       "id": "r037",
@@ -3597,7 +4452,19 @@
         }
       },
       "stakes": "Commit to the first ancient checkpoint where licence, coin or blood will define your status.",
-      "hook": "The Gate of Tithes opens three slots and waits to learn what kind of person you are."
+      "hook": "The Gate of Tithes opens three slots and waits to learn what kind of person you are.",
+      "engine_action": {
+        "action_type": "move_to_target_node",
+        "route_id": "r037",
+        "source_node": "main_stair",
+        "target_node": "gate_of_tithes",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [],
+          "test": null
+        }
+      },
+      "resolution_ref": "route_resolutions.r037"
     },
     {
       "id": "r038",
@@ -3617,7 +4484,19 @@
         }
       },
       "stakes": "Avoid the main checkpoint and land beside evidence that the dungeon's layout changes with authority.",
-      "hook": "Your boots strike stone beside a skeleton still arguing with its own map."
+      "hook": "Your boots strike stone beside a skeleton still arguing with its own map.",
+      "engine_action": {
+        "action_type": "move_to_target_node",
+        "route_id": "r038",
+        "source_node": "hidden_shaft",
+        "target_node": "mapmakers_bones",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [],
+          "test": null
+        }
+      },
+      "resolution_ref": "route_resolutions.r038"
     },
     {
       "id": "r039",
@@ -3645,7 +4524,19 @@
         }
       },
       "stakes": "Use lawful recognition to pass safely and confirm that Barrowgate's modern seal genuinely works below.",
-      "hook": "The gate accepts the licence with more respect than the town clerk did."
+      "hook": "The gate accepts the licence with more respect than the town clerk did.",
+      "engine_action": {
+        "action_type": "move_to_target_node",
+        "route_id": "r039",
+        "source_node": "gate_of_tithes",
+        "target_node": "hall_broken_spears",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [],
+          "test": null
+        }
+      },
+      "resolution_ref": "route_resolutions.r039"
     },
     {
       "id": "r040",
@@ -3686,7 +4577,31 @@
         }
       },
       "stakes": "Bet your freedom on a forged document before a mechanism less perceptive than the Iron Registrar.",
-      "hook": "The counterfeit seal warms, hesitates and asks no questions you can hear."
+      "hook": "The counterfeit seal warms, hesitates and asks no questions you can hear.",
+      "engine_action": {
+        "action_type": "resolve_stat_test_route",
+        "route_id": "r040",
+        "source_node": "gate_of_tithes",
+        "target_node": "hall_broken_spears",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [],
+          "test": {
+            "type": "skill",
+            "stat": "skill",
+            "modifier": 0,
+            "failure_to": "gaol_cells",
+            "failure_effects": [
+              {
+                "op": "set_flag",
+                "flag": "registrar_alerted",
+                "value": true
+              }
+            ]
+          }
+        }
+      },
+      "resolution_ref": "route_resolutions.r040"
     },
     {
       "id": "r041",
@@ -3727,7 +4642,31 @@
         }
       },
       "stakes": "Use equipment to force an unofficial entry, risking injury and immediate contact with the Rat-King.",
-      "hook": "Behind the grille, many small voices are counting your tools."
+      "hook": "Behind the grille, many small voices are counting your tools.",
+      "engine_action": {
+        "action_type": "resolve_stat_test_route",
+        "route_id": "r041",
+        "source_node": "gate_of_tithes",
+        "target_node": "rat_king_warren",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [],
+          "test": {
+            "type": "skill",
+            "stat": "skill",
+            "modifier": -1,
+            "failure_to": "gate_of_tithes",
+            "failure_effects": [
+              {
+                "op": "modify_stat",
+                "stat": "stamina",
+                "amount": -2
+              }
+            ]
+          }
+        }
+      },
+      "resolution_ref": "route_resolutions.r041"
     },
     {
       "id": "r042",
@@ -3753,7 +4692,24 @@
         }
       },
       "stakes": "Lose three gold to buy passage without proving identity or authority.",
-      "hook": "The gate values old coin more reliably than modern courage."
+      "hook": "The gate values old coin more reliably than modern courage.",
+      "engine_action": {
+        "action_type": "apply_route_cost",
+        "route_id": "r042",
+        "source_node": "gate_of_tithes",
+        "target_node": "hall_broken_spears",
+        "deterministic_inputs": {
+          "costs": [
+            {
+              "resource": "gold",
+              "amount": 3
+            }
+          ],
+          "effects": [],
+          "test": null
+        }
+      },
+      "resolution_ref": "route_resolutions.r042"
     },
     {
       "id": "r043",
@@ -3773,7 +4729,19 @@
         }
       },
       "stakes": "Follow the sound of keys towards a dangerous creature holding the authority needed for deeper wards.",
-      "hook": "Metal chimes ahead, accompanied by the whisper: inventory, inventory, inventory."
+      "hook": "Metal chimes ahead, accompanied by the whisper: inventory, inventory, inventory.",
+      "engine_action": {
+        "action_type": "move_to_target_node",
+        "route_id": "r043",
+        "source_node": "hall_broken_spears",
+        "target_node": "rat_king_warren",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [],
+          "test": null
+        }
+      },
+      "resolution_ref": "route_resolutions.r043"
     },
     {
       "id": "r044",
@@ -3793,7 +4761,19 @@
         }
       },
       "stakes": "Descend quickly into the middle dungeon, bypassing both the Rat-King and several sources of useful knowledge.",
-      "hook": "The officers' stair has collapsed in exactly the places an officer would once have stood."
+      "hook": "The officers' stair has collapsed in exactly the places an officer would once have stood.",
+      "engine_action": {
+        "action_type": "move_to_target_node",
+        "route_id": "r044",
+        "source_node": "hall_broken_spears",
+        "target_node": "fungal_cloister",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [],
+          "test": null
+        }
+      },
+      "resolution_ref": "route_resolutions.r044"
     },
     {
       "id": "r045",
@@ -3822,7 +4802,19 @@
         }
       },
       "stakes": "Use hidden knowledge to reach the chapel, gaining context that may help with the Registrar.",
-      "hook": "A procession carved into the wall turns aside where the official corridor continues."
+      "hook": "A procession carved into the wall turns aside where the official corridor continues.",
+      "engine_action": {
+        "action_type": "move_to_target_node",
+        "route_id": "r045",
+        "source_node": "hall_broken_spears",
+        "target_node": "chapel_of_ash",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [],
+          "test": null
+        }
+      },
+      "resolution_ref": "route_resolutions.r045"
     },
     {
       "id": "r046",
@@ -3875,7 +4867,33 @@
         }
       },
       "stakes": "Risk death to seize the Brass Seal, destroying the swarm identity that calls itself Orrick.",
-      "hook": "The Rat-King raises a crown of keys and addresses you as an unauthorised requisition."
+      "hook": "The Rat-King raises a crown of keys and addresses you as an unauthorised requisition.",
+      "engine_action": {
+        "action_type": "resolve_combat_route",
+        "route_id": "r046",
+        "source_node": "rat_king_warren",
+        "target_node": "chained_well",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [
+            {
+              "op": "add_item",
+              "item": "brass_seal"
+            },
+            {
+              "op": "set_flag",
+              "flag": "rat_king_dead",
+              "value": true
+            }
+          ],
+          "test": {
+            "type": "combat",
+            "encounter_id": "rat_king",
+            "failure_to": "ending_dead"
+          }
+        }
+      },
+      "resolution_ref": "route_resolutions.r046"
     },
     {
       "id": "r047",
@@ -3917,7 +4935,32 @@
         }
       },
       "stakes": "Lose provisions to avoid combat and learn a safer route through the Rat-King's domain.",
-      "hook": "The swarm stills when you use Orrick's title correctly."
+      "hook": "The swarm stills when you use Orrick's title correctly.",
+      "engine_action": {
+        "action_type": "apply_cost_and_effects",
+        "route_id": "r047",
+        "source_node": "rat_king_warren",
+        "target_node": "mapmakers_bones",
+        "deterministic_inputs": {
+          "costs": [
+            {
+              "resource": "provisions",
+              "amount": 1
+            }
+          ],
+          "effects": [
+            {
+              "op": "add_knowledge",
+              "fact": "rat_tunnels"
+            }
+          ],
+          "test": null
+        }
+      },
+      "revelation_refs": [
+        "rat_tunnels"
+      ],
+      "resolution_ref": "route_resolutions.r047"
     },
     {
       "id": "r048",
@@ -3945,7 +4988,19 @@
         }
       },
       "stakes": "Use recognised authority to descend directly into the treasury records and bypass much of the middle level.",
-      "hook": "The Brass Seal completes a shape in the chains, and the dry well begins to rise."
+      "hook": "The Brass Seal completes a shape in the chains, and the dry well begins to rise.",
+      "engine_action": {
+        "action_type": "move_to_target_node",
+        "route_id": "r048",
+        "source_node": "chained_well",
+        "target_node": "taxmans_ledger_room",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [],
+          "test": null
+        }
+      },
+      "resolution_ref": "route_resolutions.r048"
     },
     {
       "id": "r049",
@@ -3965,7 +5020,19 @@
         }
       },
       "stakes": "Retreat from the unexplained mechanism and return to familiar ground without gaining deeper access.",
-      "hook": "The voice below files your departure under INCOMPLETE."
+      "hook": "The voice below files your departure under INCOMPLETE.",
+      "engine_action": {
+        "action_type": "move_to_target_node",
+        "route_id": "r049",
+        "source_node": "chained_well",
+        "target_node": "hall_broken_spears",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [],
+          "test": null
+        }
+      },
+      "resolution_ref": "route_resolutions.r049"
     },
     {
       "id": "r050",
@@ -3993,7 +5060,27 @@
         }
       },
       "stakes": "Trust the dead surveyor's work to reach the chapel and gain procedural knowledge.",
-      "hook": "The line on the shield only makes sense when followed without looking ahead."
+      "hook": "The line on the shield only makes sense when followed without looking ahead.",
+      "engine_action": {
+        "action_type": "move_and_apply_effects",
+        "route_id": "r050",
+        "source_node": "mapmakers_bones",
+        "target_node": "chapel_of_ash",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [
+            {
+              "op": "add_knowledge",
+              "fact": "loose_stone_bridge"
+            }
+          ],
+          "test": null
+        }
+      },
+      "revelation_refs": [
+        "loose_stone_bridge"
+      ],
+      "resolution_ref": "route_resolutions.r050"
     },
     {
       "id": "r051",
@@ -4021,7 +5108,19 @@
         }
       },
       "stakes": "Use the Dust Saint's insight to follow an impossible route straight into the identity-testing maze.",
-      "hook": "A route scratched across solid metal becomes a doorway when viewed from the corner of the eye."
+      "hook": "A route scratched across solid metal becomes a doorway when viewed from the corner of the eye.",
+      "engine_action": {
+        "action_type": "move_to_target_node",
+        "route_id": "r051",
+        "source_node": "mapmakers_bones",
+        "target_node": "mirror_maze",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [],
+          "test": null
+        }
+      },
+      "resolution_ref": "route_resolutions.r051"
     },
     {
       "id": "r052",
@@ -4049,7 +5148,27 @@
         }
       },
       "stakes": "Proceed to the Iron Registrar with knowledge that procedure may offer alternatives to force.",
-      "hook": "The old vow under the ash sounds ashamed of the rule it once defended."
+      "hook": "The old vow under the ash sounds ashamed of the rule it once defended.",
+      "engine_action": {
+        "action_type": "move_and_apply_effects",
+        "route_id": "r052",
+        "source_node": "chapel_of_ash",
+        "target_node": "iron_registrar",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [
+            {
+              "op": "add_knowledge",
+              "fact": "registrar_values_procedure"
+            }
+          ],
+          "test": null
+        }
+      },
+      "revelation_refs": [
+        "registrar_values_procedure"
+      ],
+      "resolution_ref": "route_resolutions.r052"
     },
     {
       "id": "r053",
@@ -4077,7 +5196,19 @@
         }
       },
       "stakes": "Use a hidden rebel passage to avoid the Registrar and enter the fungal cloister unseen.",
-      "hook": "Beneath the altar, saints and smugglers have used the same handholds."
+      "hook": "Beneath the altar, saints and smugglers have used the same handholds.",
+      "engine_action": {
+        "action_type": "move_to_target_node",
+        "route_id": "r053",
+        "source_node": "chapel_of_ash",
+        "target_node": "fungal_cloister",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [],
+          "test": null
+        }
+      },
+      "resolution_ref": "route_resolutions.r053"
     },
     {
       "id": "r054",
@@ -4130,7 +5261,25 @@
         }
       },
       "stakes": "Use genuine authority to pass peacefully, strengthening your recognised standing within the dungeon.",
-      "hook": "Halvek's stamp falls cleanly; the relief in the stillness afterwards is almost imperceptible."
+      "hook": "Halvek's stamp falls cleanly; the relief in the stillness afterwards is almost imperceptible.",
+      "engine_action": {
+        "action_type": "move_and_apply_effects",
+        "route_id": "r054",
+        "source_node": "iron_registrar",
+        "target_node": "fungal_cloister",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [
+            {
+              "op": "modify_stat",
+              "stat": "reputation",
+              "amount": 1
+            }
+          ],
+          "test": null
+        }
+      },
+      "resolution_ref": "route_resolutions.r054"
     },
     {
       "id": "r055",
@@ -4189,7 +5338,42 @@
         }
       },
       "stakes": "Risk imprisonment by placing forged identity before the dungeon's most exacting inspector.",
-      "hook": "The Registrar's hand pauses over the permit, and the room seems to hold its breath with it."
+      "hook": "The Registrar's hand pauses over the permit, and the room seems to hold its breath with it.",
+      "engine_action": {
+        "action_type": "resolve_stat_test_route",
+        "route_id": "r055",
+        "source_node": "iron_registrar",
+        "target_node": "fungal_cloister",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [
+            {
+              "op": "modify_stat",
+              "stat": "reputation",
+              "amount": -2
+            }
+          ],
+          "test": {
+            "type": "skill",
+            "stat": "skill",
+            "modifier": -2,
+            "failure_to": "gaol_cells",
+            "failure_effects": [
+              {
+                "op": "set_flag",
+                "flag": "permit_status",
+                "value": "revoked"
+              },
+              {
+                "op": "set_flag",
+                "flag": "registrar_alerted",
+                "value": true
+              }
+            ]
+          }
+        }
+      },
+      "resolution_ref": "route_resolutions.r055"
     },
     {
       "id": "r056",
@@ -4229,7 +5413,24 @@
         }
       },
       "stakes": "Use recovered procedural knowledge to win passage without licence, payment or violence.",
-      "hook": "For one instant Halvek looks less like a machine than a tired man behind one."
+      "hook": "For one instant Halvek looks less like a machine than a tired man behind one.",
+      "engine_action": {
+        "action_type": "resolve_stat_test_route",
+        "route_id": "r056",
+        "source_node": "iron_registrar",
+        "target_node": "fungal_cloister",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [],
+          "test": {
+            "type": "skill",
+            "stat": "skill",
+            "modifier": 1,
+            "failure_to": "gaol_cells"
+          }
+        }
+      },
+      "resolution_ref": "route_resolutions.r056"
     },
     {
       "id": "r057",
@@ -4275,7 +5476,33 @@
         }
       },
       "stakes": "Risk death to remove the checkpoint, gaining its key but creating an adverse record that follows you deeper.",
-      "hook": "The armour can be broken; the paperwork continues moving without it."
+      "hook": "The armour can be broken; the paperwork continues moving without it.",
+      "engine_action": {
+        "action_type": "resolve_combat_route",
+        "route_id": "r057",
+        "source_node": "iron_registrar",
+        "target_node": "fungal_cloister",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [
+            {
+              "op": "add_item",
+              "item": "registrars_key"
+            },
+            {
+              "op": "set_flag",
+              "flag": "registrar_alerted",
+              "value": true
+            }
+          ],
+          "test": {
+            "type": "combat",
+            "encounter_id": "iron_registrar",
+            "failure_to": "ending_dead"
+          }
+        }
+      },
+      "resolution_ref": "route_resolutions.r057"
     },
     {
       "id": "r058",
@@ -4303,7 +5530,19 @@
         }
       },
       "stakes": "Use the Registrar's key to escape gaol and return to the upper dungeon with your official hostility intact.",
-      "hook": "The service lock recognises the key without asking who now carries it."
+      "hook": "The service lock recognises the key without asking who now carries it.",
+      "engine_action": {
+        "action_type": "move_to_target_node",
+        "route_id": "r058",
+        "source_node": "gaol_cells",
+        "target_node": "hall_broken_spears",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [],
+          "test": null
+        }
+      },
+      "resolution_ref": "route_resolutions.r058"
     },
     {
       "id": "r059",
@@ -4337,7 +5576,24 @@
         }
       },
       "stakes": "Risk a cramped, dangerous escape that bypasses the upper level and deposits you in the Mirror Maze.",
-      "hook": "The condemned drain was built for waste, not people, which may be why nobody watches it."
+      "hook": "The condemned drain was built for waste, not people, which may be why nobody watches it.",
+      "engine_action": {
+        "action_type": "resolve_stat_test_route",
+        "route_id": "r059",
+        "source_node": "gaol_cells",
+        "target_node": "mirror_maze",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [],
+          "test": {
+            "type": "skill",
+            "stat": "skill",
+            "modifier": -2,
+            "failure_to": "ending_gaol_ruin"
+          }
+        }
+      },
+      "resolution_ref": "route_resolutions.r059"
     },
     {
       "id": "r060",
@@ -4357,7 +5613,19 @@
         }
       },
       "stakes": "Abandon action and trust a dead administrative process that has not resolved a case in centuries.",
-      "hook": "A courteous notice promises review by a committee whose members are all dust."
+      "hook": "A courteous notice promises review by a committee whose members are all dust.",
+      "engine_action": {
+        "action_type": "move_to_target_node",
+        "route_id": "r060",
+        "source_node": "gaol_cells",
+        "target_node": "ending_gaol_ruin",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [],
+          "test": null
+        }
+      },
+      "resolution_ref": "route_resolutions.r060"
     },
     {
       "id": "r061",
@@ -4389,7 +5657,30 @@
         }
       },
       "stakes": "Risk spore-induced memory distortion to reach the maze and continue deeper.",
-      "hook": "The whispering fungus borrows a voice that once comforted someone."
+      "hook": "The whispering fungus borrows a voice that once comforted someone.",
+      "engine_action": {
+        "action_type": "resolve_stat_test_route",
+        "route_id": "r061",
+        "source_node": "fungal_cloister",
+        "target_node": "mirror_maze",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [],
+          "test": {
+            "type": "luck",
+            "stat": "luck",
+            "modifier": 0,
+            "failure_to": "mirror_maze",
+            "failure_effects": [
+              {
+                "op": "add_condition",
+                "condition": "spore_dreams"
+              }
+            ]
+          }
+        }
+      },
+      "resolution_ref": "route_resolutions.r061"
     },
     {
       "id": "r062",
@@ -4417,7 +5708,19 @@
         }
       },
       "stakes": "Use equipment to avoid the maze, trading psychological danger for black water and eels.",
-      "hook": "The irrigation channel smells sweet at first and metallic after the first bend."
+      "hook": "The irrigation channel smells sweet at first and metallic after the first bend.",
+      "engine_action": {
+        "action_type": "move_to_target_node",
+        "route_id": "r062",
+        "source_node": "fungal_cloister",
+        "target_node": "cistern_of_eels",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [],
+          "test": null
+        }
+      },
+      "resolution_ref": "route_resolutions.r062"
     },
     {
       "id": "r063",
@@ -4450,7 +5753,31 @@
         }
       },
       "stakes": "Bet luck and time on a reflection that may lead forward—or teach the maze how you move.",
-      "hook": "One reflection turns away before you decide to follow it."
+      "hook": "One reflection turns away before you decide to follow it.",
+      "engine_action": {
+        "action_type": "resolve_stat_test_route",
+        "route_id": "r063",
+        "source_node": "mirror_maze",
+        "target_node": "cistern_of_eels",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [],
+          "test": {
+            "type": "skill",
+            "stat": "luck",
+            "modifier": 0,
+            "failure_to": "mirror_maze",
+            "failure_effects": [
+              {
+                "op": "modify_resource",
+                "resource": "torch_turns",
+                "amount": -2
+              }
+            ]
+          }
+        }
+      },
+      "resolution_ref": "route_resolutions.r063"
     },
     {
       "id": "r064",
@@ -4478,7 +5805,19 @@
         }
       },
       "stakes": "Use the Moon Key to bypass the cistern and reach the ledger room without combat.",
-      "hook": "The silver door has no lock until its reflection is touched."
+      "hook": "The silver door has no lock until its reflection is touched.",
+      "engine_action": {
+        "action_type": "move_to_target_node",
+        "route_id": "r064",
+        "source_node": "mirror_maze",
+        "target_node": "taxmans_ledger_room",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [],
+          "test": null
+        }
+      },
+      "resolution_ref": "route_resolutions.r064"
     },
     {
       "id": "r065",
@@ -4520,7 +5859,36 @@
         }
       },
       "stakes": "Risk stamina and luck to pull an impossible key out of your own reflection.",
-      "hook": "The hand in the mirror closes around yours from the wrong side."
+      "hook": "The hand in the mirror closes around yours from the wrong side.",
+      "engine_action": {
+        "action_type": "resolve_stat_test_route",
+        "route_id": "r065",
+        "source_node": "mirror_maze",
+        "target_node": "mirror_maze",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [
+            {
+              "op": "add_item",
+              "item": "moon_key"
+            }
+          ],
+          "test": {
+            "type": "luck",
+            "stat": "luck",
+            "modifier": -1,
+            "failure_to": "mirror_maze",
+            "failure_effects": [
+              {
+                "op": "modify_stat",
+                "stat": "stamina",
+                "amount": -2
+              }
+            ]
+          }
+        }
+      },
+      "resolution_ref": "route_resolutions.r065"
     },
     {
       "id": "r066",
@@ -4547,7 +5915,23 @@
         }
       },
       "stakes": "Fight or outlast the eels to reach records that can turn ancient debts into leverage.",
-      "hook": "The gantry is safe only while the water remains dark."
+      "hook": "The gantry is safe only while the water remains dark.",
+      "engine_action": {
+        "action_type": "resolve_combat_route",
+        "route_id": "r066",
+        "source_node": "cistern_of_eels",
+        "target_node": "taxmans_ledger_room",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [],
+          "test": {
+            "type": "combat",
+            "encounter_id": "cistern_eels",
+            "failure_to": "ending_dead"
+          }
+        }
+      },
+      "resolution_ref": "route_resolutions.r066"
     },
     {
       "id": "r067",
@@ -4582,7 +5966,24 @@
         }
       },
       "stakes": "Use an unlikely token to enter a submerged shortcut, arriving soaked but avoiding the ledger route.",
-      "hook": "A goblin stamp matches a maintenance symbol no goblin could have understood."
+      "hook": "A goblin stamp matches a maintenance symbol no goblin could have understood.",
+      "engine_action": {
+        "action_type": "move_and_apply_effects",
+        "route_id": "r067",
+        "source_node": "cistern_of_eels",
+        "target_node": "black_wind_forge",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [
+            {
+              "op": "add_condition",
+              "condition": "soaked"
+            }
+          ],
+          "test": null
+        }
+      },
+      "resolution_ref": "route_resolutions.r067"
     },
     {
       "id": "r068",
@@ -4610,7 +6011,19 @@
         }
       },
       "stakes": "Use the Brass Seal to follow the official route, preserving legitimacy but leaving the ledger fragment behind.",
-      "hook": "A red line appears across the floor like a route drawn by an invisible clerk."
+      "hook": "A red line appears across the floor like a route drawn by an invisible clerk.",
+      "engine_action": {
+        "action_type": "move_to_target_node",
+        "route_id": "r068",
+        "source_node": "taxmans_ledger_room",
+        "target_node": "bridge_of_sighs",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [],
+          "test": null
+        }
+      },
+      "resolution_ref": "route_resolutions.r068"
     },
     {
       "id": "r069",
@@ -4649,7 +6062,31 @@
         }
       },
       "stakes": "Take evidence that unlocks secret history and peaceful resolutions, while making yourself a thief in the records.",
-      "hook": "The page is light in your hand, but the room feels heavier once you read it."
+      "hook": "The page is light in your hand, but the room feels heavier once you read it.",
+      "engine_action": {
+        "action_type": "move_and_apply_effects",
+        "route_id": "r069",
+        "source_node": "taxmans_ledger_room",
+        "target_node": "bridge_of_sighs",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [
+            {
+              "op": "add_item",
+              "item": "stolen_ledger_fragment"
+            },
+            {
+              "op": "add_knowledge",
+              "fact": "debt_of_ninth_guardian"
+            }
+          ],
+          "test": null
+        }
+      },
+      "revelation_refs": [
+        "debt_of_ninth_guardian"
+      ],
+      "resolution_ref": "route_resolutions.r069"
     },
     {
       "id": "r070",
@@ -4677,7 +6114,19 @@
         }
       },
       "stakes": "Return to the Mirror Maze through a moon-locked route, exchanging progress for exploration or unfinished business.",
-      "hook": "The key opens the door backwards, into a room you thought you had already left."
+      "hook": "The key opens the door backwards, into a room you thought you had already left.",
+      "engine_action": {
+        "action_type": "move_to_target_node",
+        "route_id": "r070",
+        "source_node": "taxmans_ledger_room",
+        "target_node": "mirror_maze",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [],
+          "test": null
+        }
+      },
+      "resolution_ref": "route_resolutions.r070"
     },
     {
       "id": "r071",
@@ -4703,7 +6152,24 @@
         }
       },
       "stakes": "Risk a deadly crossing to reach the Beast Pits without spending resources or finding the secret passage.",
-      "hook": "The bridge repeats your last words before you have spoken them."
+      "hook": "The bridge repeats your last words before you have spoken them.",
+      "engine_action": {
+        "action_type": "resolve_stat_test_route",
+        "route_id": "r071",
+        "source_node": "bridge_of_sighs",
+        "target_node": "beast_pits",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [],
+          "test": {
+            "type": "skill",
+            "stat": "skill",
+            "modifier": 0,
+            "failure_to": "ending_dead"
+          }
+        }
+      },
+      "resolution_ref": "route_resolutions.r071"
     },
     {
       "id": "r072",
@@ -4732,7 +6198,19 @@
         }
       },
       "stakes": "Use mapped knowledge to bypass the Beast Pits and reach the forge safely.",
-      "hook": "The loose stone moves only when pressed by someone who already knows it is loose."
+      "hook": "The loose stone moves only when pressed by someone who already knows it is loose.",
+      "engine_action": {
+        "action_type": "move_to_target_node",
+        "route_id": "r072",
+        "source_node": "bridge_of_sighs",
+        "target_node": "black_wind_forge",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [],
+          "test": null
+        }
+      },
+      "resolution_ref": "route_resolutions.r072"
     },
     {
       "id": "r073",
@@ -4752,7 +6230,19 @@
         }
       },
       "stakes": "Retreat from the crossing and return to the ledgers, losing time but avoiding immediate danger.",
-      "hook": "The wind sighs in relief using somebody else's voice."
+      "hook": "The wind sighs in relief using somebody else's voice.",
+      "engine_action": {
+        "action_type": "move_to_target_node",
+        "route_id": "r073",
+        "source_node": "bridge_of_sighs",
+        "target_node": "taxmans_ledger_room",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [],
+          "test": null
+        }
+      },
+      "resolution_ref": "route_resolutions.r073"
     },
     {
       "id": "r074",
@@ -4786,7 +6276,29 @@
         }
       },
       "stakes": "Risk death against a creature shaped by captivity, gaining reputation and access to the forge.",
-      "hook": "The beast's royal collar is older than the arena around it."
+      "hook": "The beast's royal collar is older than the arena around it.",
+      "engine_action": {
+        "action_type": "resolve_combat_route",
+        "route_id": "r074",
+        "source_node": "beast_pits",
+        "target_node": "black_wind_forge",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [
+            {
+              "op": "modify_stat",
+              "stat": "reputation",
+              "amount": 2
+            }
+          ],
+          "test": {
+            "type": "combat",
+            "encounter_id": "beast_of_the_pits",
+            "failure_to": "ending_dead"
+          }
+        }
+      },
+      "resolution_ref": "route_resolutions.r074"
     },
     {
       "id": "r075",
@@ -4819,7 +6331,19 @@
         }
       },
       "stakes": "Combine two forms of stolen authority to bypass the remaining middle dungeon and reach the deep vault approach.",
-      "hook": "The lift accepts the seal and key without noticing that both previous owners are dead."
+      "hook": "The lift accepts the seal and key without noticing that both previous owners are dead.",
+      "engine_action": {
+        "action_type": "move_to_target_node",
+        "route_id": "r075",
+        "source_node": "beast_pits",
+        "target_node": "vault_antechamber",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [],
+          "test": null
+        }
+      },
+      "resolution_ref": "route_resolutions.r075"
     },
     {
       "id": "r076",
@@ -4847,7 +6371,19 @@
         }
       },
       "stakes": "Spend Rune-Candle light to reveal a safe route into the deep ruins.",
-      "hook": "Black flame writes a doorway across a wall that had never admitted being one."
+      "hook": "Black flame writes a doorway across a wall that had never admitted being one.",
+      "engine_action": {
+        "action_type": "move_to_target_node",
+        "route_id": "r076",
+        "source_node": "black_wind_forge",
+        "target_node": "vault_antechamber",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [],
+          "test": null
+        }
+      },
+      "resolution_ref": "route_resolutions.r076"
     },
     {
       "id": "r077",
@@ -4894,7 +6430,36 @@
         }
       },
       "stakes": "Risk injury and consume light to restart the forge and force open the deep route.",
-      "hook": "The forge wakes hungry for heat, oath and something it calls authorised fuel."
+      "hook": "The forge wakes hungry for heat, oath and something it calls authorised fuel.",
+      "engine_action": {
+        "action_type": "resolve_stat_test_route",
+        "route_id": "r077",
+        "source_node": "black_wind_forge",
+        "target_node": "vault_antechamber",
+        "deterministic_inputs": {
+          "costs": [
+            {
+              "resource": "torch_turns",
+              "amount": 2
+            }
+          ],
+          "effects": [],
+          "test": {
+            "type": "skill",
+            "stat": "skill",
+            "modifier": -1,
+            "failure_to": "black_wind_forge",
+            "failure_effects": [
+              {
+                "op": "modify_stat",
+                "stat": "stamina",
+                "amount": -3
+              }
+            ]
+          }
+        }
+      },
+      "resolution_ref": "route_resolutions.r077"
     },
     {
       "id": "r078",
@@ -4929,7 +6494,24 @@
         }
       },
       "stakes": "Claim a tool that reveals hidden writing and opens later peaceful solutions.",
-      "hook": "The cold anvil releases the candle only after your shadow reaches for it first."
+      "hook": "The cold anvil releases the candle only after your shadow reaches for it first.",
+      "engine_action": {
+        "action_type": "apply_local_effect",
+        "route_id": "r078",
+        "source_node": "black_wind_forge",
+        "target_node": "black_wind_forge",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [
+            {
+              "op": "add_item",
+              "item": "rune_candle"
+            }
+          ],
+          "test": null
+        }
+      },
+      "resolution_ref": "route_resolutions.r078"
     },
     {
       "id": "r079",
@@ -4949,7 +6531,19 @@
         }
       },
       "stakes": "Backtrack through the secret passage to reconsider the bridge or unresolved routes.",
-      "hook": "The hidden corridor returns you to the sound of voices falling upward."
+      "hook": "The hidden corridor returns you to the sound of voices falling upward.",
+      "engine_action": {
+        "action_type": "move_to_target_node",
+        "route_id": "r079",
+        "source_node": "black_wind_forge",
+        "target_node": "bridge_of_sighs",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [],
+          "test": null
+        }
+      },
+      "resolution_ref": "route_resolutions.r079"
     },
     {
       "id": "r080",
@@ -4977,7 +6571,19 @@
         }
       },
       "stakes": "Use official authority to enter a hall that exposes concealed obligations and personal debts.",
-      "hook": "One of the nine doors opens under the word OFFICE."
+      "hook": "One of the nine doors opens under the word OFFICE.",
+      "engine_action": {
+        "action_type": "move_to_target_node",
+        "route_id": "r080",
+        "source_node": "vault_antechamber",
+        "target_node": "hall_whispered_debts",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [],
+          "test": null
+        }
+      },
+      "resolution_ref": "route_resolutions.r080"
     },
     {
       "id": "r081",
@@ -5005,7 +6611,19 @@
         }
       },
       "stakes": "Use erased access to enter the market of the dead, where identity itself becomes currency.",
-      "hook": "The moon-door opens onto stalls whose merchants have forgotten being alive."
+      "hook": "The moon-door opens onto stalls whose merchants have forgotten being alive.",
+      "engine_action": {
+        "action_type": "move_to_target_node",
+        "route_id": "r081",
+        "source_node": "vault_antechamber",
+        "target_node": "ossuary_market",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [],
+          "test": null
+        }
+      },
+      "resolution_ref": "route_resolutions.r081"
     },
     {
       "id": "r082",
@@ -5045,7 +6663,27 @@
         }
       },
       "stakes": "Combine hidden law and evidence to confront the Ninth Guardian with a claim rather than a weapon.",
-      "hook": "Two doors close, seven remain silent and the wall marked WITNESS opens."
+      "hook": "Two doors close, seven remain silent and the wall marked WITNESS opens.",
+      "engine_action": {
+        "action_type": "move_and_apply_effects",
+        "route_id": "r082",
+        "source_node": "vault_antechamber",
+        "target_node": "guardian_ninth_lock",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [
+            {
+              "op": "add_knowledge",
+              "fact": "lawful_release_phrase"
+            }
+          ],
+          "test": null
+        }
+      },
+      "revelation_refs": [
+        "lawful_release_phrase"
+      ],
+      "resolution_ref": "route_resolutions.r082"
     },
     {
       "id": "r083",
@@ -5078,7 +6716,32 @@
         }
       },
       "stakes": "Surrender reputation by admitting a real debt, gaining passage and knowledge the hall cannot extract by force.",
-      "hook": "The hall does not forgive you; it simply stops pretending not to understand."
+      "hook": "The hall does not forgive you; it simply stops pretending not to understand.",
+      "engine_action": {
+        "action_type": "move_and_apply_effects",
+        "route_id": "r083",
+        "source_node": "hall_whispered_debts",
+        "target_node": "ossuary_market",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [
+            {
+              "op": "modify_stat",
+              "stat": "reputation",
+              "amount": -1
+            },
+            {
+              "op": "add_knowledge",
+              "fact": "the_dead_trade_in_names"
+            }
+          ],
+          "test": null
+        }
+      },
+      "revelation_refs": [
+        "the_dead_trade_in_names"
+      ],
+      "resolution_ref": "route_resolutions.r083"
     },
     {
       "id": "r084",
@@ -5111,7 +6774,31 @@
         }
       },
       "stakes": "Risk luck and injury by resisting the hall's demands and forcing your way towards the Guardian.",
-      "hook": "Every denied promise becomes another voice at your back."
+      "hook": "Every denied promise becomes another voice at your back.",
+      "engine_action": {
+        "action_type": "resolve_stat_test_route",
+        "route_id": "r084",
+        "source_node": "hall_whispered_debts",
+        "target_node": "guardian_ninth_lock",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [],
+          "test": {
+            "type": "luck",
+            "stat": "luck",
+            "modifier": -1,
+            "failure_to": "hall_whispered_debts",
+            "failure_effects": [
+              {
+                "op": "modify_stat",
+                "stat": "stamina",
+                "amount": -2
+              }
+            ]
+          }
+        }
+      },
+      "resolution_ref": "route_resolutions.r084"
     },
     {
       "id": "r085",
@@ -5150,7 +6837,29 @@
         }
       },
       "stakes": "Lose a year of personal memory to enter the archive and recover truths unavailable anywhere else.",
-      "hook": "The merchant is gentle, which makes the bargain harder to bear."
+      "hook": "The merchant is gentle, which makes the bargain harder to bear.",
+      "engine_action": {
+        "action_type": "move_and_apply_effects",
+        "route_id": "r085",
+        "source_node": "ossuary_market",
+        "target_node": "sunken_archive",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [
+            {
+              "op": "modify_stat",
+              "stat": "luck",
+              "amount": -1
+            },
+            {
+              "op": "add_condition",
+              "condition": "missing_year"
+            }
+          ],
+          "test": null
+        }
+      },
+      "resolution_ref": "route_resolutions.r085"
     },
     {
       "id": "r086",
@@ -5184,7 +6893,32 @@
         }
       },
       "stakes": "Spend four gold for supernatural leverage against the Guardian, without resolving the debt beneath its duty.",
-      "hook": "The merchant wraps the true name in paper made from an obituary."
+      "hook": "The merchant wraps the true name in paper made from an obituary.",
+      "engine_action": {
+        "action_type": "apply_cost_and_effects",
+        "route_id": "r086",
+        "source_node": "ossuary_market",
+        "target_node": "guardian_ninth_lock",
+        "deterministic_inputs": {
+          "costs": [
+            {
+              "resource": "gold",
+              "amount": 4
+            }
+          ],
+          "effects": [
+            {
+              "op": "add_knowledge",
+              "fact": "guardian_true_name"
+            }
+          ],
+          "test": null
+        }
+      },
+      "revelation_refs": [
+        "guardian_true_name"
+      ],
+      "resolution_ref": "route_resolutions.r086"
     },
     {
       "id": "r087",
@@ -5204,7 +6938,19 @@
         }
       },
       "stakes": "Leave without trading memory or gold, returning to the hall of debts and its unresolved demands.",
-      "hook": "The dead merchants do not call after customers who still own themselves."
+      "hook": "The dead merchants do not call after customers who still own themselves.",
+      "engine_action": {
+        "action_type": "move_to_target_node",
+        "route_id": "r087",
+        "source_node": "ossuary_market",
+        "target_node": "hall_whispered_debts",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [],
+          "test": null
+        }
+      },
+      "resolution_ref": "route_resolutions.r087"
     },
     {
       "id": "r088",
@@ -5239,7 +6985,27 @@
         }
       },
       "stakes": "Use the stolen ledger to uncover a shortcut and learn how Crown law binds the Warden.",
-      "hook": "The archive recognises the torn page as evidence rather than theft."
+      "hook": "The archive recognises the torn page as evidence rather than theft.",
+      "engine_action": {
+        "action_type": "move_and_apply_effects",
+        "route_id": "r088",
+        "source_node": "sunken_archive",
+        "target_node": "vault_antechamber",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [
+            {
+              "op": "add_knowledge",
+              "fact": "warden_bound_by_crown_law"
+            }
+          ],
+          "test": null
+        }
+      },
+      "revelation_refs": [
+        "warden_bound_by_crown_law"
+      ],
+      "resolution_ref": "route_resolutions.r088"
     },
     {
       "id": "r089",
@@ -5279,7 +7045,32 @@
         }
       },
       "stakes": "Use the Rune-Candle to recover the lawful words that can release the Guardian without combat.",
-      "hook": "Black flame restores a sentence the water has spent centuries trying to erase."
+      "hook": "Black flame restores a sentence the water has spent centuries trying to erase.",
+      "engine_action": {
+        "action_type": "move_and_apply_effects",
+        "route_id": "r089",
+        "source_node": "sunken_archive",
+        "target_node": "guardian_ninth_lock",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [
+            {
+              "op": "add_knowledge",
+              "fact": "lawful_release_phrase"
+            },
+            {
+              "op": "add_knowledge",
+              "fact": "warden_bound_by_crown_law"
+            }
+          ],
+          "test": null
+        }
+      },
+      "revelation_refs": [
+        "lawful_release_phrase",
+        "warden_bound_by_crown_law"
+      ],
+      "resolution_ref": "route_resolutions.r089"
     },
     {
       "id": "r090",
@@ -5321,7 +7112,29 @@
         }
       },
       "stakes": "Risk death to open the Ninth Lock by force, ending the Guardian without understanding or release.",
-      "hook": "Varn rises slowly, carrying nine centuries of obedience into the first blow."
+      "hook": "Varn rises slowly, carrying nine centuries of obedience into the first blow.",
+      "engine_action": {
+        "action_type": "resolve_combat_route",
+        "route_id": "r090",
+        "source_node": "guardian_ninth_lock",
+        "target_node": "abyssal_stair",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [
+            {
+              "op": "set_flag",
+              "flag": "ninth_lock_open",
+              "value": true
+            }
+          ],
+          "test": {
+            "type": "combat",
+            "encounter_id": "guardian_ninth_lock",
+            "failure_to": "ending_dead"
+          }
+        }
+      },
+      "resolution_ref": "route_resolutions.r090"
     },
     {
       "id": "r091",
@@ -5378,7 +7191,30 @@
         }
       },
       "stakes": "Use authority and recovered law to end the Guardian's service without violence.",
-      "hook": "Varn's first uncommanded breath is quieter than the lock opening."
+      "hook": "Varn's first uncommanded breath is quieter than the lock opening.",
+      "engine_action": {
+        "action_type": "move_and_apply_effects",
+        "route_id": "r091",
+        "source_node": "guardian_ninth_lock",
+        "target_node": "abyssal_stair",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [
+            {
+              "op": "set_flag",
+              "flag": "ninth_lock_open",
+              "value": true
+            },
+            {
+              "op": "modify_stat",
+              "stat": "reputation",
+              "amount": 2
+            }
+          ],
+          "test": null
+        }
+      },
+      "resolution_ref": "route_resolutions.r091"
     },
     {
       "id": "r092",
@@ -5432,7 +7268,37 @@
         }
       },
       "stakes": "Use the Guardian's true name to compel passage, gaining compliance without granting release.",
-      "hook": "The name bends bronze, but it does not sound like mercy."
+      "hook": "The name bends bronze, but it does not sound like mercy.",
+      "engine_action": {
+        "action_type": "resolve_stat_test_route",
+        "route_id": "r092",
+        "source_node": "guardian_ninth_lock",
+        "target_node": "abyssal_stair",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [
+            {
+              "op": "set_flag",
+              "flag": "ninth_lock_open",
+              "value": true
+            }
+          ],
+          "test": {
+            "type": "skill",
+            "stat": "skill",
+            "modifier": 1,
+            "failure_to": "guardian_ninth_lock",
+            "failure_effects": [
+              {
+                "op": "modify_stat",
+                "stat": "stamina",
+                "amount": -4
+              }
+            ]
+          }
+        }
+      },
+      "resolution_ref": "route_resolutions.r092"
     },
     {
       "id": "r093",
@@ -5465,7 +7331,31 @@
         }
       },
       "stakes": "Risk injury on impossible steps to reach the final approach without detouring for further knowledge.",
-      "hook": "The stair exists only where you are not looking directly."
+      "hook": "The stair exists only where you are not looking directly.",
+      "engine_action": {
+        "action_type": "resolve_stat_test_route",
+        "route_id": "r093",
+        "source_node": "abyssal_stair",
+        "target_node": "gilded_maw",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [],
+          "test": {
+            "type": "luck",
+            "stat": "luck",
+            "modifier": 0,
+            "failure_to": "abyssal_stair",
+            "failure_effects": [
+              {
+                "op": "modify_stat",
+                "stat": "stamina",
+                "amount": -3
+              }
+            ]
+          }
+        }
+      },
+      "resolution_ref": "route_resolutions.r093"
     },
     {
       "id": "r094",
@@ -5493,7 +7383,19 @@
         }
       },
       "stakes": "Use the Dust Saint's guidance to reach the Sunken Archive and trade speed for deeper understanding.",
-      "hook": "A drowned stair appears beneath a symbol meant for people official maps denied."
+      "hook": "A drowned stair appears beneath a symbol meant for people official maps denied.",
+      "engine_action": {
+        "action_type": "move_to_target_node",
+        "route_id": "r094",
+        "source_node": "abyssal_stair",
+        "target_node": "sunken_archive",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [],
+          "test": null
+        }
+      },
+      "resolution_ref": "route_resolutions.r094"
     },
     {
       "id": "r095",
@@ -5526,7 +7428,31 @@
         }
       },
       "stakes": "Risk severe injury in the Crown's final trap before facing the Warden.",
-      "hook": "The golden passage narrows whenever you imagine owning what waits beyond it."
+      "hook": "The golden passage narrows whenever you imagine owning what waits beyond it.",
+      "engine_action": {
+        "action_type": "resolve_stat_test_route",
+        "route_id": "r095",
+        "source_node": "gilded_maw",
+        "target_node": "warden_below",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [],
+          "test": {
+            "type": "skill",
+            "stat": "skill",
+            "modifier": -1,
+            "failure_to": "ending_dead",
+            "failure_effects": [
+              {
+                "op": "modify_stat",
+                "stat": "stamina",
+                "amount": -5
+              }
+            ]
+          }
+        }
+      },
+      "resolution_ref": "route_resolutions.r095"
     },
     {
       "id": "r096",
@@ -5561,7 +7487,25 @@
         }
       },
       "stakes": "Spend Rune-Candle light to expose the Maw's safe route and preserve strength for the Warden.",
-      "hook": "Invisible instructions appear across the teeth: CLAIMANTS WALK BETWEEN APPETITES."
+      "hook": "Invisible instructions appear across the teeth: CLAIMANTS WALK BETWEEN APPETITES.",
+      "engine_action": {
+        "action_type": "move_and_apply_effects",
+        "route_id": "r096",
+        "source_node": "gilded_maw",
+        "target_node": "warden_below",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [
+            {
+              "op": "modify_resource",
+              "resource": "torch_turns",
+              "amount": -1
+            }
+          ],
+          "test": null
+        }
+      },
+      "resolution_ref": "route_resolutions.r096"
     },
     {
       "id": "r097",
@@ -5588,7 +7532,23 @@
         }
       },
       "stakes": "Risk death to prove capability by conquest, while giving the Warden no reason to believe you are fit to rule.",
-      "hook": "Serath draws a weapon only after asking whether victory is your entire claim."
+      "hook": "Serath draws a weapon only after asking whether victory is your entire claim.",
+      "engine_action": {
+        "action_type": "resolve_combat_route",
+        "route_id": "r097",
+        "source_node": "warden_below",
+        "target_node": "vault_mythic_treasure",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [],
+          "test": {
+            "type": "combat",
+            "encounter_id": "warden_below",
+            "failure_to": "ending_dead"
+          }
+        }
+      },
+      "resolution_ref": "route_resolutions.r097"
     },
     {
       "id": "r098",
@@ -5645,7 +7605,25 @@
         }
       },
       "stakes": "Use recognised authority, knowledge and reputation to pass by judgement rather than force.",
-      "hook": "Serath's weapon lowers by the width of a finger before the Warden steps aside."
+      "hook": "Serath's weapon lowers by the width of a finger before the Warden steps aside.",
+      "engine_action": {
+        "action_type": "move_and_apply_effects",
+        "route_id": "r098",
+        "source_node": "warden_below",
+        "target_node": "vault_mythic_treasure",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [
+            {
+              "op": "modify_stat",
+              "stat": "reputation",
+              "amount": 2
+            }
+          ],
+          "test": null
+        }
+      },
+      "resolution_ref": "route_resolutions.r098"
     },
     {
       "id": "r099",
@@ -5678,7 +7656,19 @@
         }
       },
       "stakes": "Use acknowledged debt to show that you understand the custodians as obligations, not obstacles.",
-      "hook": "Serath reads the ledger fragment and looks older when finished."
+      "hook": "Serath reads the ledger fragment and looks older when finished.",
+      "engine_action": {
+        "action_type": "move_to_target_node",
+        "route_id": "r099",
+        "source_node": "warden_below",
+        "target_node": "vault_mythic_treasure",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [],
+          "test": null
+        }
+      },
+      "resolution_ref": "route_resolutions.r099"
     },
     {
       "id": "r100",
@@ -5698,7 +7688,19 @@
         }
       },
       "stakes": "Leave the last guardian behind and confront the treasure whose promise has shaped the entire dungeon.",
-      "hook": "There are no coins in the vault—only a crown waiting for somebody to misunderstand it."
+      "hook": "There are no coins in the vault—only a crown waiting for somebody to misunderstand it.",
+      "engine_action": {
+        "action_type": "move_to_target_node",
+        "route_id": "r100",
+        "source_node": "vault_mythic_treasure",
+        "target_node": "crown_ember_salt",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [],
+          "test": null
+        }
+      },
+      "resolution_ref": "route_resolutions.r100"
     },
     {
       "id": "r101",
@@ -5762,7 +7764,51 @@
         }
       },
       "stakes": "Take the Crown while resisting its oath, gambling luck and identity for wealth without office.",
-      "hook": "The Crown answers your refusal with affection rather than anger."
+      "hook": "The Crown answers your refusal with affection rather than anger.",
+      "engine_action": {
+        "action_type": "resolve_stat_test_route",
+        "route_id": "r101",
+        "source_node": "crown_ember_salt",
+        "target_node": "ending_escape_riches",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [
+            {
+              "op": "add_item",
+              "item": "crown_of_ember_salt"
+            },
+            {
+              "op": "set_flag",
+              "flag": "crown_attunement",
+              "value": "resisted"
+            },
+            {
+              "op": "set_flag",
+              "flag": "crown_claimed",
+              "value": true
+            }
+          ],
+          "test": {
+            "type": "luck",
+            "stat": "luck",
+            "modifier": -2,
+            "failure_to": "ending_cursed_possession",
+            "failure_effects": [
+              {
+                "op": "set_flag",
+                "flag": "crown_attunement",
+                "value": "bound"
+              },
+              {
+                "op": "set_flag",
+                "flag": "crown_claimed",
+                "value": true
+              }
+            ]
+          }
+        }
+      },
+      "resolution_ref": "route_resolutions.r101"
     },
     {
       "id": "r102",
@@ -5820,7 +7866,34 @@
         }
       },
       "stakes": "Accept rulership and every unresolved debt of the ruins, preserving yourself only if your claim is strong enough.",
-      "hook": "The old rulers fall silent only after your name survives being spoken by all of them."
+      "hook": "The old rulers fall silent only after your name survives being spoken by all of them.",
+      "engine_action": {
+        "action_type": "move_and_apply_effects",
+        "route_id": "r102",
+        "source_node": "crown_ember_salt",
+        "target_node": "ending_dungeon_lordship",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [
+            {
+              "op": "add_item",
+              "item": "crown_of_ember_salt"
+            },
+            {
+              "op": "set_flag",
+              "flag": "crown_attunement",
+              "value": "mastered"
+            },
+            {
+              "op": "set_flag",
+              "flag": "crown_claimed",
+              "value": true
+            }
+          ],
+          "test": null
+        }
+      },
+      "resolution_ref": "route_resolutions.r102"
     },
     {
       "id": "r103",
@@ -5866,7 +7939,34 @@
         }
       },
       "stakes": "Claim power immediately and surrender the best chance to separate your identity from the Crown's rulers.",
-      "hook": "For a moment the Crown feels like relief."
+      "hook": "For a moment the Crown feels like relief.",
+      "engine_action": {
+        "action_type": "move_and_apply_effects",
+        "route_id": "r103",
+        "source_node": "crown_ember_salt",
+        "target_node": "ending_cursed_possession",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [
+            {
+              "op": "add_item",
+              "item": "crown_of_ember_salt"
+            },
+            {
+              "op": "set_flag",
+              "flag": "crown_attunement",
+              "value": "bound"
+            },
+            {
+              "op": "set_flag",
+              "flag": "crown_claimed",
+              "value": true
+            }
+          ],
+          "test": null
+        }
+      },
+      "resolution_ref": "route_resolutions.r103"
     },
     {
       "id": "r104",
@@ -5912,7 +8012,28 @@
         }
       },
       "stakes": "Let Pell turn a lethal crossing into skilled work, rewarding the decision to treat him as more than spare light.",
-      "hook": "Pell's hands remain steady; yours may not."
+      "hook": "Pell's hands remain steady; yours may not.",
+      "engine_action": {
+        "action_type": "move_and_apply_effects",
+        "route_id": "r104",
+        "source_node": "bridge_of_sighs",
+        "target_node": "beast_pits",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [
+            {
+              "op": "emit_event",
+              "event": "follower.assisted",
+              "data": {
+                "follower": "Pell Vane",
+                "challenge": "bridge_of_sighs"
+              }
+            }
+          ],
+          "test": null
+        }
+      },
+      "resolution_ref": "route_resolutions.r104"
     },
     {
       "id": "r107",
@@ -5966,7 +8087,39 @@
         }
       },
       "stakes": "Respect Pell's stated boundary and lose his future assistance before opening the Ninth Lock.",
-      "hook": "Pell folds the contract carefully, hiding relief behind irritation."
+      "hook": "Pell folds the contract carefully, hiding relief behind irritation.",
+      "engine_action": {
+        "action_type": "apply_local_effect",
+        "route_id": "r107",
+        "source_node": "guardian_ninth_lock",
+        "target_node": "guardian_ninth_lock",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [
+            {
+              "op": "remove_item",
+              "item": "torchbearer_contract"
+            },
+            {
+              "op": "add_knowledge",
+              "fact": "pell_waits_above_ninth_lock"
+            },
+            {
+              "op": "emit_event",
+              "event": "follower.departed",
+              "data": {
+                "follower": "Pell Vane",
+                "reason": "refused_to_cross_ninth_lock"
+              }
+            }
+          ],
+          "test": null
+        }
+      },
+      "revelation_refs": [
+        "pell_waits_above_ninth_lock"
+      ],
+      "resolution_ref": "route_resolutions.r107"
     },
     {
       "id": "r105",
@@ -5995,7 +8148,19 @@
         }
       },
       "stakes": "Use the cleared warren to advance without repeating the fight, while moving through the remains of Orrick's identity.",
-      "hook": "Ordinary rats scatter around the little crown and refuse to touch it."
+      "hook": "Ordinary rats scatter around the little crown and refuse to touch it.",
+      "engine_action": {
+        "action_type": "move_to_target_node",
+        "route_id": "r105",
+        "source_node": "rat_king_warren",
+        "target_node": "chained_well",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [],
+          "test": null
+        }
+      },
+      "resolution_ref": "route_resolutions.r105"
     },
     {
       "id": "r106",
@@ -6031,7 +8196,27 @@
         }
       },
       "stakes": "Search the abandoned tunnels for knowledge and an alternate route after the Rat-King's death.",
-      "hook": "The swarm's grammar is gone, but its careful inventory remains."
+      "hook": "The swarm's grammar is gone, but its careful inventory remains.",
+      "engine_action": {
+        "action_type": "move_and_apply_effects",
+        "route_id": "r106",
+        "source_node": "rat_king_warren",
+        "target_node": "mapmakers_bones",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [
+            {
+              "op": "add_knowledge",
+              "fact": "rat_tunnels"
+            }
+          ],
+          "test": null
+        }
+      },
+      "revelation_refs": [
+        "rat_tunnels"
+      ],
+      "resolution_ref": "route_resolutions.r106"
     },
     {
       "id": "r108",
@@ -6096,7 +8281,33 @@
         }
       },
       "stakes": "Use stolen office, hidden law and the Brass Seal to override an active arrest record before the Warden.",
-      "hook": "The Registrar's key cancels the writ only because the system recognises possession before justice."
+      "hook": "The Registrar's key cancels the writ only because the system recognises possession before justice.",
+      "engine_action": {
+        "action_type": "move_and_apply_effects",
+        "route_id": "r108",
+        "source_node": "warden_below",
+        "target_node": "vault_mythic_treasure",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [
+            {
+              "op": "modify_stat",
+              "stat": "reputation",
+              "amount": 1
+            },
+            {
+              "op": "emit_event",
+              "event": "registrar_alert_overridden",
+              "data": {
+                "authority": "registrars_key",
+                "witness": "warden_below"
+              }
+            }
+          ],
+          "test": null
+        }
+      },
+      "resolution_ref": "route_resolutions.r108"
     }
   ],
   "relations": [
@@ -6591,8 +8802,6 @@
       "routes_with_hooks": 108,
       "expected_routes": 108
     },
-    "status": "passed",
-    "schema_version": "0.2.3",
     "sensory_emotional_coverage": {
       "nodes_with_refined_read_aloud": 47,
       "nodes_with_emotional_undertone": 47,
@@ -6606,6 +8815,23 @@
         "taste": 14,
         "sight": 28
       }
+    },
+    "context_and_tool_safety": {
+      "opening_context_present": true,
+      "start_node_exposition_words": 80,
+      "routes_with_engine_action": 108,
+      "r013_mechanics_unchanged": true,
+      "r013_incident_terms_in_tool_text": []
+    },
+    "status": "passed",
+    "schema_version": "0.2.5",
+    "narrative_delivery": {
+      "spoken_rumours": 4,
+      "knowledge_revelations": 15,
+      "routes_with_resolutions": 108,
+      "state_aware_variants": 12,
+      "mandatory_exposition_nodes": 2,
+      "delivery_acts": 4
     },
     "warnings": [],
     "errors": []
@@ -7916,6 +10142,771 @@
         "bound": "The claimant's identity is being overwritten by the Crown's accumulated sovereign personalities.",
         "mastered": "The claimant has accepted office while forcing the Crown to recognise their distinct identity."
       }
+    },
+    "knowledge_revelations": {
+      "rumour_crown_ember_salt": {
+        "title": "The Crown Rumour",
+        "player_text": "The treasure is said to be a crown that reacts to spoken claims. The warning sounds embellished, but several survivors agree that promises matter in the deep dungeon.",
+        "meaning": "Foreshadows oath-magic and the Crown's interest in identity.",
+        "delivery_style": "rumour"
+      },
+      "rumour_ninth_lock": {
+        "title": "The Ninth Lock Warning",
+        "player_text": "Experienced hirelings treat the Ninth Lock as the boundary beyond which ordinary contracts and good sense stop protecting anyone.",
+        "meaning": "Prepares Pell's departure and the shift into the mythic final descent.",
+        "delivery_style": "rumour"
+      },
+      "rumour_red_quill": {
+        "title": "The Red Quill",
+        "player_text": "A covert forger operates in Barrowgate. A small red feather painted beneath a window marks the way.",
+        "meaning": "Makes the forgery route discoverable and links it to erased identities.",
+        "delivery_style": "lead"
+      },
+      "rumour_dust_saint": {
+        "title": "The Blind Road",
+        "player_text": "Shrines to the Dust Saint are said to mark hidden roads. The old stories may preserve practical directions.",
+        "meaning": "Makes the shrine and hidden shaft feel earned rather than arbitrary.",
+        "delivery_style": "lead"
+      },
+      "map_three_entrances": {
+        "title": "Three Ways Below",
+        "player_text": "From the watchtower you identify three approaches: the public quarry stair, a concealed shaft, and a flooded service tunnel leading beneath the upper checkpoints.",
+        "meaning": "Frames entrance choice as official recognition, secrecy or physical risk.",
+        "delivery_style": "observation"
+      },
+      "hidden_shaft_location": {
+        "title": "The Saint's Hidden Shaft",
+        "player_text": "The shrine's mechanism opens a concealed shaft behind the old garrison rooms. The saint's symbol was a route marker, not merely decoration.",
+        "meaning": "Confirms Ilya's shrines as preserved escape infrastructure.",
+        "delivery_style": "discovery"
+      },
+      "rat_tunnels": {
+        "title": "The Rat Tunnels",
+        "player_text": "The warren's narrow stores connect to the dead surveyor's chamber. The Rat-King has been guarding more than food.",
+        "meaning": "Connects Orrick's old office to the mapmaker and provides spatial continuity.",
+        "delivery_style": "discovery"
+      },
+      "loose_stone_bridge": {
+        "title": "The Loose Stone",
+        "player_text": "The map identifies a loose stone beside the Bridge of Sighs. Behind it lies a maintenance passage to the Black Wind Forge.",
+        "meaning": "Turns the bridge's secret route into a learned fact.",
+        "delivery_style": "map_reading"
+      },
+      "registrar_values_procedure": {
+        "title": "The Registrar's Constraint",
+        "player_text": "The chapel's surviving vows reveal that the Iron Registrar must honour recognised procedure, even when it dislikes the person invoking it.",
+        "meaning": "Explains why procedural knowledge can replace licence or combat.",
+        "delivery_style": "institutional_revelation"
+      },
+      "debt_of_ninth_guardian": {
+        "title": "Varn's Unpaid Service",
+        "player_text": "The ledger shows that Varn was ordered to hold the Ninth Lock until succession was resolved. The treasury deliberately left the obligation open so the seal could never be lawfully abandoned.",
+        "meaning": "Reframes the Guardian as a person trapped inside an unsettled duty.",
+        "delivery_style": "documentary_revelation"
+      },
+      "the_dead_trade_in_names": {
+        "title": "The Currency of the Dead",
+        "player_text": "Below the treasury, a recognised name has power. The dead trade memories and identities because official existence remains valuable here.",
+        "meaning": "Explains the Ossuary Market and links memory to the Crown's authority.",
+        "delivery_style": "cosmological_revelation"
+      },
+      "guardian_true_name": {
+        "title": "Varn's Ceremonial Name",
+        "player_text": "You learn the Guardian's complete ceremonial name. Speaking it can compel attention, but it does not settle the obligation that binds Varn to the Lock.",
+        "meaning": "Provides leverage while distinguishing coercion from release.",
+        "delivery_style": "bargained_secret"
+      },
+      "lawful_release_phrase": {
+        "title": "The Words of Discharge",
+        "player_text": "A recognised seal-holder may release a custodian whose stated duty has been completed. The words require the debt, its completion and a witness to be named.",
+        "meaning": "Makes the peaceful Guardian resolution intelligible.",
+        "delivery_style": "legal_revelation"
+      },
+      "warden_bound_by_crown_law": {
+        "title": "The Warden's Test",
+        "player_text": "Serath must recognise a claimant who can show authority, acknowledge the old debts and demonstrate restraint. The Warden guards succession, not treasure alone.",
+        "meaning": "Makes the final non-combat routes and succession reveal coherent.",
+        "delivery_style": "succession_revelation"
+      },
+      "pell_waits_above_ninth_lock": {
+        "title": "A Living Witness",
+        "player_text": "Pell will not cross the Ninth Lock, but he waits above it. Someone living will know whether you return—and what you bring back.",
+        "meaning": "Preserves Pell's emotional continuity into the ending.",
+        "delivery_style": "character_continuity"
+      }
+    },
+    "route_resolutions": {
+      "r001": {
+        "route_id": "r001",
+        "success_text": "Inside the Bent Nail, a survivor lowers his cup when he hears where you mean to go.",
+        "revelation_refs": []
+      },
+      "r002": {
+        "route_id": "r002",
+        "success_text": "Every item on the stalls has already failed to save someone else.",
+        "revelation_refs": []
+      },
+      "r003": {
+        "route_id": "r003",
+        "success_text": "The workers assess your boots, your hands and whether you listen when they answer.",
+        "revelation_refs": []
+      },
+      "r004": {
+        "route_id": "r004",
+        "success_text": "The priest's kindness is practised, but not empty.",
+        "revelation_refs": []
+      },
+      "r005": {
+        "route_id": "r005",
+        "success_text": "The clerk's pen pauses above the line marked NEXT OF KIN.",
+        "revelation_refs": []
+      },
+      "r006": {
+        "route_id": "r006",
+        "success_text": "A red feather beneath a windowsill points towards paperwork the council never issued.",
+        "revelation_refs": []
+      },
+      "r007": {
+        "route_id": "r007",
+        "success_text": "Beyond the last signpost, Barrowgate can still charge you—but it can no longer help.",
+        "revelation_refs": []
+      },
+      "r008": {
+        "route_id": "r008",
+        "success_text": "You leave the Bent Nail with four useful threads: the Crown listens to promises, hirelings fear the Ninth Lock, the Red Quill forges permits, and the Dust Saint marks hidden roads.",
+        "revelation_refs": [
+          "rumour_crown_ember_salt",
+          "rumour_red_quill",
+          "rumour_dust_saint",
+          "rumour_ninth_lock"
+        ]
+      },
+      "r009": {
+        "route_id": "r009",
+        "success_text": "Five gold buys rope, oil, provisions and a little more time below. The weight of the pack is reassuring until you notice the former owner's initials.",
+        "revelation_refs": []
+      },
+      "r010": {
+        "route_id": "r010",
+        "success_text": "The merchant watches you leave, then turns the best rope back towards the wall.",
+        "revelation_refs": []
+      },
+      "r011": {
+        "route_id": "r011",
+        "success_text": "Pell signs the contract and tests your spare lamp without asking permission. He will carry light and secure one dangerous crossing, but his line ends at the Ninth Lock.",
+        "revelation_refs": []
+      },
+      "r012": {
+        "route_id": "r012",
+        "success_text": "Pell nods once, neither offended nor reassured.",
+        "revelation_refs": []
+      },
+      "r013": {
+        "route_id": "r013",
+        "success_text": "Two gold changes hands. The priest marks your brow with warm ash, quietly repeats your name, and asks you not to make promises underground unless you mean them.",
+        "revelation_refs": []
+      },
+      "r014": {
+        "route_id": "r014",
+        "success_text": "The priest does not curse you; somehow that feels less reassuring.",
+        "revelation_refs": []
+      },
+      "r015": {
+        "route_id": "r015",
+        "success_text": "The licence receives its wax seal. For an instant the paper feels heavier than it should, as though something beneath the hills has acknowledged the issue.",
+        "revelation_refs": []
+      },
+      "r016": {
+        "route_id": "r016",
+        "success_text": "The clerk does not look at you when he gives the hint; that is how you know it matters.",
+        "revelation_refs": [
+          "rumour_red_quill"
+        ],
+        "failure_text": "The attempt fails before you can secure the intended route. The consequence leads to Barrowgate."
+      },
+      "r017": {
+        "route_id": "r017",
+        "success_text": "The clerk closes your file with the tenderness of someone preparing evidence.",
+        "revelation_refs": []
+      },
+      "r018": {
+        "route_id": "r018",
+        "success_text": "Maera gives you a convincing permit and points out the tiny deliberate flaw. \"A forgery should know what it is,\" she says.",
+        "revelation_refs": []
+      },
+      "r019": {
+        "route_id": "r019",
+        "success_text": "Maera burns the unfinished permit before the wax has cooled.",
+        "revelation_refs": []
+      },
+      "r020": {
+        "route_id": "r020",
+        "success_text": "The cairns sing before you are close enough to blame the wind.",
+        "revelation_refs": []
+      },
+      "r021": {
+        "route_id": "r021",
+        "success_text": "The shortest road ends at a barrier freshly painted with the word LEGAL.",
+        "revelation_refs": []
+      },
+      "r022": {
+        "route_id": "r022",
+        "success_text": "The ruined tower promises perspective, not safety.",
+        "revelation_refs": []
+      },
+      "r023": {
+        "route_id": "r023",
+        "success_text": "The chipped treasury mark points towards the route most people were meant to use.",
+        "revelation_refs": []
+      },
+      "r024": {
+        "route_id": "r024",
+        "success_text": "A dented bell rings once, though nobody has touched it.",
+        "revelation_refs": []
+      },
+      "r025": {
+        "route_id": "r025",
+        "success_text": "Warm dust gathers against the wind, sketching the shape of a half-closed eye.",
+        "revelation_refs": []
+      },
+      "r026": {
+        "route_id": "r026",
+        "success_text": "The goblin clerk's chest lifts slightly when you ask for a receipt.",
+        "revelation_refs": []
+      },
+      "r027": {
+        "route_id": "r027",
+        "success_text": "The goblin's suspicion competes visibly with his desire to be treated as an official.",
+        "revelation_refs": [],
+        "failure_text": "The attempt fails before you can secure the intended route. The consequence leads to Goblin Toll Path."
+      },
+      "r028": {
+        "route_id": "r028",
+        "success_text": "The barrier is light enough to lift and heavy enough to start a war over.",
+        "revelation_refs": [],
+        "failure_text": "The struggle turns against you. The consequence carries you towards A Delver's Memorial Plaque."
+      },
+      "r029": {
+        "route_id": "r029",
+        "success_text": "From the broken tower, the dungeon resolves into three approaches: public stair, hidden shaft and flooded service tunnel.",
+        "revelation_refs": [
+          "map_three_entrances"
+        ]
+      },
+      "r030": {
+        "route_id": "r030",
+        "success_text": "Old charcoal marks turn a collapsed wall into a sentence only the equipped can read.",
+        "revelation_refs": []
+      },
+      "r031": {
+        "route_id": "r031",
+        "success_text": "The channel below shines black, and something in it flashes blue.",
+        "revelation_refs": []
+      },
+      "r032": {
+        "route_id": "r032",
+        "success_text": "The coin drops sideways inside the saint's blind eye. Stone shifts, revealing the hidden shaft, and a small clay token comes free with the mechanism.",
+        "revelation_refs": [
+          "hidden_shaft_location"
+        ]
+      },
+      "r033": {
+        "route_id": "r033",
+        "success_text": "The shrine keeps its secret without reproach.",
+        "revelation_refs": []
+      },
+      "r034": {
+        "route_id": "r034",
+        "success_text": "Each seventh stair bears a fee no living clerk still collects.",
+        "revelation_refs": []
+      },
+      "r035": {
+        "route_id": "r035",
+        "success_text": "The shaft is narrow enough to make every piece of equipment feel like a confession.",
+        "revelation_refs": []
+      },
+      "r036": {
+        "route_id": "r036",
+        "success_text": "The black water has no current, yet it keeps pulling towards the archive numbers.",
+        "revelation_refs": [],
+        "failure_text": "The attempt fails before you can secure the intended route. The consequence leads to Cistern of Eels."
+      },
+      "r037": {
+        "route_id": "r037",
+        "success_text": "The Gate of Tithes opens three slots and waits to learn what kind of person you are.",
+        "revelation_refs": []
+      },
+      "r038": {
+        "route_id": "r038",
+        "success_text": "Your boots strike stone beside a skeleton still arguing with its own map.",
+        "revelation_refs": []
+      },
+      "r039": {
+        "route_id": "r039",
+        "success_text": "The gate accepts the licence with more respect than the town clerk did.",
+        "revelation_refs": []
+      },
+      "r040": {
+        "route_id": "r040",
+        "success_text": "The counterfeit seal warms, hesitates and asks no questions you can hear.",
+        "revelation_refs": [],
+        "failure_text": "The attempt fails before you can secure the intended route. The consequence leads to The Delvers' Gaol."
+      },
+      "r041": {
+        "route_id": "r041",
+        "success_text": "Behind the grille, many small voices are counting your tools.",
+        "revelation_refs": [],
+        "failure_text": "The attempt fails before you can secure the intended route. The consequence leads to Gate of Tithes."
+      },
+      "r042": {
+        "route_id": "r042",
+        "success_text": "The gate values old coin more reliably than modern courage.",
+        "revelation_refs": []
+      },
+      "r043": {
+        "route_id": "r043",
+        "success_text": "Metal chimes ahead, accompanied by the whisper: inventory, inventory, inventory.",
+        "revelation_refs": []
+      },
+      "r044": {
+        "route_id": "r044",
+        "success_text": "The officers' stair has collapsed in exactly the places an officer would once have stood.",
+        "revelation_refs": []
+      },
+      "r045": {
+        "route_id": "r045",
+        "success_text": "A procession carved into the wall turns aside where the official corridor continues.",
+        "revelation_refs": []
+      },
+      "r046": {
+        "route_id": "r046",
+        "success_text": "The swarm loses grammar before it loses life. The last rat releases the Brass Seal. What remains in the warren is ordinary movement and a little crown nobody touches.",
+        "revelation_refs": [],
+        "failure_text": "The struggle turns against you. The consequence carries you towards A Delver's Memorial Plaque."
+      },
+      "r047": {
+        "route_id": "r047",
+        "success_text": "The swarm accepts the food and your use of Orrick's title. In return it reveals the store tunnels leading to the mapmaker's chamber.",
+        "revelation_refs": [
+          "rat_tunnels"
+        ]
+      },
+      "r048": {
+        "route_id": "r048",
+        "success_text": "The Brass Seal completes a shape in the chains, and the dry well begins to rise.",
+        "revelation_refs": []
+      },
+      "r049": {
+        "route_id": "r049",
+        "success_text": "The voice below files your departure under INCOMPLETE.",
+        "revelation_refs": []
+      },
+      "r050": {
+        "route_id": "r050",
+        "success_text": "The line on the shield only makes sense when followed without looking ahead.",
+        "revelation_refs": [
+          "loose_stone_bridge"
+        ]
+      },
+      "r051": {
+        "route_id": "r051",
+        "success_text": "A route scratched across solid metal becomes a doorway when viewed from the corner of the eye.",
+        "revelation_refs": []
+      },
+      "r052": {
+        "route_id": "r052",
+        "success_text": "The chapel's vows reveal a surviving rule: the Registrar must honour recognised procedure, even when the result offends its judgement.",
+        "revelation_refs": [
+          "registrar_values_procedure"
+        ]
+      },
+      "r053": {
+        "route_id": "r053",
+        "success_text": "Beneath the altar, saints and smugglers have used the same handholds.",
+        "revelation_refs": []
+      },
+      "r054": {
+        "route_id": "r054",
+        "success_text": "Halvek stamps the licence. The sound travels down the corridor, followed by several distant locks accepting the decision.",
+        "revelation_refs": []
+      },
+      "r055": {
+        "route_id": "r055",
+        "success_text": "The counterfeit survives the inspection. Halvek returns it without comment, but the pause behind the visor suggests the document has not been entirely believed.",
+        "revelation_refs": [],
+        "failure_text": "The seal fails under Halvek's scrutiny. The permit is marked invalid, an adverse record is opened, and iron hands direct you towards the gaol."
+      },
+      "r056": {
+        "route_id": "r056",
+        "success_text": "For one instant Halvek looks less like a machine than a tired man behind one.",
+        "revelation_refs": [],
+        "failure_text": "The attempt fails before you can secure the intended route. The consequence leads to The Delvers' Gaol."
+      },
+      "r057": {
+        "route_id": "r057",
+        "success_text": "The Registrar falls and its iron key becomes yours. The papers continue moving, and somewhere deeper the system records violence without recording why.",
+        "revelation_refs": [],
+        "failure_text": "The struggle turns against you. The consequence carries you towards A Delver's Memorial Plaque."
+      },
+      "r058": {
+        "route_id": "r058",
+        "success_text": "The service lock recognises the key without asking who now carries it.",
+        "revelation_refs": []
+      },
+      "r059": {
+        "route_id": "r059",
+        "success_text": "The condemned drain was built for waste, not people, which may be why nobody watches it.",
+        "revelation_refs": [],
+        "failure_text": "The attempt fails before you can secure the intended route. The consequence leads to Indefinite Administrative Detention."
+      },
+      "r060": {
+        "route_id": "r060",
+        "success_text": "A courteous notice promises review by a committee whose members are all dust.",
+        "revelation_refs": []
+      },
+      "r061": {
+        "route_id": "r061",
+        "success_text": "The whispering fungus borrows a voice that once comforted someone.",
+        "revelation_refs": [],
+        "failure_text": "Fortune fails at the crucial moment. The consequence leads to Mirror Maze."
+      },
+      "r062": {
+        "route_id": "r062",
+        "success_text": "The irrigation channel smells sweet at first and metallic after the first bend.",
+        "revelation_refs": []
+      },
+      "r063": {
+        "route_id": "r063",
+        "success_text": "One reflection turns away before you decide to follow it.",
+        "revelation_refs": [],
+        "failure_text": "The attempt fails before you can secure the intended route. The consequence leads to Mirror Maze."
+      },
+      "r064": {
+        "route_id": "r064",
+        "success_text": "The silver door has no lock until its reflection is touched.",
+        "revelation_refs": []
+      },
+      "r065": {
+        "route_id": "r065",
+        "success_text": "Your reflected hand closes around yours. When you pull back, the crescent Moon Key is cold in your palm and one reflection is missing from the maze.",
+        "revelation_refs": [],
+        "failure_text": "The reflection grips harder than expected. You tear free injured, while the key remains on the far side of the glass."
+      },
+      "r066": {
+        "route_id": "r066",
+        "success_text": "The gantry is safe only while the water remains dark.",
+        "revelation_refs": [],
+        "failure_text": "The struggle turns against you. The consequence carries you towards A Delver's Memorial Plaque."
+      },
+      "r067": {
+        "route_id": "r067",
+        "success_text": "A goblin stamp matches a maintenance symbol no goblin could have understood.",
+        "revelation_refs": []
+      },
+      "r068": {
+        "route_id": "r068",
+        "success_text": "A red line appears across the floor like a route drawn by an invisible clerk.",
+        "revelation_refs": []
+      },
+      "r069": {
+        "route_id": "r069",
+        "success_text": "You remove the loose ledger page. It records that Varn's service at the Ninth Lock was never discharged—deliberately.",
+        "revelation_refs": [
+          "debt_of_ninth_guardian"
+        ]
+      },
+      "r070": {
+        "route_id": "r070",
+        "success_text": "The key opens the door backwards, into a room you thought you had already left.",
+        "revelation_refs": []
+      },
+      "r071": {
+        "route_id": "r071",
+        "success_text": "The bridge repeats your last words before you have spoken them.",
+        "revelation_refs": [],
+        "failure_text": "The attempt fails before you can secure the intended route. The consequence leads to A Delver's Memorial Plaque."
+      },
+      "r072": {
+        "route_id": "r072",
+        "success_text": "The loose stone moves only when pressed by someone who already knows it is loose.",
+        "revelation_refs": []
+      },
+      "r073": {
+        "route_id": "r073",
+        "success_text": "The wind sighs in relief using somebody else's voice.",
+        "revelation_refs": []
+      },
+      "r074": {
+        "route_id": "r074",
+        "success_text": "The beast's royal collar is older than the arena around it.",
+        "revelation_refs": [],
+        "failure_text": "The struggle turns against you. The consequence carries you towards A Delver's Memorial Plaque."
+      },
+      "r075": {
+        "route_id": "r075",
+        "success_text": "The lift accepts the seal and key without noticing that both previous owners are dead.",
+        "revelation_refs": []
+      },
+      "r076": {
+        "route_id": "r076",
+        "success_text": "Black flame writes a doorway across a wall that had never admitted being one.",
+        "revelation_refs": []
+      },
+      "r077": {
+        "route_id": "r077",
+        "success_text": "The forge wakes hungry for heat, oath and something it calls authorised fuel.",
+        "revelation_refs": [],
+        "failure_text": "The attempt fails before you can secure the intended route. The consequence leads to Black Wind Forge."
+      },
+      "r078": {
+        "route_id": "r078",
+        "success_text": "The Rune-Candle lifts from the cold anvil and burns with a black flame. Hidden words appear across the forge: AUTHORITY REQUIRES WITNESS.",
+        "revelation_refs": []
+      },
+      "r079": {
+        "route_id": "r079",
+        "success_text": "The hidden corridor returns you to the sound of voices falling upward.",
+        "revelation_refs": []
+      },
+      "r080": {
+        "route_id": "r080",
+        "success_text": "One of the nine doors opens under the word OFFICE.",
+        "revelation_refs": []
+      },
+      "r081": {
+        "route_id": "r081",
+        "success_text": "The moon-door opens onto stalls whose merchants have forgotten being alive.",
+        "revelation_refs": []
+      },
+      "r082": {
+        "route_id": "r082",
+        "success_text": "Two doors close, seven remain silent and the wall marked WITNESS opens.",
+        "revelation_refs": [
+          "lawful_release_phrase"
+        ]
+      },
+      "r083": {
+        "route_id": "r083",
+        "success_text": "You name one real debt. The whispers withdraw just enough for the deeper truth to become clear: among the dead, names and memories are currency because recognised identity still carries power.",
+        "revelation_refs": [
+          "the_dead_trade_in_names"
+        ]
+      },
+      "r084": {
+        "route_id": "r084",
+        "success_text": "Every denied promise becomes another voice at your back.",
+        "revelation_refs": [],
+        "failure_text": "Fortune fails at the crucial moment. The consequence leads to Hall of Whispered Debts."
+      },
+      "r085": {
+        "route_id": "r085",
+        "success_text": "The merchant takes one year of memory without pain. The archive route opens, and only then do you feel the clean, impossible gap in your own history.",
+        "revelation_refs": []
+      },
+      "r086": {
+        "route_id": "r086",
+        "success_text": "The merchant wraps Varn's ceremonial name in a strip of obituary paper. It grants leverage over the Guardian, though not release.",
+        "revelation_refs": [
+          "guardian_true_name"
+        ]
+      },
+      "r087": {
+        "route_id": "r087",
+        "success_text": "The dead merchants do not call after customers who still own themselves.",
+        "revelation_refs": []
+      },
+      "r088": {
+        "route_id": "r088",
+        "success_text": "The torn ledger page fits the archive index. A hidden passage opens, and the surviving Crown law reveals that Serath is judging a successor, not merely defending treasure.",
+        "revelation_refs": [
+          "warden_bound_by_crown_law"
+        ]
+      },
+      "r089": {
+        "route_id": "r089",
+        "success_text": "The Rune-Candle restores the drowned decree. You learn both the words that can release Varn and the conditions under which Serath must recognise a claimant.",
+        "revelation_refs": [
+          "lawful_release_phrase",
+          "warden_bound_by_crown_law"
+        ]
+      },
+      "r090": {
+        "route_id": "r090",
+        "success_text": "Varn rises slowly, carrying nine centuries of obedience into the first blow.",
+        "revelation_refs": [],
+        "failure_text": "The struggle turns against you. The consequence carries you towards A Delver's Memorial Plaque."
+      },
+      "r091": {
+        "route_id": "r091",
+        "success_text": "You name the debt, its completion and the witness. Varn's hands leave the Lock. The bronze giant's first uncommanded breath is quieter than the door opening.",
+        "revelation_refs": []
+      },
+      "r092": {
+        "route_id": "r092",
+        "success_text": "Varn's true name bends the Guardian to your command. The way opens, but the old obligation remains unresolved behind you.",
+        "revelation_refs": [],
+        "failure_text": "The attempt fails before you can secure the intended route. The consequence leads to Guardian of the Ninth Lock."
+      },
+      "r093": {
+        "route_id": "r093",
+        "success_text": "The stair exists only where you are not looking directly.",
+        "revelation_refs": [],
+        "failure_text": "Fortune fails at the crucial moment. The consequence leads to Abyssal Stair."
+      },
+      "r094": {
+        "route_id": "r094",
+        "success_text": "A drowned stair appears beneath a symbol meant for people official maps denied.",
+        "revelation_refs": []
+      },
+      "r095": {
+        "route_id": "r095",
+        "success_text": "The golden passage narrows whenever you imagine owning what waits beyond it.",
+        "revelation_refs": [],
+        "failure_text": "The attempt fails before you can secure the intended route. The consequence leads to A Delver's Memorial Plaque."
+      },
+      "r096": {
+        "route_id": "r096",
+        "success_text": "Invisible instructions appear across the teeth: CLAIMANTS WALK BETWEEN APPETITES.",
+        "revelation_refs": []
+      },
+      "r097": {
+        "route_id": "r097",
+        "success_text": "Serath draws a weapon only after asking whether victory is your entire claim.",
+        "revelation_refs": [],
+        "failure_text": "The struggle turns against you. The consequence carries you towards A Delver's Memorial Plaque."
+      },
+      "r098": {
+        "route_id": "r098",
+        "success_text": "You present authority, knowledge and restraint as one coherent claim. Serath lowers the weapon by the width of a finger, then steps aside.",
+        "revelation_refs": []
+      },
+      "r099": {
+        "route_id": "r099",
+        "success_text": "Serath reads the unpaid debt and accepts that you understand what the custodians have endured. The Warden permits you to face the Crown.",
+        "revelation_refs": []
+      },
+      "r100": {
+        "route_id": "r100",
+        "success_text": "There are no coins in the vault—only a crown waiting for somebody to misunderstand it.",
+        "revelation_refs": []
+      },
+      "r101": {
+        "route_id": "r101",
+        "success_text": "The Crown answers your refusal with affection rather than anger.",
+        "revelation_refs": [],
+        "failure_text": "Fortune fails at the crucial moment. The consequence leads to Cursed Possession."
+      },
+      "r102": {
+        "route_id": "r102",
+        "success_text": "The old rulers fall silent only after your name survives being spoken by all of them.",
+        "revelation_refs": []
+      },
+      "r103": {
+        "route_id": "r103",
+        "success_text": "For a moment the Crown feels like relief.",
+        "revelation_refs": []
+      },
+      "r104": {
+        "route_id": "r104",
+        "success_text": "Pell turns the crossing into a sequence of knots, breaths and instructions. The bridge remains terrifying, but no longer feels arbitrary.",
+        "revelation_refs": []
+      },
+      "r107": {
+        "route_id": "r107",
+        "success_text": "Pell folds the contract and steps back from the Ninth Lock. He will wait above as a living witness, but he will not follow you further.",
+        "revelation_refs": [
+          "pell_waits_above_ninth_lock"
+        ]
+      },
+      "r105": {
+        "route_id": "r105",
+        "success_text": "Ordinary rats scatter around the little crown and refuse to touch it.",
+        "revelation_refs": []
+      },
+      "r106": {
+        "route_id": "r106",
+        "success_text": "The swarm's grammar is gone, but its careful inventory remains.",
+        "revelation_refs": [
+          "rat_tunnels"
+        ]
+      },
+      "r108": {
+        "route_id": "r108",
+        "success_text": "The Registrar's key and Brass Seal override the active writ. Serath accepts the cancellation, though the Warden's expression makes clear that legality and innocence are not the same.",
+        "revelation_refs": []
+      }
+    },
+    "narrative_delivery_plan": {
+      "purpose": "Ensure the player receives the core adventure story even when taking shortcuts, while optional routes deepen rather than repair basic comprehension.",
+      "acts": [
+        {
+          "id": "act_1_barrowgate",
+          "name": "Danger as Local Industry",
+          "guaranteed_nodes": [
+            "barrowgate_square"
+          ],
+          "optional_deepening_nodes": [
+            "bent_nail_inn",
+            "licensing_hall",
+            "forgery_cellar",
+            "torchbearers_yard",
+            "temple_cinders"
+          ],
+          "minimum_takeaway": "A mythic treasure lies below the Rust Wind Hills; Barrowgate licences and profits from attempts to recover it.",
+          "tone_transition": "Wry frontier commerce with unease under the humour."
+        },
+        {
+          "id": "act_2_recognition",
+          "name": "The Paperwork Works",
+          "guaranteed_nodes": [
+            "gate_of_tithes"
+          ],
+          "optional_deepening_nodes": [
+            "chapel_of_ash",
+            "iron_registrar",
+            "gaol_cells"
+          ],
+          "minimum_takeaway": "The ancient dungeon recognises seals, procedures and legal identity. Barrowgate's bureaucracy is connected to the ruins.",
+          "tone_transition": "Satire becomes uncanny institutional horror."
+        },
+        {
+          "id": "act_3_debt_and_memory",
+          "name": "What the Old State Did",
+          "guaranteed_nodes": [
+            "vault_antechamber"
+          ],
+          "optional_deepening_nodes": [
+            "taxmans_ledger_room",
+            "hall_whispered_debts",
+            "ossuary_market",
+            "sunken_archive"
+          ],
+          "minimum_takeaway": "The complex governed debt, identity and succession; its surviving guardians are trapped in unfinished obligations.",
+          "tone_transition": "Dungeon obstacles become consequences of history."
+        },
+        {
+          "id": "act_4_succession",
+          "name": "The Treasure Is an Office",
+          "guaranteed_nodes": [
+            "warden_below",
+            "vault_mythic_treasure",
+            "crown_ember_salt"
+          ],
+          "optional_deepening_nodes": [
+            "guardian_ninth_lock",
+            "sunken_archive"
+          ],
+          "minimum_takeaway": "The final vault is a succession court. Taking the Crown means negotiating power, identity and inherited responsibility.",
+          "tone_transition": "Adventure climax becomes a personal and political choice."
+        }
+      ],
+      "continuity_rules": [
+        "A shortcut may skip detail but must not skip the minimum takeaway of an act.",
+        "Knowledge should be stated when acquired, not merely added to state.",
+        "State variants should make prior choices visible at later checkpoints.",
+        "The final succession reveal must be spoken even if the archive route was bypassed.",
+        "Optional lore should deepen motives and alternatives rather than supply facts required to understand the basic scene."
+      ]
     }
   },
   "runtime_contract": {
@@ -7947,6 +10938,78 @@
         "hook provides flavour without replacing node read_aloud narration."
       ],
       "hook_style": "Hooks may include one physical sensation or one small emotional tell. Avoid stacking multiple atmospheric details."
+    },
+    "content_layers": {
+      "player_facing_narrative": {
+        "fields": [
+          "graph.opening_context.player_facing_introduction",
+          "node.read_aloud",
+          "node.read_aloud_revisit",
+          "route.hook"
+        ],
+        "purpose": "Atmosphere, character, sensory detail and contextual exposition."
+      },
+      "route_choice_metadata": {
+        "fields": [
+          "route.label",
+          "route.stakes"
+        ],
+        "purpose": "Plain description of the available choice and its visible cost, risk or opportunity."
+      },
+      "engine_execution": {
+        "fields": [
+          "route.id",
+          "route.engine_action",
+          "route.costs",
+          "route.conditions",
+          "route.test",
+          "route.effects"
+        ],
+        "purpose": "Neutral deterministic semantics used to execute the selected route."
+      },
+      "semantic_context": {
+        "fields": [
+          "node.narrative",
+          "route.narrative",
+          "semantic_layer"
+        ],
+        "purpose": "Context for narration and interpretation. Hidden truths must not be exposed before discovery."
+      }
+    },
+    "route_execution": {
+      "tool_call_arguments": [
+        "run_id",
+        "route_id",
+        "expected_revision"
+      ],
+      "execution_rule": "Resolve the route by ID and apply its declared conditions, costs, test and effects. Do not derive mechanics from atmospheric prose.",
+      "safety_guidance": [
+        "Keep route.label and route.stakes plain and mechanically descriptive.",
+        "Keep identity, ritual and metaphysical imagery in node narration or semantic context.",
+        "Do not include hidden narrative fields in the deterministic tool-call payload.",
+        "The engine_action field is descriptive metadata; route.id remains authoritative."
+      ]
+    },
+    "narrative_delivery": {
+      "on_node_entry": [
+        "Present the highest-priority matching node.read_aloud_variant, if any.",
+        "Present node.read_aloud.",
+        "Present node.mandatory_exposition when present and not already contained in read_aloud."
+      ],
+      "on_route_success": [
+        "Resolve mechanics using route.id and engine_action.",
+        "Present semantic_layer.route_resolutions[route_id].success_text.",
+        "For each revelation_ref, present semantic_layer.knowledge_revelations[ref].player_text once."
+      ],
+      "on_route_failure": [
+        "Resolve failure effects and destination.",
+        "Present semantic_layer.route_resolutions[route_id].failure_text when available."
+      ],
+      "choice_display": [
+        "Display route.label as the selectable action.",
+        "Optionally display route.stakes beneath it.",
+        "Do not require the player to infer acquired knowledge from flags."
+      ]
     }
   }
 }
