@@ -8,7 +8,7 @@
   },
   "scripts": {
     "start": "func start",
-    "test": "node --test test/**/*.test.js",
+    "test": "node --test test/*.test.js",
     "validate": "node scripts/validate-adventure.js",
     "check:reachability": "node scripts/check-reachability.js",
     "simulate": "node scripts/simulate-playthroughs.js",
