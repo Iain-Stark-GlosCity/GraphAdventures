@@ -10,6 +10,8 @@
     "start": "func start",
     "test": "node --test test/**/*.test.js",
     "validate": "node scripts/validate-adventure.js",
+    "check:reachability": "node scripts/check-reachability.js",
+    "simulate": "node scripts/simulate-playthroughs.js",
     "smoke:entrypoint": "node scripts/verify-functions-entrypoint.js"
   },
   "dependencies": {

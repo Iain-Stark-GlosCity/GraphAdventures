@@ -109,8 +109,19 @@ function createEngine({ adventure, store, now = () => new Date().toISOString(), 
   }
 
   function publicState(state) {
-    const { current_node, consumed_routes, ...rest } = state;
+    const { current_node, consumed_routes, visited_nodes, ...rest } = state;
     return structuredClone(rest);
+  }
+
+  // Records an arrival and returns the resulting visit count for that node,
+  // so the engine — not the caller's memory of the conversation — decides
+  // first-visit vs revisit presentation. Self-healing on visited_nodes so a
+  // run persisted before this field existed doesn't crash the first time
+  // it's walked under the new engine code.
+  function visitNode(state, nodeId) {
+    state.visited_nodes ??= {};
+    state.visited_nodes[nodeId] = (state.visited_nodes[nodeId] ?? 0) + 1;
+    return state.visited_nodes[nodeId];
   }
 
   // Adds name/description/narrative_semantics to add_item effect records —
@@ -130,20 +141,19 @@ function createEngine({ adventure, store, now = () => new Date().toISOString(), 
     });
   }
 
-  function publicNode(node) {
+  function publicNode(node, visitCount) {
     const out = { id: node.id, title: node.title, summary: node.summary };
-    // Explicit read_aloud (hand-authored, only on a handful of nodes) wins
-    // where present; narrative.arrival_text (added in content revision
-    // 0.2.0, present on every node) fills in everywhere else, so a caller
-    // always gets proper arrival prose to read out rather than falling
-    // back to summary.
-    const readAloud = node.read_aloud ?? node.narrative?.arrival_text;
+    const isRevisit = visitCount > 1;
+    // The engine picks exactly one read_aloud rather than handing back
+    // both first-visit and revisit text and leaving the caller to infer
+    // which applies from conversation memory: read_aloud_revisit on a
+    // return trip if the node has one, explicit read_aloud otherwise,
+    // narrative.arrival_text as the last resort for either case.
+    const explicit = isRevisit ? (node.read_aloud_revisit ?? node.read_aloud) : node.read_aloud;
+    const readAloud = explicit ?? node.narrative?.arrival_text;
     if (readAloud) out.read_aloud = readAloud;
-    // read_aloud_revisit exists on every node as of content revision 0.2.1
-    // but nothing here tracks per-run visit history yet, so it's passed
-    // through raw for a caller to use as it sees fit rather than switched
-    // on automatically.
-    if (node.read_aloud_revisit) out.read_aloud_revisit = node.read_aloud_revisit;
+    out.visit_count = visitCount;
+    out.presentation = isRevisit ? "revisit" : "first_visit";
     // The rest of node.narrative (local_history, present_tension,
     // hidden_truth, sensory_details, semantic_refs, narrative_hooks and
     // similar) minus arrival_text, which is already folded into read_aloud
@@ -165,6 +175,7 @@ function createEngine({ adventure, store, now = () => new Date().toISOString(), 
     const runId = crypto.randomBytes(16).toString("base64url");
     const state = initialState(adventure);
     const entryNode = adventure.nodesById.get(adventure.entryNode);
+    const entryVisitCount = visitNode(state, entryNode.id);
     const arrivalEffects = applyKnowledgeGrants(entryNode, state);
     const timestamp = now();
     const doc = {
@@ -190,7 +201,7 @@ function createEngine({ adventure, store, now = () => new Date().toISOString(), 
       adventure_hash: doc.adventure_hash,
       revision: 0,
       status: "active",
-      node: publicNode(entryNode),
+      node: publicNode(entryNode, entryVisitCount),
       state: publicState(state),
       arrival_effects_applied: arrivalEffects,
     };
@@ -220,12 +231,16 @@ function createEngine({ adventure, store, now = () => new Date().toISOString(), 
     assertAdventureMatches(doc);
     const state = doc.state;
     const node = adventure.nodesById.get(state.current_node);
+    // Read-only: reports the visit count already on record rather than
+    // recording one, same "no mutation" guarantee as the rest of get_node.
+    // Defaults to a first visit if an older run predates visited_nodes.
+    const visitCount = state.visited_nodes?.[state.current_node] ?? 1;
     return {
       run_id: doc.run_id,
       revision: doc.revision,
       status: doc.status,
       state: publicState(state),
-      node: publicNode(node),
+      node: publicNode(node, visitCount),
       available_routes: availableRoutesFor(state, doc.status),
     };
   }
@@ -288,6 +303,7 @@ function createEngine({ adventure, store, now = () => new Date().toISOString(), 
       status = "completed";
     }
     state.current_node = destination;
+    const destinationVisitCount = visitNode(state, destination);
     const destinationNode = adventure.nodesById.get(destination);
     const arrivalEffects = applyKnowledgeGrants(destinationNode, state);
     if (adventure.terminalNodes.has(destination)) status = "completed";
@@ -338,7 +354,7 @@ function createEngine({ adventure, store, now = () => new Date().toISOString(), 
     return {
       ...step,
       effects_applied: enrichItemEffects(step.effects_applied),
-      node: publicNode(destinationNode),
+      node: publicNode(destinationNode, destinationVisitCount),
       available_routes: availableRoutesFor(state, status),
     };
   }

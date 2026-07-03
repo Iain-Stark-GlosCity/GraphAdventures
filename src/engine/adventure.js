@@ -159,6 +159,11 @@ function initialState(adventure) {
     knowledge: [...ps.collections.knowledge.initial],
     consumed_routes: [],
     flags: pick(ps.flags),
+    // Engine-tracked bookkeeping, same as consumed_routes: not part of any
+    // adventure-authored ruleset schema, incremented on every arrival at a
+    // node so the engine — not the caller's memory of the conversation —
+    // can decide first-visit vs revisit presentation.
+    visited_nodes: {},
   };
 }
 

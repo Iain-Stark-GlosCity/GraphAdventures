@@ -21,17 +21,24 @@ function resultResponse(id, result) {
 // convention — they are not JSON-RPC protocol errors. Anything else
 // (a genuine bug) is rethrown so the caller logs it and returns a generic
 // message instead of leaking internals.
+//
+// Every result carries both content (a JSON-stringified text block, for
+// clients that only read that) and structuredContent (the same data as a
+// real object) — a client that wants the object doesn't have to parse it
+// back out of a string.
 async function callTool(tools, engine, name, args) {
   const tool = tools.find((t) => t.name === name);
   if (!tool) {
-    return { isError: true, content: [{ type: "text", text: `Unknown tool: ${name}` }] };
+    const payload = { error: `Unknown tool: ${name}` };
+    return { isError: true, content: [{ type: "text", text: JSON.stringify(payload) }], structuredContent: payload };
   }
   try {
     const result = await tool.handler(args ?? {}, engine);
-    return { content: [{ type: "text", text: JSON.stringify(result) }] };
+    return { content: [{ type: "text", text: JSON.stringify(result) }], structuredContent: result };
   } catch (e) {
     if (e instanceof EngineError) {
-      return { content: [{ type: "text", text: JSON.stringify(e.toResponse()) }], isError: true };
+      const payload = e.toResponse();
+      return { content: [{ type: "text", text: JSON.stringify(payload) }], structuredContent: payload, isError: true };
     }
     throw e;
   }
@@ -81,11 +88,13 @@ async function handleMessage(message, { tools, engine, serverInfo, log }) {
         return notification ? null : resultResponse(message.id, result);
       } catch (e) {
         log?.(`tools/call ${name} failed: ${e.stack ?? e}`);
+        const payload = { error: "An internal error occurred." };
         return notification
           ? null
           : resultResponse(message.id, {
               isError: true,
-              content: [{ type: "text", text: "An internal error occurred." }],
+              content: [{ type: "text", text: JSON.stringify(payload) }],
+              structuredContent: payload,
             });
       }
     }

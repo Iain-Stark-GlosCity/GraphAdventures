@@ -48,6 +48,9 @@ jobs:
           npm run build --if-present
           npm run smoke:entrypoint
           npm run test --if-present
+          npm run validate
+          npm run check:reachability
+          npm run simulate
           npm prune --omit=dev
           node scripts/verify-functions-entrypoint.js
 

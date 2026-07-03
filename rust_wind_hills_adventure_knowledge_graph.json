@@ -1,7 +1,7 @@
 {
   "schema": {
     "name": "adventure-knowledge-graph",
-    "version": "0.2.2",
+    "version": "0.2.3",
     "description": "A stateful, directed knowledge graph for a classic gamebook-style dungeon adventure. The graph separates executable traversal rules from a narrative-semantic layer containing world truths, rumours, characters, factions, motifs, dramatic threads, knowledge definitions and node-level story affordances."
   },
   "graph": {
@@ -35,16 +35,17 @@
       "The graph contains loops, shortcuts, optional encounters, delayed consequences and several endings."
     ],
     "content_revision": {
-      "version": "0.2.2",
-      "summary": "Adds concise player-facing stakes and flavour hooks to every route while preserving the short mechanical labels used for choice selection.",
-      "compatibility": "Additive route-content update. Existing labels, nodes, mechanics, conditions and effects are unchanged.",
+      "version": "0.2.3",
+      "summary": "Refines player-facing narration with restrained sensory detail and subtle emotional cues. No nodes, routes, mechanics, conditions or effects have changed.",
+      "compatibility": "Content-only revision. Existing runtime fields remain stable: node.read_aloud, node.read_aloud_revisit, route.label, route.stakes and route.hook.",
       "node_count_changed": false,
       "route_count_changed": false,
       "fixes": [
-        "Adds route.stakes to all 108 routes.",
-        "Adds route.hook to all 108 routes.",
-        "Keeps route.label short and mechanically stable.",
-        "Defines a runtime route-presentation contract."
+        "Rewrites all 47 read-aloud passages to integrate sound, smell, touch, taste and sight across the adventure.",
+        "Adds a restrained emotional undertone and sensory focus to every node.",
+        "Adds emotional tells to named characters.",
+        "Refines selected route hooks so human reactions and uncertainty register without becoming melodramatic.",
+        "Adds sensory and emotional style guidance for semantic narration."
       ]
     },
     "narrative_premise": "Barrowgate treats the dungeon beneath the Rust Wind Hills as a regulated natural resource. The joke is that the bureaucracy works: the old dungeon recognises permits, seals, debts and claims of office because it was never merely a tomb. It was the Ninth Treasury of a fallen kingdom, built to bind a crown that turns promises into law.",
@@ -821,7 +822,7 @@
       "region": "town",
       "title": "Barrowgate",
       "summary": "A hard little town built around the legal, illegal and memorial economy of dungeon delving.",
-      "read_aloud": "Rust-red dust moves along the street like smoke. Above the gatehouse hangs a board: DELVERS MUST BE LICENSED. NO REFUNDS. A brass gong sounds whenever another expedition leaves. Nobody rings it for those who return quietly.",
+      "read_aloud": "Rust-red dust moves along the street like smoke, carrying the faint iron smell of the hills. Above the gatehouse hangs a board: DELVERS MUST BE LICENSED. NO REFUNDS. A brass gong sounds for each departing expedition; the people nearby pause for it, though none look up.",
       "tags": [
         "start",
         "safe",
@@ -846,9 +847,15 @@
         "narrative_hooks": [
           "Show families reading departure boards.",
           "Let successful delvers be treated like investors and omens."
+        ],
+        "emotional_undertone": "Public confidence stretched over private unease.",
+        "sensory_focus": [
+          "iron smell on the wind",
+          "grit underfoot",
+          "a gong note hanging in the square"
         ]
       },
-      "read_aloud_revisit": "A hard little town built around the legal, illegal and memorial economy of dungeon delving."
+      "read_aloud_revisit": "The square is still busy. Red grit rasps underfoot, and the gong's last note seems to linger between the buildings."
     },
     {
       "id": "bent_nail_inn",
@@ -880,10 +887,16 @@
         "narrative_hooks": [
           "Rumours should contradict in detail but converge in motif.",
           "A survivor refuses to say the Warden's name."
+        ],
+        "emotional_undertone": "Curiosity tempered by the habit of watching strangers fail.",
+        "sensory_focus": [
+          "sour ale and hearth smoke",
+          "voices lowering",
+          "knife-cut maps beneath the hand"
         ]
       },
-      "read_aloud": "Every table has been carved with a map. No two maps agree, including those carved by the same hand. You notice sour ale and smoke trapped beneath low beams.",
-      "read_aloud_revisit": "The principal market for rumours, boastful survivors and people selling maps they definitely drew themselves."
+      "read_aloud": "Warm, sour air rolls from the Bent Nail Inn. Low voices gather beneath the smoke-black beams, then thin for a moment as you enter. Every table bears a carved map, and no two agree.",
+      "read_aloud_revisit": "The inn's warmth closes around you again; someone stops speaking just before you catch the end of a story."
     },
     {
       "id": "market_last_chances",
@@ -911,10 +924,16 @@
         "narrative_hooks": [
           "Describe one item with a former owner's initials.",
           "Let bargains feel practical rather than magical."
+        ],
+        "emotional_undertone": "Commercial briskness with grief kept carefully out of sight.",
+        "sensory_focus": [
+          "lamp oil",
+          "worn leather",
+          "metal and buckles clicking"
         ]
       },
-      "read_aloud": "Merchants call out guarantees that become narrower the closer anyone reads the chalkboard. You notice lamp oil and old leather.",
-      "read_aloud_revisit": "A row of stalls selling rope, spikes, charms, questionable tonics and second-hand armour with suspicious dents."
+      "read_aloud": "Oil, old leather and sharp medicinal vinegar mingle between the stalls. Merchants call out cheerful guarantees, but several keep glancing at the road to the hills as though expecting their stock to return without its owner.",
+      "read_aloud_revisit": "Buckles click, oil lamps hiss and a merchant quietly turns a dented helm so its worst damage faces the wall."
     },
     {
       "id": "torchbearers_yard",
@@ -942,10 +961,16 @@
         "narrative_hooks": [
           "Pell asks what the player will do when someone weaker says stop."
         ],
-        "voice_or_prompt": "Pell: 'I carry light. I don't carry decisions.'"
+        "voice_or_prompt": "Pell: 'I carry light. I don't carry decisions.'",
+        "emotional_undertone": "Caution disguised as professional appraisal.",
+        "sensory_focus": [
+          "tar and lamp smoke",
+          "cold fingers",
+          "quiet scrutiny"
+        ]
       },
-      "read_aloud": "The waiting workers study delvers the way sailors study weather. You notice tarred rope and lamp smoke.",
-      "read_aloud_revisit": "Labourers wait beneath a sign reading: HALF PAY IN ADVANCE. FULL PAY IF WE RETURN."
+      "read_aloud": "The yard smells of tarred rope, lamp smoke and damp wool. The waiting torchbearers look you over in silence. One man rubs warmth into his fingers before offering his contract.",
+      "read_aloud_revisit": "Lamp flames tremble in the draught. The workers' attention settles on you again, practical and unsentimental."
     },
     {
       "id": "temple_cinders",
@@ -973,10 +998,16 @@
         "narrative_hooks": [
           "A priest warns against making promises underground.",
           "The ash shifts when the Crown is named."
+        ],
+        "emotional_undertone": "Kindness shaped by long familiarity with fear.",
+        "sensory_focus": [
+          "warm ash",
+          "beeswax and rosemary",
+          "a steady quiet voice"
         ]
       },
-      "read_aloud": "A priest asks for the delver's true name, then writes it in ash where no ledger can keep it. You notice warm ash and beeswax.",
-      "read_aloud_revisit": "A narrow shrine where delvers may purchase absolution before creating the need for it."
+      "read_aloud": "The temple is warmer than the street, scented with beeswax and singed rosemary. A priest waits beside a shallow bowl of ash, their voice gentle but their hands very steady.",
+      "read_aloud_revisit": "Warm ash and beeswax soften the air. The priest remembers you and does not ask why you have returned."
     },
     {
       "id": "licensing_hall",
@@ -1005,10 +1036,16 @@
           "Forms list absurd hazards beside disturbingly specific ones.",
           "A seal briefly warms in the applicant's hand."
         ],
-        "voice_or_prompt": "Ollis: 'The dungeon is not obliged to recognise you. This document makes the attempt.'"
+        "voice_or_prompt": "Ollis: 'The dungeon is not obliged to recognise you. This document makes the attempt.'",
+        "emotional_undertone": "Weariness, responsibility and a trace of doubt beneath practiced formality.",
+        "sensory_focus": [
+          "hot wax",
+          "paper dust",
+          "pens scratching and stamps falling"
+        ]
       },
-      "read_aloud": "Applicants queue beneath a mural of a heroic delver shaking hands with a clerk. The delver's painted face has been retouched many times. You notice hot sealing wax and dusty ledgers.",
-      "read_aloud_revisit": "A civic hall whose clerks treat dungeon access as a revenue stream with unfortunate mortality statistics."
+      "read_aloud": "Hot sealing wax and dry paper give the hall its close, dusty smell. Pens scratch behind the counters. A clerk smooths the same corner of your form twice before meeting your eye.",
+      "read_aloud_revisit": "The pens continue scratching. Somewhere behind the counter, a stamp falls with the weight of a small verdict."
     },
     {
       "id": "forgery_cellar",
@@ -1037,10 +1074,16 @@
           "Maera asks whether the player wants access or recognition.",
           "One erased surname matches a modern Barrowgate family."
         ],
-        "voice_or_prompt": "Maera: 'Official does not mean true. Counterfeit does not mean false.'"
+        "voice_or_prompt": "Maera: 'Official does not mean true. Counterfeit does not mean false.'",
+        "emotional_undertone": "Guarded interest sharpened by old anger.",
+        "sensory_focus": [
+          "damp brick",
+          "metallic ink",
+          "a measured assessing look"
+        ]
       },
-      "read_aloud": "Names cover the walls in red ink: people absent from every official census but remembered here. You notice iron-gall ink and damp brick.",
-      "read_aloud_revisit": "A concealed workshop below a cobbler's shop. Its proprietor forges permits but refuses responsibility for iron registrars."
+      "read_aloud": "The cellar air is damp and metallic with iron-gall ink. Red names cover the walls. Maera studies you over a cooling seal, one eyebrow lifted—not amused, exactly, but interested.",
+      "read_aloud_revisit": "The ink smell catches at the back of your throat. Maera's gaze flicks first to your hands, then to your face."
     },
     {
       "id": "road_rust_wind_hills",
@@ -1066,10 +1109,16 @@
         ],
         "narrative_hooks": [
           "The final milestone reads SUCCESSION."
+        ],
+        "emotional_undertone": "The first clean edge of commitment.",
+        "sensory_focus": [
+          "iron-smelling wind",
+          "dry lips",
+          "distance opening behind"
         ]
       },
-      "read_aloud": "The maintained road ends at a sign giving five legal warnings and no useful directions. You notice wind-bent grass and wagon ruts.",
-      "read_aloud_revisit": "The last maintained road before the land becomes red stone, thorn scrub and old warnings."
+      "read_aloud": "The last maintained stones give way to red earth. Wind moves down from the hills with an iron smell, cool enough to dry the lips. Behind you, Barrowgate's roofs look suddenly small.",
+      "read_aloud_revisit": "The wind still tastes faintly of metal. The town remains visible, but no longer feels near."
     },
     {
       "id": "wind_carved_cairns",
@@ -1096,10 +1145,16 @@
         "narrative_hooks": [
           "A careless promise makes one cairn answer.",
           "A treasury sigil has been deliberately chipped away."
+        ],
+        "emotional_undertone": "Wonder made uneasy by the sense of being answered.",
+        "sensory_focus": [
+          "stone humming",
+          "crystal grit clicking",
+          "a coppery taste"
         ]
       },
-      "read_aloud": "The cairns hum at different pitches as the wind moves through them, like a choir trying to remember one chord. You notice singing stone and iron wind.",
-      "read_aloud_revisit": "Ancient cairns sing in the gale. One stone bears a half-erased treasury sigil."
+      "read_aloud": "Wind threads through the cairns and draws a low, uneven note from the stones. Red crystal grit clicks against your boots, and the air tastes faintly of old coins.",
+      "read_aloud_revisit": "The cairns hum as before, though one note now seems to follow your breathing."
     },
     {
       "id": "goblin_toll_path",
@@ -1128,10 +1183,16 @@
           "A goblin cites a precedent invented moments ago.",
           "The receipt may be more useful than expected."
         ],
-        "voice_or_prompt": "Toll clerk: 'Violence is free. Crossing is two gold.'"
+        "voice_or_prompt": "Toll clerk: 'Violence is free. Crossing is two gold.'",
+        "emotional_undertone": "Pride and insecurity wrapped in officious confidence.",
+        "sensory_focus": [
+          "smoke and onion stew",
+          "barrier knocking",
+          "a goblin suppressing satisfaction"
+        ]
       },
-      "read_aloud": "A striped barrier blocks the path. A goblin in a clerk's visor asks whether the traveller requires a receipt. You notice bell metal and onion stew.",
-      "read_aloud_revisit": "A rope barrier, a dented bell and six goblins who have independently invented infrastructure finance."
+      "read_aloud": "A painted barrier knocks gently in the wind. Behind it, onion stew simmers over a smoky fire. The goblin clerk straightens his visor when he sees you and tries not to look pleased at having a customer.",
+      "read_aloud_revisit": "The bell gives a thin clang. The clerk reaches for his stamp before deciding whether you count as new business."
     },
     {
       "id": "collapsed_watchtower",
@@ -1157,10 +1218,16 @@
         ],
         "narrative_hooks": [
           "From here the three entrances look like three moral arguments."
+        ],
+        "emotional_undertone": "Clarity accompanied by the loneliness of exposure.",
+        "sensory_focus": [
+          "sun-warm and damp stone",
+          "wind in broken masonry",
+          "dust in the eyes"
         ]
       },
-      "read_aloud": "The tower has fallen outward, as though something inside expanded after the roof collapsed. You notice sun-warmed stone and bird droppings.",
-      "read_aloud_revisit": "A fallen imperial watchtower overlooking all three known dungeon approaches."
+      "read_aloud": "The tower stones are warm where the sun reaches them and slick with old damp below. Wind moans through the split masonry; from here, the three entrances lie exposed across the red hills.",
+      "read_aloud_revisit": "The broken tower gives the wind a hollow voice. Dust stings your eyes as you look down over the approaches."
     },
     {
       "id": "old_quarry_entrance",
@@ -1186,10 +1253,16 @@
         ],
         "narrative_hooks": [
           "A notice lists opening hours for a dungeon that never closes."
+        ],
+        "emotional_undertone": "Official reassurance failing at the threshold.",
+        "sensory_focus": [
+          "wet iron smell",
+          "clammy handrail",
+          "cold air from below"
         ]
       },
-      "read_aloud": "Fresh municipal paint surrounds an opening older than the town by centuries. You notice new timber supports and old chisel marks.",
-      "read_aloud_revisit": "A broad, obvious descent used by licensed parties, tax inspectors and ambushers."
+      "read_aloud": "Fresh municipal paint frames stone cut centuries ago. Cold air breathes from the opening, smelling of wet iron. The wooden handrail is clammy beneath your palm.",
+      "read_aloud_revisit": "The entrance exhales the same wet chill. The handrail has not warmed since you last touched it."
     },
     {
       "id": "smugglers_sinkhole",
@@ -1215,10 +1288,16 @@
         ],
         "narrative_hooks": [
           "The hidden road carries traces of both rescue and contraband."
+        ],
+        "emotional_undertone": "Illicit relief mixed with the knowledge that others fled this way.",
+        "sensory_focus": [
+          "crushed thyme",
+          "earth and rope",
+          "a polished cold handhold"
         ]
       },
-      "read_aloud": "Thorn mats conceal a shaft whose handholds have been polished by generations of illicit use. You notice crushed thyme and loose soil.",
-      "read_aloud_revisit": "A cramped shaft concealed beneath thorn mats and a carved sign reading NOTHING HERE."
+      "read_aloud": "Crushed thyme releases under your boots as the thorn mat is pulled aside. The shaft below smells of soil and old rope; its first handhold is cold, smooth and worn by many hurried palms.",
+      "read_aloud_revisit": "The thyme has faded, but the shaft still breathes cool earth against your face."
     },
     {
       "id": "dust_saint_shrine",
@@ -1245,10 +1324,16 @@
         ],
         "narrative_hooks": [
           "The shrine rewards understanding the symbol, not devotion alone."
+        ],
+        "emotional_undertone": "Tenderness preserved beneath neglect.",
+        "sensory_focus": [
+          "sun-warm clay",
+          "dry flowers whispering",
+          "fine dust on fingertips"
         ]
       },
-      "read_aloud": "The saint's face has one open eye and one shallow cavity large enough for a coin. You notice sun-baked clay and old flowers.",
-      "read_aloud_revisit": "A weathered roadside shrine to the patron of hidden roads, lost names and inconvenient truths."
+      "read_aloud": "The clay shrine is warm from the sun. Dried flowers whisper against its base, and fine dust has gathered in the saint's blind eye. The place feels neglected rather than abandoned.",
+      "read_aloud_revisit": "Dust shifts softly around the shrine. The hollow eye seems darker than the stone around it."
     },
     {
       "id": "main_stair",
@@ -1274,10 +1359,16 @@
         ],
         "narrative_hooks": [
           "Counted steps create the sense of entering a procedure."
+        ],
+        "emotional_undertone": "A measured descent into something that has already classified you.",
+        "sensory_focus": [
+          "delayed echoes",
+          "wet-cold stone",
+          "boot catching in carved words"
         ]
       },
-      "read_aloud": "Each seventh step bears a fee category: petition, appeal, inheritance, confession, succession. You notice stone dust and measured echoes.",
-      "read_aloud_revisit": "A monumental stair descending to the Gate of Tithes. Every seventh step is engraved with a fee."
+      "read_aloud": "Your steps return from below a heartbeat late. The stone rail is wet-cold to the touch, and each seventh stair bears a fee cut deep enough to catch your boot.",
+      "read_aloud_revisit": "The stair repeats your footfall down into darkness. Moisture beads on the rail like sweat."
     },
     {
       "id": "hidden_shaft",
@@ -1305,10 +1396,16 @@
         "narrative_hooks": [
           "Read fragments of names during descent.",
           "One name also appears in the Red Quill cellar."
+        ],
+        "emotional_undertone": "Claustrophobia softened by evidence that others survived the same passage.",
+        "sensory_focus": [
+          "rope rasp",
+          "close stale air",
+          "small claws ticking below"
         ]
       },
-      "read_aloud": "The shaft avoids every ceremonial chamber and opens behind the places officials once stood. You notice rope polish and nail scratches.",
-      "read_aloud_revisit": "A narrow vertical route descending behind the upper garrison rooms."
+      "read_aloud": "The shaft presses close around your shoulders. Rope fibres rasp against your palms, and somewhere below, claws tick briefly over stone before falling silent.",
+      "read_aloud_revisit": "The narrow walls hold your breath close. Old scratches pass beneath your fingers in the dark."
     },
     {
       "id": "flooded_tunnel",
@@ -1334,10 +1431,16 @@
         ],
         "narrative_hooks": [
           "Let the water whisper a name the character has not given."
+        ],
+        "emotional_undertone": "Physical reluctance overridden by necessity.",
+        "sensory_focus": [
+          "biting cold water",
+          "stone and metal smell",
+          "electric taste"
         ]
       },
-      "read_aloud": "Black water presses against a low ceiling marked with archival shelf numbers. You notice mineral cold and wet stone.",
-      "read_aloud_revisit": "A submerged service tunnel carrying black water into the dungeon cisterns."
+      "read_aloud": "Black water closes over your boots with a cold that bites straight through leather. It smells of stone and metal, and a faint electric taste gathers on your tongue.",
+      "read_aloud_revisit": "The water finds the same seams in your clothing. Blue light trembles once beneath the surface."
     },
     {
       "id": "gate_of_tithes",
@@ -1365,10 +1468,16 @@
         "narrative_hooks": [
           "The gate reacts differently to licence and counterfeit.",
           "A voice asks what office the delver claims."
+        ],
+        "emotional_undertone": "Impersonal judgement felt as intimate threat.",
+        "sensory_focus": [
+          "wet iron",
+          "slow clockwork breathing",
+          "cold moisture on the hand"
         ]
       },
-      "read_aloud": "Slots in the iron gate wait for coin, seal or blood. The order is not decorative. You notice iron filings and old coins.",
-      "read_aloud_revisit": "An iron gate guarded by mechanisms that recognise seals, coins and blood in that order."
+      "read_aloud": "The iron gate stands beaded with cold moisture. Three slots wait at chest height: coin, seal and blood. Behind the bars, clockwork turns with the slow sound of something breathing in sleep.",
+      "read_aloud_revisit": "The gate's iron is slick beneath your fingers. The hidden mechanism continues its patient breathing."
     },
     {
       "id": "hall_broken_spears",
@@ -1394,10 +1503,16 @@
         ],
         "narrative_hooks": [
           "A spear carries a family name preserved by the Red Quill."
+        ],
+        "emotional_undertone": "Military ruin made unnervingly orderly.",
+        "sensory_focus": [
+          "tapping spear shafts",
+          "long layered echoes",
+          "dry wood and rust"
         ]
       },
-      "read_aloud": "Hundreds of snapped spears stand upright in the floor, each bearing a tiny stamped number. You notice dry wood and rust.",
-      "read_aloud_revisit": "A barracks hall where snapped weapons have been planted upright like a dead forest."
+      "read_aloud": "Broken spearheads rise from the floor in ordered rows. A draught moves among them, making the shafts tap together down the long hall. The sound travels farther than it should.",
+      "read_aloud_revisit": "Wood taps softly against wood, the echoes passing from row to row as though a message is being relayed."
     },
     {
       "id": "rat_king_warren",
@@ -1426,10 +1541,16 @@
         "narrative_hooks": [
           "Use formal quartermaster language amid animal movement.",
           "After death, ordinary rats avoid the little crown."
+        ],
+        "emotional_undertone": "Possessiveness born from terror of dissolution.",
+        "sensory_focus": [
+          "grain dust",
+          "animal warmth",
+          "keys chiming in many small movements"
         ]
       },
-      "read_aloud": "Keys hang from roots and ribs. The swarm speaks before any single rat becomes visible. You notice rat musk and brass.",
-      "read_aloud_revisit": "A nest built around the old quartermaster's throne. The Rat-King wears twelve keys and none fit normal locks."
+      "read_aloud": "The air is warm with grain dust and animal musk. Keys chime in the dark, first singly, then in a hundred small movements. When the voice speaks, its formality cannot quite hide its fear of being forgotten.",
+      "read_aloud_revisit": "Brass keys stir among the roots. The warren is quieter now, but not empty."
     },
     {
       "id": "chained_well",
@@ -1455,10 +1576,16 @@
         ],
         "narrative_hooks": [
           "The mechanism thanks the player by an obsolete title."
+        ],
+        "emotional_undertone": "Absurdity edged by loneliness.",
+        "sensory_focus": [
+          "numbing chain links",
+          "paper-dry air",
+          "a hopeful voice from depth"
         ]
       },
-      "read_aloud": "Chains descend into a dry well. From below, a patient voice asks for a form that no longer exists. You notice cold chain links and paper-dry air.",
-      "read_aloud_revisit": "A dry well sealed by chains bearing treasury seals. Something below repeatedly asks for the correct form."
+      "read_aloud": "The chains are cold enough to numb your fingers. They vanish into a dry shaft that smells of paper and deep stone. A voice rises from below, patient and faintly hopeful, asking for the correct form.",
+      "read_aloud_revisit": "The well returns your breathing in a thin echo. The voice below waits without complaint."
     },
     {
       "id": "mapmakers_bones",
@@ -1485,10 +1612,16 @@
         ],
         "narrative_hooks": [
           "The shield map should change meaning as the player learns more."
+        ],
+        "emotional_undertone": "Frustrated determination lingering after death.",
+        "sensory_focus": [
+          "bone dust",
+          "scratched metal under a nail",
+          "cold shield surface"
         ]
       },
-      "read_aloud": "A skeleton hugs a shield whose inner surface carries a map corrected until metal shows through. You notice bone dust and scratched metal.",
-      "read_aloud_revisit": "A dead surveyor lies clutching a map drawn on the inside of his own shield."
+      "read_aloud": "Bone dust shifts beneath your knee as you turn the dead surveyor's shield. The scratched lines catch your fingernail, crossing and recrossing where no fixed corridor should.",
+      "read_aloud_revisit": "The metal map feels colder than the room. Some lines seem deeper than you remember."
     },
     {
       "id": "chapel_of_ash",
@@ -1515,10 +1648,16 @@
         ],
         "narrative_hooks": [
           "A vow spoken here may echo later at the Crown."
+        ],
+        "emotional_undertone": "Remorse preserved as ritual.",
+        "sensory_focus": [
+          "soft ash",
+          "whispered vows",
+          "faded incense"
         ]
       },
-      "read_aloud": "Old vows repeat underfoot whenever ash is disturbed. You notice cold ash and cracked bells.",
-      "read_aloud_revisit": "A roofless chapel where old vows remain audible as whispers beneath the ash."
+      "read_aloud": "Ash lies soft across the floor and gives beneath each step. Disturbed vows whisper from underfoot, too quiet to follow and too human to dismiss. The air holds a trace of old incense.",
+      "read_aloud_revisit": "Your footprints remain in the ash. Somewhere beneath them, a voice resumes a sentence."
     },
     {
       "id": "iron_registrar",
@@ -1547,10 +1686,16 @@
         "narrative_hooks": [
           "Let correct paperwork expose moral wrongness rather than solve it cleanly."
         ],
-        "voice_or_prompt": "Halvek: 'Your document is legible. Your purpose remains improperly declared.'"
+        "voice_or_prompt": "Halvek: 'Your document is legible. Your purpose remains improperly declared.'",
+        "emotional_undertone": "Guilt compressed into procedural control.",
+        "sensory_focus": [
+          "hot iron",
+          "dry ink",
+          "paper aligning in a whisper"
+        ]
       },
-      "read_aloud": "The armoured figure raises one hand. Every loose paper in the room aligns itself. You notice hot iron and dry ink.",
-      "read_aloud_revisit": "An armoured undead official who has continued inspecting permits for three hundred and eleven years."
+      "read_aloud": "The armoured figure raises one hand, and every loose page in the room settles into line. Hot iron and dry ink sharpen the air. Behind the visor, the pause before it speaks feels almost like dread.",
+      "read_aloud_revisit": "Paper edges align with a dry whisper. The Registrar's gauntlet remains raised, very still."
     },
     {
       "id": "gaol_cells",
@@ -1576,10 +1721,16 @@
         ],
         "narrative_hooks": [
           "An appeal form asks for a registry number the prisoner was denied."
+        ],
+        "emotional_undertone": "Helplessness prolonged by courteous process.",
+        "sensory_focus": [
+          "wet-cold handle",
+          "rust on the palm",
+          "pages turning through a long echo"
         ]
       },
-      "read_aloud": "Names, appeals and release dates cover the walls. Many release dates are centuries in the future. You notice cold straw and rust.",
-      "read_aloud_revisit": "Cells for trespassers, fraudulent applicants and parties unable to produce itemised expenses."
+      "read_aloud": "The cell door handle is wet-cold and leaves rust on your palm. Somewhere down the corridor, a page turns, then another; each sound returns in a longer, emptier echo.",
+      "read_aloud_revisit": "Rust stains your hand again. The corridor gives back every small movement as though someone else is making it."
     },
     {
       "id": "fungal_cloister",
@@ -1606,10 +1757,16 @@
         "narrative_hooks": [
           "Use memories belonging to erased citizens.",
           "One fungal prayer names Ilya as a traitor and saviour."
+        ],
+        "emotional_undertone": "Familiarity becoming quietly invasive.",
+        "sensory_focus": [
+          "sweet rot",
+          "soft nearby whispers",
+          "spore dust on cloth"
         ]
       },
-      "read_aloud": "Pale caps bow along the cloister as if continuing a service after the monks are gone. You notice sweet rot and wet stone.",
-      "read_aloud_revisit": "Monastic arches choked with pale fungus that mimics whispered prayers."
+      "read_aloud": "The cloister smells sweet at first, then faintly rotten. Pale caps bow along the arches, and their soft whispering carries the intimacy of people speaking in the next room.",
+      "read_aloud_revisit": "White dust settles on your sleeves. The whispered prayers now contain a phrase you almost remember."
     },
     {
       "id": "mirror_maze",
@@ -1637,10 +1794,16 @@
         "narrative_hooks": [
           "Reflections wear different endings.",
           "One reflection already wears the Crown."
+        ],
+        "emotional_undertone": "Self-doubt made physically present.",
+        "sensory_focus": [
+          "cold glass",
+          "breath fog",
+          "footsteps arriving early"
         ]
       },
-      "read_aloud": "Reflections continue walking when the delver stops. You notice cold silver and breath fog.",
-      "read_aloud_revisit": "Silvered passages reflect possible choices, including several the delver has not yet made."
+      "read_aloud": "Cold silver walls return your face with tiny errors. Your breath fogs the glass, but one reflection's does not. Footsteps sound ahead before you move.",
+      "read_aloud_revisit": "The mirrors are cold enough to ache through your fingertips. One reflection looks relieved to see you."
     },
     {
       "id": "cistern_of_eels",
@@ -1668,10 +1831,16 @@
         "narrative_hooks": [
           "A lie causes the water to spark.",
           "A true admission calms one eel."
+        ],
+        "emotional_undertone": "Held breath and involuntary anticipation.",
+        "sensory_focus": [
+          "wet metal",
+          "sucking water",
+          "ozone and an acrid taste"
         ]
       },
-      "read_aloud": "Black water circles a central platform while parchment scraps drift without becoming wet. You notice ozone and black water.",
-      "read_aloud_revisit": "A circular reservoir alive with blind electric eels and drifting scraps of official parchment."
+      "read_aloud": "The cistern smells of wet metal and old stone. Black water circles the platform with a slow sucking sound. Blue light snaps beneath the surface, leaving an acrid taste at the back of your mouth.",
+      "read_aloud_revisit": "The water laps against the stone. Ozone prickles in your nose before the next blue flash."
     },
     {
       "id": "taxmans_ledger_room",
@@ -1699,10 +1868,16 @@
         "narrative_hooks": [
           "Reveal familiar Barrowgate surnames among erased debtors.",
           "A current licence fee mirrors an ancient tithe."
+        ],
+        "emotional_undertone": "The unease of discovering that nothing has been forgotten.",
+        "sensory_focus": [
+          "dry leather",
+          "old mould",
+          "pages turning like distant rain"
         ]
       },
-      "read_aloud": "Shelves rise into darkness, packed with accounts that continue adding interest in red ink. You notice old leather and iron-gall ink.",
-      "read_aloud_revisit": "Stone shelves hold accounts of tribute, fines, exemptions and debts inherited by the dead."
+      "read_aloud": "Dry leather and old mould thicken the air. Pages turn by themselves in the dark above, a soft, continuous sound like rain heard through a roof.",
+      "read_aloud_revisit": "The page-turning never stops. Red ink glistens wetly on entries centuries old."
     },
     {
       "id": "bridge_of_sighs",
@@ -1730,10 +1905,16 @@
         "narrative_hooks": [
           "Let Pell name knots and risks without heroics.",
           "The bridge repeats a future line in the player's own voice."
+        ],
+        "emotional_undertone": "Fear made manageable only through attention and trust.",
+        "sensory_focus": [
+          "damp rope",
+          "stone trembling",
+          "voices rising from depth"
         ]
       },
-      "read_aloud": "The wind speaks in the voices of people who turned back, fell or were pushed. You notice vertical wind and cold rope.",
-      "read_aloud_revisit": "A narrow bridge over an immeasurable drop. The wind repeats the final words of those who fell."
+      "read_aloud": "Wind catches the bridge and sends a tremor through the stone beneath your boots. Voices rise from the drop, some frightened, some resigned. The rope is rough and damp in your hand.",
+      "read_aloud_revisit": "The bridge shivers before you step onto it. One voice below sounds relieved that you came back."
     },
     {
       "id": "beast_pits",
@@ -1761,10 +1942,16 @@
         "narrative_hooks": [
           "The beast may hesitate before an authority seal.",
           "Crowd noise survives without a crowd."
+        ],
+        "emotional_undertone": "Mutual suspicion between captive and intruder.",
+        "sensory_focus": [
+          "animal heat",
+          "old blood",
+          "chains dragging then stopping"
         ]
       },
-      "read_aloud": "The largest gate is dented outward. Something inside has learned that applause means feeding time. You notice old blood and animal heat.",
-      "read_aloud_revisit": "An arena of rusted gates and old bones. One gate remains closed from the inside."
+      "read_aloud": "Old blood and animal heat hang over the sand. Chains drag somewhere behind the largest gate. When the unseen creature hears you, the dragging stops; the silence that follows is wary, not empty.",
+      "read_aloud_revisit": "The pit smells of rust and hot fur. Something beyond the gate listens without moving."
     },
     {
       "id": "black_wind_forge",
@@ -1791,10 +1978,16 @@
         ],
         "narrative_hooks": [
           "The candle reveals words on objects that never looked written upon."
+        ],
+        "emotional_undertone": "Dormant power waiting with unnerving patience.",
+        "sensory_focus": [
+          "cold wind from the anvil",
+          "soot on fingers",
+          "burnt-salt taste"
         ]
       },
-      "read_aloud": "Cold wind rises from the anvil, bending every dead flame towards the deep. You notice cold iron and stone soot.",
-      "read_aloud_revisit": "An extinguished forge where cold wind blows from cracks in the anvil."
+      "read_aloud": "The forge is cold, yet wind rises from the anvil and bends every flame towards the floor. Stone soot powders your fingers. The air tastes faintly of burnt salt.",
+      "read_aloud_revisit": "The black wind still pulls downward. Soot gathers in the lines of your hand."
     },
     {
       "id": "vault_antechamber",
@@ -1821,10 +2014,16 @@
         ],
         "narrative_hooks": [
           "Let different inventory items illuminate different doors."
+        ],
+        "emotional_undertone": "The pressure of having to define oneself precisely.",
+        "sensory_focus": [
+          "nine altered echoes",
+          "warm metal against the body",
+          "bronze dust"
         ]
       },
-      "read_aloud": "Nine walls face nine doors. Each door is labelled with a different answer to the question: WHO MAY ENTER? You notice bronze dust and sub-audible vibration.",
-      "read_aloud_revisit": "A nine-sided chamber with doors that open only for recognised authority, recognised debt or overwhelming force."
+      "read_aloud": "Nine doors face inward beneath nine different claims of authority. Your words return from each wall in a different tone. The Brass Seal, if you carry it, warms against your body.",
+      "read_aloud_revisit": "The chamber answers your breathing nine times. One door now seems less closed than the others."
     },
     {
       "id": "hall_whispered_debts",
@@ -1851,10 +2050,16 @@
         "narrative_hooks": [
           "Mix personal, inherited and institutional debts.",
           "A sincere confession should change the emotional temperature."
+        ],
+        "emotional_undertone": "Shame and defensiveness before exposure.",
+        "sensory_focus": [
+          "salt smell",
+          "familiar voices near the ear",
+          "a dry mouth"
         ]
       },
-      "read_aloud": "Voices speak every promise the delver hoped nobody remembered. You notice breath at the ear and dry salt.",
-      "read_aloud_revisit": "Every unpaid promise ever made in the dungeon is whispered here by a voice that knows the listener's name."
+      "read_aloud": "The darkness smells faintly of salt and breath. Promises begin at the edge of hearing, then move closer in voices you know. Your mouth goes dry before any of them speaks your name.",
+      "read_aloud_revisit": "The whispers recognise your tread. One promise waits until the others have finished."
     },
     {
       "id": "ossuary_market",
@@ -1882,10 +2087,16 @@
         "narrative_hooks": [
           "A merchant recognises a memory the player has not yet lost.",
           "Coins are accepted only as curiosities."
+        ],
+        "emotional_undertone": "Courtesy made unsettling by detachment from ordinary life.",
+        "sensory_focus": [
+          "bone chimes",
+          "cold perfume",
+          "a smile recalled rather than felt"
         ]
       },
-      "read_aloud": "Stalls are built from ribs and lacquered boxes. Prices are spoken in birthdays, names and remembered faces. You notice grave spice and bone chimes.",
-      "read_aloud_revisit": "Dead merchants trade memories, names, years of life and occasionally useful equipment."
+      "read_aloud": "Bone chimes stir above narrow stalls. The air carries cold perfume and grave spice. A merchant smiles with polite interest, though the face seems to be remembering how.",
+      "read_aloud_revisit": "The chimes sound softer this time. A stallholder watches you with the patient concern of someone pricing a fragile thing."
     },
     {
       "id": "guardian_ninth_lock",
@@ -1914,10 +2125,16 @@
         "narrative_hooks": [
           "Pell's departure should make the threshold feel human before it feels mythic."
         ],
-        "voice_or_prompt": "Varn: 'State the debt. State the completion. State who will witness release.'"
+        "voice_or_prompt": "Varn: 'State the debt. State the completion. State who will witness release.'",
+        "emotional_undertone": "Exhaustion dignified into duty.",
+        "sensory_focus": [
+          "bronze warmth",
+          "low ceremonial hum",
+          "dust falling with speech"
+        ]
       },
-      "read_aloud": "The bronze giant kneels with both hands on the sealed door, not to keep others out but to keep itself in place. You notice bronze warmth and stone under strain.",
-      "read_aloud_revisit": "A bronze giant kneels before the final seal, awaiting either a challenger or a lawful release."
+      "read_aloud": "The bronze giant kneels with both hands against the sealed door. Heat seeps from the metal into the stone. Its first breath is a low ceremonial hum; when it looks at you, there is no anger in the sound—only endurance.",
+      "read_aloud_revisit": "Bronze warmth reaches you before the Guardian speaks. Dust falls with each measured word."
     },
     {
       "id": "abyssal_stair",
@@ -1943,10 +2160,16 @@
         ],
         "narrative_hooks": [
           "Direct observation makes the route disappear."
+        ],
+        "emotional_undertone": "Dizziness sharpened by distrust of one's own senses.",
+        "sensory_focus": [
+          "pressure of cold air",
+          "absence of echo",
+          "paper fluttering far below"
         ]
       },
-      "read_aloud": "The stair descends around an absence that seems deeper than the hill can contain. You notice air pressure and stone glimpsed sideways.",
-      "read_aloud_revisit": "A stair descending around an open void. The lower steps are visible only when not directly observed."
+      "read_aloud": "Cold air rises from the void and presses against your face. The stair gives no echo at its centre, only the faint flutter of paper falling somewhere too far below.",
+      "read_aloud_revisit": "The next step appears at the edge of your vision. Looking straight at it makes your stomach tighten."
     },
     {
       "id": "sunken_archive",
@@ -1975,10 +2198,16 @@
         "narrative_hooks": [
           "Reveal facts through documents that implicate named people.",
           "Make every answer create a sharper moral question."
+        ],
+        "emotional_undertone": "Grief at knowledge preserved too late.",
+        "sensory_focus": [
+          "wet stone and ink",
+          "cold water",
+          "words breaking like bubbles"
         ]
       },
-      "read_aloud": "Shelves continue beneath black water. Words rise from submerged pages like bubbles and vanish at the surface. You notice black water and floating letters.",
-      "read_aloud_revisit": "A drowned archive preserving the legal memory of the lost kingdom beneath black water."
+      "read_aloud": "Black water covers the lower shelves. The room smells of wet stone and old ink. Words rise from submerged pages as silver bubbles, breaking with tiny sounds against the surface.",
+      "read_aloud_revisit": "Cold water laps against the shelves. A sentence surfaces one word at a time, then is gone."
     },
     {
       "id": "gilded_maw",
@@ -2004,10 +2233,16 @@
         ],
         "narrative_hooks": [
           "Descriptions should tighten as the player frames the Crown as possession."
+        ],
+        "emotional_undertone": "Desire turning gradually into suspicion.",
+        "sensory_focus": [
+          "warm metal",
+          "salt and coin taste",
+          "soft swallowing mechanisms"
         ]
       },
-      "read_aloud": "The passage resembles a golden throat because every door opens inward like a tooth. You notice warm metal and salt on the tongue.",
-      "read_aloud_revisit": "A trap-lined passage shaped like a golden throat. Its teeth are doors; its tongue is a bridge."
+      "read_aloud": "Warm metal closes around the passage like a throat. The air tastes of salt and old coins. Each hidden mechanism shifts with a soft swallowing click.",
+      "read_aloud_revisit": "The golden walls seem closer. Somewhere ahead, the passage swallows once."
     },
     {
       "id": "warden_below",
@@ -2038,10 +2273,16 @@
           "Reference the player's route and methods.",
           "Serath should distinguish capability from fitness."
         ],
-        "voice_or_prompt": "Serath: 'You have proved that doors open for you. Now prove they should.'"
+        "voice_or_prompt": "Serath: 'You have proved that doors open for you. Now prove they should.'",
+        "emotional_undertone": "Severe hope restrained by the fear of another unworthy claimant.",
+        "sensory_focus": [
+          "absolute silence",
+          "salt sparks",
+          "the weight of a calm evaluating gaze"
+        ]
       },
-      "read_aloud": "Serath waits without weapon drawn. The empty space behind the Warden feels more dangerous than armour. You notice judicial quiet and salt sparks.",
-      "read_aloud_revisit": "The last custodian of the vault, bound to defend the Crown until confronted by stronger authority."
+      "read_aloud": "Serath waits in a silence so complete that your own breathing feels discourteous. Salt sparks drift from the armour and vanish before touching the floor. The Warden studies you without hostility, which is worse.",
+      "read_aloud_revisit": "The silence closes again. Serath's attention settles on what you carry, then on how you carry it."
     },
     {
       "id": "vault_mythic_treasure",
@@ -2068,10 +2309,16 @@
         ],
         "narrative_hooks": [
           "Ask what the delver expected wealth to solve."
+        ],
+        "emotional_undertone": "Expectation collapsing into awe and apprehension.",
+        "sensory_focus": [
+          "dry heat",
+          "rain-on-stone smell",
+          "expectant silence"
         ]
       },
-      "read_aloud": "The chamber contains no coins, only the Crown and the heat of promises still waiting to be fulfilled. You notice absolute quiet and red-gold light.",
-      "read_aloud_revisit": "A silent chamber containing one pedestal, one crown and the accumulated heat of a fallen dynasty."
+      "read_aloud": "The vault is dry and warm, smelling faintly of rain on hot stone. There are no heaps of coin. Only the Crown rests on its pedestal, and the quiet around it feels expectant.",
+      "read_aloud_revisit": "Heat gathers on your skin. The Crown's red light seems to pulse with your breathing."
     },
     {
       "id": "crown_ember_salt",
@@ -2100,10 +2347,16 @@
           "Replay earlier promises in altered meanings.",
           "Let resisted, bound and mastered outcomes feel distinct."
         ],
-        "voice_or_prompt": "Mereth: 'You may keep your name. I require only everything it can command.'"
+        "voice_or_prompt": "Mereth: 'You may keep your name. I require only everything it can command.'",
+        "emotional_undertone": "Temptation made intimate rather than grand.",
+        "sensory_focus": [
+          "heat behind the eyes",
+          "salt on the lips",
+          "one's own voice returned tenderly"
+        ]
       },
-      "read_aloud": "The Crown does not speak aloud. It remembers the delver's own voice and uses that instead. You notice heat behind the eyes and salt on the lips.",
-      "read_aloud_revisit": "The mythic treasure of the Rust Wind Hills. It offers sovereignty before it offers safety."
+      "read_aloud": "Heat gathers behind your eyes before you touch the Crown. Salt sharpens on your lips. When it speaks, it uses your own voice with such tenderness that for a moment you want to trust it.",
+      "read_aloud_revisit": "The red facets hold faces that are not quite reflections. Your own voice waits among them."
     },
     {
       "id": "ending_escape_riches",
@@ -2132,10 +2385,16 @@
         "narrative_hooks": [
           "End on a small promise accidentally becoming binding."
         ],
-        "voice_or_prompt": "Pell: 'Tell me you brought treasure, not government.'"
+        "voice_or_prompt": "Pell: 'Tell me you brought treasure, not government.'",
+        "emotional_undertone": "Relief complicated almost immediately by doubt.",
+        "sensory_focus": [
+          "bells",
+          "rain and wool",
+          "a held breath released"
+        ]
       },
-      "read_aloud": "Barrowgate celebrates the return before anyone agrees what the Crown is worth. You notice bells and crowds.",
-      "read_aloud_revisit": "The delver returns to Barrowgate wealthy, famous and sufficiently alive to become unreliable in taverns."
+      "read_aloud": "Barrowgate's bells begin before you reach the gate. The crowd smells of rain, wool and hot wax. Pell, if he waits there, lets out a breath and then looks at the Crown with quiet concern.",
+      "read_aloud_revisit": "The town celebrates, though people lower their voices whenever the Crown catches the light."
     },
     {
       "id": "ending_cursed_possession",
@@ -2163,10 +2422,16 @@
         ],
         "narrative_hooks": [
           "Use one beloved mannerism at the wrong emotional moment."
+        ],
+        "emotional_undertone": "Recognition undermined by a quiet, irreversible estrangement.",
+        "sensory_focus": [
+          "familiar voice",
+          "incorrect pauses",
+          "rooms becoming quieter"
         ]
       },
-      "read_aloud": "The returning figure uses the delver's face perfectly and their habits almost perfectly. You notice measured speech and unnatural warmth.",
-      "read_aloud_revisit": "The Crown leaves the dungeon wearing the delver rather than the other way around."
+      "read_aloud": "The figure returning to Barrowgate has your stride and your voice. It even smiles at the right people. Only the pauses are wrong, as though someone older is waiting for each memory to explain itself.",
+      "read_aloud_revisit": "Those who knew you best cannot name what changed. They simply stop speaking as freely in your presence."
     },
     {
       "id": "ending_dungeon_lordship",
@@ -2196,10 +2461,16 @@
           "List three immediate petitions before any celebration.",
           "Barrowgate sends a tax demand to its new sovereign."
         ],
-        "voice_or_prompt": "Serath: 'Then rule. The ruins have waited long enough to become your excuses.'"
+        "voice_or_prompt": "Serath: 'Then rule. The ruins have waited long enough to become your excuses.'",
+        "emotional_undertone": "Triumph giving way to the weight of immediate responsibility.",
+        "sensory_focus": [
+          "rolling locks",
+          "vibration through the feet",
+          "many waiting voices"
+        ]
       },
-      "read_aloud": "The dungeon's sealed doors open like a city waking. Every surviving mechanism asks for instruction. You notice bells underground and warm stone.",
-      "read_aloud_revisit": "The delver becomes lawful ruler of the ruins, inheriting their wealth, monsters, debts and licensing obligations."
+      "read_aloud": "Locks release through the dungeon in a rolling thunder that can be felt through the soles of your feet. Then come the voices—clerks, prisoners, mechanisms and the dead—each waiting for your first answer.",
+      "read_aloud_revisit": "The ruins remain awake around you. Somewhere, a bell rings for a petition nobody has heard in centuries."
     },
     {
       "id": "ending_gaol_ruin",
@@ -2226,10 +2497,16 @@
         ],
         "narrative_hooks": [
           "End with a courteous notice that the case remains active."
+        ],
+        "emotional_undertone": "Hope eroded by impersonal delay.",
+        "sensory_focus": [
+          "cold corridor",
+          "paper sliding",
+          "fresh ink on a useless notice"
         ]
       },
-      "read_aloud": "The cell door remains closed while generations of forms move from tray to tray. You notice paper sliding and distant stamps.",
-      "read_aloud_revisit": "The delver's adventure ends in a cell while the appeal is referred to a committee that no longer exists."
+      "read_aloud": "The corridor stays cold. Paper slides from tray to tray beyond the bars, and each polite little sound makes hope feel more embarrassing.",
+      "read_aloud_revisit": "A notice arrives smelling of fresh ink. It confirms that your case remains active."
     },
     {
       "id": "ending_dead",
@@ -2256,10 +2533,16 @@
         ],
         "narrative_hooks": [
           "Echo an earlier promise or rumour in the memorial wording."
+        ],
+        "emotional_undertone": "Private grief absorbed into public routine.",
+        "sensory_focus": [
+          "hammer on brass",
+          "cool engraved letters",
+          "a concealed gesture of grief"
         ]
       },
-      "read_aloud": "Barrowgate engraves a small brass plaque after deducting the fee from any recoverable estate. You notice hammer on brass and red dust.",
-      "read_aloud_revisit": "Barrowgate adds another small brass name beneath the licensing hall stairs."
+      "read_aloud": "A hammer taps your name into brass while red dust moves across the square. Someone who knew you presses their thumb into the new letters, then draws their hand away before anyone sees.",
+      "read_aloud_revisit": "The plaque cools beneath the gatehouse stairs. Another expedition forms its queue nearby."
     }
   ],
   "routes": [
@@ -2281,7 +2564,7 @@
         }
       },
       "stakes": "Spend time instead of gold to uncover leads, lies and warnings before committing to the delve.",
-      "hook": "The Bent Nail sells no certainty, but somebody there has survived long enough to be usefully afraid."
+      "hook": "Inside the Bent Nail, a survivor lowers his cup when he hears where you mean to go."
     },
     {
       "id": "r002",
@@ -2321,7 +2604,7 @@
         }
       },
       "stakes": "A hired torchbearer brings light and expertise, but also another life for your decisions to endanger.",
-      "hook": "The workers in the yard are judging you more carefully than you are judging them."
+      "hook": "The workers assess your boots, your hands and whether you listen when they answer."
     },
     {
       "id": "r004",
@@ -2341,7 +2624,7 @@
         }
       },
       "stakes": "Spend gold for luck and a ritual that may matter when the dungeon begins testing identity.",
-      "hook": "The priests offer no protection from death—only a better chance of remaining yourself."
+      "hook": "The priest's kindness is practised, but not empty."
     },
     {
       "id": "r005",
@@ -2361,7 +2644,7 @@
         }
       },
       "stakes": "Pay for recognised authority that can ease checkpoints, while accepting Barrowgate's rules and costs.",
-      "hook": "The form is absurd until the ancient seal on the desk grows warm."
+      "hook": "The clerk's pen pauses above the line marked NEXT OF KIN."
     },
     {
       "id": "r006",
@@ -2455,7 +2738,7 @@
         }
       },
       "stakes": "Return with rumours that may reveal secret routes and hidden motives, but no material advantage.",
-      "hook": "The inn's stories follow you into daylight and become less funny there."
+      "hook": "The innkeeper watches you sort rumour from warning and seems quietly relieved when you notice the difference."
     },
     {
       "id": "r009",
@@ -2519,7 +2802,7 @@
         }
       },
       "stakes": "Keep your gold, but enter the hills without the equipment needed for several safer options.",
-      "hook": "The merchant watches you leave with the expression reserved for future customers and present fools."
+      "hook": "The merchant watches you leave, then turns the best rope back towards the wall."
     },
     {
       "id": "r011",
@@ -2558,7 +2841,7 @@
         }
       },
       "stakes": "Pay Pell for extra light and practical help, while accepting that he has limits you cannot purchase away.",
-      "hook": "Pell signs only after adding one sentence in his own hand."
+      "hook": "Pell reads your face before he reads the contract."
     },
     {
       "id": "r012",
@@ -2578,7 +2861,7 @@
         }
       },
       "stakes": "Keep your gold and travel alone, losing both Pell's expertise and his human warning at the Ninth Lock.",
-      "hook": "Nobody in the yard tries to change your mind."
+      "hook": "Pell nods once, neither offended nor reassured."
     },
     {
       "id": "r013",
@@ -2617,7 +2900,7 @@
         }
       },
       "stakes": "Sacrifice two gold for improved luck and a blessing tied to your true name.",
-      "hook": "Ash settles on your skin in the exact shape of letters."
+      "hook": "The priest presses ash to your skin with the care of someone memorising a name."
     },
     {
       "id": "r014",
@@ -2688,7 +2971,7 @@
         }
       },
       "stakes": "Spend six gold to become a recognised delver and gain safer passage through ancient administrative systems.",
-      "hook": "The seal bites into wax, and somewhere far below a lock quietly notices."
+      "hook": "Ollis stamps the licence and briefly keeps one hand on it before letting go."
     },
     {
       "id": "r016",
@@ -2729,7 +3012,7 @@
         }
       },
       "stakes": "Risk your reputation to discover a cheaper, illegal route into the dungeon's systems.",
-      "hook": "The clerk's pause contains an address no honest official would ever speak aloud."
+      "hook": "The clerk does not look at you when he gives the hint; that is how you know it matters."
     },
     {
       "id": "r017",
@@ -2800,7 +3083,7 @@
         }
       },
       "stakes": "Pay less for forged authority that may pass simple checks but becomes dangerous under scrutiny.",
-      "hook": "Maera leaves one flaw in the seal because perfect copies are the first thing experts distrust."
+      "hook": "Maera's mouth almost forms a smile when you notice the deliberate flaw."
     },
     {
       "id": "r019",
@@ -2983,7 +3266,7 @@
         }
       },
       "stakes": "Lose two gold but avoid violence and gain a toll chit that may carry unexpected social weight.",
-      "hook": "The goblin stamps your receipt three times to make it look especially lawful."
+      "hook": "The goblin clerk's chest lifts slightly when you ask for a receipt."
     },
     {
       "id": "r027",
@@ -3033,7 +3316,7 @@
         }
       },
       "stakes": "Keep your money by gambling that confidence and paperwork matter more than actual authority.",
-      "hook": "The goblin clerk squints at the seal, then at you, deciding which looks more official."
+      "hook": "The goblin's suspicion competes visibly with his desire to be treated as an official."
     },
     {
       "id": "r028",
@@ -3634,7 +3917,7 @@
         }
       },
       "stakes": "Lose provisions to avoid combat and learn a safer route through the Rat-King's domain.",
-      "hook": "The swarm values food, but it values being addressed as Quartermaster even more."
+      "hook": "The swarm stills when you use Orrick's title correctly."
     },
     {
       "id": "r048",
@@ -3766,7 +4049,7 @@
         }
       },
       "stakes": "Proceed to the Iron Registrar with knowledge that procedure may offer alternatives to force.",
-      "hook": "The ash doors open only after repeating a vow nobody living remembers making."
+      "hook": "The old vow under the ash sounds ashamed of the rule it once defended."
     },
     {
       "id": "r053",
@@ -3847,7 +4130,7 @@
         }
       },
       "stakes": "Use genuine authority to pass peacefully, strengthening your recognised standing within the dungeon.",
-      "hook": "Halvek stamps the licence, and distant locks accept the judgement."
+      "hook": "Halvek's stamp falls cleanly; the relief in the stillness afterwards is almost imperceptible."
     },
     {
       "id": "r055",
@@ -3906,7 +4189,7 @@
         }
       },
       "stakes": "Risk imprisonment by placing forged identity before the dungeon's most exacting inspector.",
-      "hook": "The Registrar holds the permit close enough for the iron visor to reflect its flaw."
+      "hook": "The Registrar's hand pauses over the permit, and the room seems to hold its breath with it."
     },
     {
       "id": "r056",
@@ -3946,7 +4229,7 @@
         }
       },
       "stakes": "Use recovered procedural knowledge to win passage without licence, payment or violence.",
-      "hook": "For the first time in centuries, the Registrar is forced to consult a rule it hoped was forgotten."
+      "hook": "For one instant Halvek looks less like a machine than a tired man behind one."
     },
     {
       "id": "r057",
@@ -4106,7 +4389,7 @@
         }
       },
       "stakes": "Risk spore-induced memory distortion to reach the maze and continue deeper.",
-      "hook": "The fungus begins praying in a voice that remembers being yours."
+      "hook": "The whispering fungus borrows a voice that once comforted someone."
     },
     {
       "id": "r062",
@@ -4366,7 +4649,7 @@
         }
       },
       "stakes": "Take evidence that unlocks secret history and peaceful resolutions, while making yourself a thief in the records.",
-      "hook": "The loose page names a debt so precisely that even the dead may have to honour it."
+      "hook": "The page is light in your hand, but the room feels heavier once you read it."
     },
     {
       "id": "r070",
@@ -4795,7 +5078,7 @@
         }
       },
       "stakes": "Surrender reputation by admitting a real debt, gaining passage and knowledge the hall cannot extract by force.",
-      "hook": "The whispers fall quiet when you finally tell them something true."
+      "hook": "The hall does not forgive you; it simply stops pretending not to understand."
     },
     {
       "id": "r084",
@@ -4867,7 +5150,7 @@
         }
       },
       "stakes": "Lose a year of personal memory to enter the archive and recover truths unavailable anywhere else.",
-      "hook": "The merchant removes the year gently; the absence only hurts when you look for it."
+      "hook": "The merchant is gentle, which makes the bargain harder to bear."
     },
     {
       "id": "r086",
@@ -5095,7 +5378,7 @@
         }
       },
       "stakes": "Use authority and recovered law to end the Guardian's service without violence.",
-      "hook": "For the first time in centuries, Varn is permitted to stop."
+      "hook": "Varn's first uncommanded breath is quieter than the lock opening."
     },
     {
       "id": "r092",
@@ -5362,7 +5645,7 @@
         }
       },
       "stakes": "Use recognised authority, knowledge and reputation to pass by judgement rather than force.",
-      "hook": "The Warden does not kneel; stepping aside is the more serious concession."
+      "hook": "Serath's weapon lowers by the width of a finger before the Warden steps aside."
     },
     {
       "id": "r099",
@@ -5479,7 +5762,7 @@
         }
       },
       "stakes": "Take the Crown while resisting its oath, gambling luck and identity for wealth without office.",
-      "hook": "The Crown learns the shape of your refusal and begins testing every edge."
+      "hook": "The Crown answers your refusal with affection rather than anger."
     },
     {
       "id": "r102",
@@ -5537,7 +5820,7 @@
         }
       },
       "stakes": "Accept rulership and every unresolved debt of the ruins, preserving yourself only if your claim is strong enough.",
-      "hook": "A thousand locks wait to discover whether your name survives the title."
+      "hook": "The old rulers fall silent only after your name survives being spoken by all of them."
     },
     {
       "id": "r103",
@@ -5583,7 +5866,7 @@
         }
       },
       "stakes": "Claim power immediately and surrender the best chance to separate your identity from the Crown's rulers.",
-      "hook": "The Crown fits perfectly because it changes what perfectly means."
+      "hook": "For a moment the Crown feels like relief."
     },
     {
       "id": "r104",
@@ -5629,7 +5912,7 @@
         }
       },
       "stakes": "Let Pell turn a lethal crossing into skilled work, rewarding the decision to treat him as more than spare light.",
-      "hook": "He reduces terror to knots, breaths and instructions—and expects you to listen."
+      "hook": "Pell's hands remain steady; yours may not."
     },
     {
       "id": "r107",
@@ -5683,7 +5966,7 @@
         }
       },
       "stakes": "Respect Pell's stated boundary and lose his future assistance before opening the Ninth Lock.",
-      "hook": "He returns the spare lamp, keeps the contract and waits where a living witness still can."
+      "hook": "Pell folds the contract carefully, hiding relief behind irritation."
     },
     {
       "id": "r105",
@@ -6302,13 +6585,27 @@
       "nodes_with_revisit_text": 47,
       "expected_nodes": 47
     },
-    "status": "passed",
-    "schema_version": "0.2.2",
     "route_content_coverage": {
       "routes_with_labels": 108,
       "routes_with_stakes": 108,
       "routes_with_hooks": 108,
       "expected_routes": 108
+    },
+    "status": "passed",
+    "schema_version": "0.2.3",
+    "sensory_emotional_coverage": {
+      "nodes_with_refined_read_aloud": 47,
+      "nodes_with_emotional_undertone": 47,
+      "nodes_with_restrained_sensory_focus": 47,
+      "characters_with_emotional_tells": 9,
+      "route_hooks_refined": 30,
+      "whole_adventure_sense_hits": {
+        "sound": 37,
+        "smell": 30,
+        "touch_temperature": 45,
+        "taste": 14,
+        "sight": 28
+      }
     },
     "warnings": [],
     "errors": []
@@ -6320,7 +6617,10 @@
       "surface_vs_truth": "Prefer surface beliefs early in play. Reveal hidden truths only when supported by knowledge, items, locations or accumulated narrative evidence.",
       "semantic_reuse": "When narrating a node, combine its local narrative fields with linked motifs, threads, factions, characters and world truths rather than repeating the summary verbatim.",
       "continuity": "Use state_semantics, route continuity references and knowledge catalogue entries to make prior choices visible in later descriptions.",
-      "ambiguity": "Rumours with mixed or false truth values should remain useful: even false claims reveal beliefs, interests or fears held by their source."
+      "ambiguity": "Rumours with mixed or false truth values should remain useful: even false claims reveal beliefs, interests or fears held by their source.",
+      "sensory_restraint": "Use one or two specific sensory impressions at a time. Prefer details that reveal place, danger or meaning over decorative lists. Across a sequence of scenes, vary sight, sound, smell, touch and taste.",
+      "emotional_restraint": "Show emotion through hesitation, posture, breath, hands, eye contact, small changes of tone or what a person chooses not to say. Avoid naming an emotion when behaviour can carry it.",
+      "embodied_continuity": "Let conditions and environments remain physically present: wet sleeves stay cold, iron leaves a taste, long corridors alter sound, fatigue changes how choices feel."
     },
     "ontology": {
       "entity_types": [
@@ -6577,6 +6877,11 @@
           "class",
           "human_cost",
           "boundary"
+        ],
+        "emotional_tells": [
+          "Warms his fingers around a lamp before discussing danger.",
+          "Checks knots while other people boast.",
+          "When worried, becomes more precise rather than more expressive."
         ]
       },
       {
@@ -6597,6 +6902,11 @@
           "bureaucrat",
           "comic",
           "accidental_authority"
+        ],
+        "emotional_tells": [
+          "Smooths the same edge of a document when uncertain.",
+          "Looks towards the seal press before answering questions about authority.",
+          "Relief appears as a slightly quicker stamp, never a smile."
         ]
       },
       {
@@ -6617,6 +6927,11 @@
           "forger",
           "resistance",
           "identity"
+        ],
+        "emotional_tells": [
+          "Studies hands before faces.",
+          "Turns guarded amusement into a raised eyebrow.",
+          "Anger shows in how carefully she aligns names on the page."
         ]
       },
       {
@@ -6636,6 +6951,10 @@
           "resistance",
           "secret_paths",
           "erased_history"
+        ],
+        "emotional_tells": [
+          "Remembered in carvings with one hand extended behind, as if guiding someone unseen.",
+          "Later devotional images remove the exhaustion visible in the oldest reliefs."
         ]
       },
       {
@@ -6657,6 +6976,11 @@
           "memory",
           "possessiveness",
           "tragic"
+        ],
+        "emotional_tells": [
+          "The swarm draws closer around the little crown whenever its identity is questioned.",
+          "Formal language frays into chittering when afraid.",
+          "Keys are handled with the tenderness of keepsakes."
         ]
       },
       {
@@ -6679,6 +7003,11 @@
           "guilt",
           "procedure",
           "checkpoint"
+        ],
+        "emotional_tells": [
+          "Stillness becomes more rigid when a rule creates an unjust result.",
+          "Reorders paper rather than acknowledge uncertainty.",
+          "A pause before judgement is the nearest thing Halvek permits himself to dread."
         ]
       },
       {
@@ -6696,6 +7025,11 @@
           "debt",
           "release",
           "boss"
+        ],
+        "emotional_tells": [
+          "Dust falls more quickly when old debts are named.",
+          "Never raises its voice; strain appears as heat through the bronze.",
+          "Release is met first with disbelief, then a single unguarded breath."
         ]
       },
       {
@@ -6718,6 +7052,11 @@
           "succession",
           "judgement",
           "boss"
+        ],
+        "emotional_tells": [
+          "Looks at how objects are carried before asking what they are.",
+          "Disappointment makes the voice gentler, not harsher.",
+          "Hope appears only as a fractional lowering of the weapon."
         ]
       },
       {
@@ -6741,6 +7080,11 @@
           "crown_voice",
           "temptation",
           "identity"
+        ],
+        "emotional_tells": [
+          "Uses tenderness when command would provoke resistance.",
+          "Mirrors the claimant's own cadence to create intimacy.",
+          "Impatience appears as memories arriving before they are invited."
         ]
       }
     ],
@@ -7584,7 +7928,8 @@
         "read_aloud is player-facing prose and is safe to present directly.",
         "narrative.hidden_truth and similar semantic fields should not be exposed without discovery.",
         "The current runner is expected to read node.read_aloud as a plain string."
-      ]
+      ],
+      "sensory_emotional_guidance": "Present read_aloud directly. Do not append the full sensory_focus list; it is semantic support for improvisation. Use emotional_undertone to shape delivery, not as text to expose."
     },
     "route_presentation": {
       "choice_label_field": "label",
@@ -7600,7 +7945,8 @@
         "label remains mechanically stable and suitable for numbered choice menus.",
         "stakes is player-facing and should not reveal hidden_truth fields.",
         "hook provides flavour without replacing node read_aloud narration."
-      ]
+      ],
+      "hook_style": "Hooks may include one physical sensation or one small emotional tell. Avoid stacking multiple atmospheric details."
     }
   }
 }
