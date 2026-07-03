@@ -27,6 +27,10 @@ test("initialize returns protocol version, tools capability and server info", as
   assert.equal(response.result.instructions, SERVER_INFO.instructions);
 });
 
+test("initialize notifications get no response", async () => {
+  assert.equal(await handleMessage({ jsonrpc: "2.0", method: "initialize" }, ctx()), null);
+});
+
 test("notifications/initialized and notifications/cancelled get no response", async () => {
   assert.equal(await handleMessage({ jsonrpc: "2.0", method: "notifications/initialized" }, ctx()), null);
   assert.equal(await handleMessage({ jsonrpc: "2.0", method: "notifications/cancelled" }, ctx()), null);

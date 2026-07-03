@@ -62,6 +62,7 @@ async function handleMessage(message, { tools, engine, serverInfo, log }) {
 
   switch (message.method) {
     case "initialize":
+      if (notification) return null;
       return resultResponse(message.id, {
         protocolVersion: message.params?.protocolVersion ?? PROTOCOL_VERSION,
         capabilities: { tools: {} },
