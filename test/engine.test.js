@@ -62,12 +62,56 @@ test("an explicit read_aloud wins over narrative.arrival_text", async () => {
   assert.equal(node.read_aloud, entryNode.read_aloud);
 });
 
-test("read_aloud_revisit is passed through raw, unswitched", async () => {
+test("visit_count/presentation track arrivals, and the engine picks read_aloud vs read_aloud_revisit itself", async () => {
   const { engine, adventure } = makeEngine();
   const entryNode = adventure.doc.nodes.find((n) => n.id === "barrowgate_square");
   assert.ok(entryNode.read_aloud_revisit);
-  const { node } = await engine.newRun(ADVENTURE_ID);
-  assert.equal(node.read_aloud_revisit, entryNode.read_aloud_revisit);
+  assert.notEqual(entryNode.read_aloud_revisit, entryNode.read_aloud);
+
+  const run = await engine.newRun(ADVENTURE_ID);
+  assert.equal(run.node.visit_count, 1);
+  assert.equal(run.node.presentation, "first_visit");
+  assert.equal(run.node.read_aloud, entryNode.read_aloud);
+  assert.ok(!("read_aloud_revisit" in run.node)); // not exposed raw any more
+
+  // get_node on the same, unchanged position reports the same first visit
+  // without incrementing it (read-only).
+  const view1 = await engine.getNode(run.run_id);
+  assert.equal(view1.node.visit_count, 1);
+  assert.equal(view1.node.presentation, "first_visit");
+
+  // Leave and come back: bent_nail_inn -> barrowgate_square (r001, r008).
+  await engine.walk(run.run_id, "r001", 0);
+  const back = await engine.walk(run.run_id, "r008", 1);
+  assert.equal(back.node.id, "barrowgate_square");
+  assert.equal(back.node.visit_count, 2);
+  assert.equal(back.node.presentation, "revisit");
+  assert.equal(back.node.read_aloud, entryNode.read_aloud_revisit);
+
+  // get_node reflects the recorded revisit too, still without mutating it.
+  const view2 = await engine.getNode(run.run_id);
+  assert.equal(view2.node.visit_count, 2);
+  assert.equal(view2.node.presentation, "revisit");
+});
+
+test("visited_nodes is engine bookkeeping, hidden from the public state projection", async () => {
+  const { engine } = makeEngine();
+  const run = await engine.newRun(ADVENTURE_ID);
+  assert.ok(!("visited_nodes" in run.state));
+  assert.ok(!("current_node" in run.state));
+  assert.ok(!("consumed_routes" in run.state));
+});
+
+test("a run persisted before visit tracking existed doesn't crash walk or get_node", async () => {
+  const { engine, store } = makeEngine();
+  const run = await engine.newRun(ADVENTURE_ID);
+  delete stored(store, run.run_id).state.visited_nodes; // simulate a pre-existing run doc
+
+  const view = await engine.getNode(run.run_id);
+  assert.equal(view.node.visit_count, 1); // defaults to first visit rather than throwing
+
+  const step = await engine.walk(run.run_id, "r001", 0);
+  assert.equal(step.node.visit_count, 1); // self-heals: records this as the first visit there
 });
 
 test("read_aloud falls back to narrative.arrival_text when a node has none of its own", async () => {

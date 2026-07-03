@@ -9,7 +9,9 @@ anonymous-auth Azure Function that speaks JSON-RPC 2.0 directly (`initialize`,
 `tools/list`, `tools/call`) and dispatches to all four tools from one place — no
 per-tool Azure trigger, no system webhook route, no function key. This mirrors the
 Difference Engine / llm-library Functions apps' wiring pattern: one function URL,
-tools consolidated under it.
+tools consolidated under it. Every `tools/call` result carries both a `content` text
+block and a `structuredContent` object with the same data, so a client doesn't have to
+re-parse JSON out of a string to get structured output.
 
 ## Layout
 
@@ -33,11 +35,15 @@ src/
     mcp.js             the one HTTP trigger: POST /api/mcp, anonymous, all tools live here
     health.js          anonymous GET /api/health readiness probe, used by CI and for ops
 scripts/
-  validate-adventure.js         manual audit script (same validation the app runs at startup)
+  validate-adventure.js           audit script (same validation the app runs at startup)
+  check-reachability.js           CI gate: deterministic BFS — every node reachable, no
+                                   non-terminal dead ends (ignores conditions entirely)
+  simulate-playthroughs.js        CI gate: randomised playthroughs — reports soft locks and
+                                   ending coverage; only fails CI on an actual engine crash
   verify-functions-entrypoint.js  CI smoke gate: requires every src/functions/*.js file cold
-  provision-azure.sh            one-shot resource group + storage + Function App bootstrap
+  provision-azure.sh              one-shot resource group + storage + Function App bootstrap
 .github/workflows/
-  main_func-rust-wind-hills-26487.yml  build, test, zip and Kudu-deploy on push to main
+  main_func-rust-wind-hills-26487.yml  build, test, validate and Kudu-deploy on push to main
 test/                    node:test suite (in-memory store, scripted dice)
 ```
 
@@ -90,16 +96,23 @@ block (`desire`, `fear`, `misconception`, `voice`, `non_combat_leverage`, `after
 and every item a `narrative_semantics` block (`origin`, `symbolic_role`,
 `world_revelation`, `linked_threads`, `linked_motifs`). 0.2.2 adds `route.stakes` and
 `route.hook` — a player-facing cost/risk/opportunity line and a short flavour line,
-meant to sit alongside the short mechanical `label` rather than replace it. All of it is
-verified content-safe — no route or node narrative field reveals a hidden destination,
-failure branch, or visibility condition.
+meant to sit alongside the short mechanical `label` rather than replace it. 0.2.3 adds
+`node.narrative.emotional_undertone` and `node.narrative.sensory_focus`, which need no
+engine changes since the rest of `node.narrative` is already a blanket pass-through. All
+of it is verified content-safe — no route or node narrative field reveals a hidden
+destination, failure branch, or visibility condition.
 
 What's exposed today, computed fresh on every call (never adding to what's persisted):
 
-- **`node.read_aloud`** — explicit text if the node has it, else `node.narrative.arrival_text`.
-- **`node.read_aloud_revisit`** — passed through raw. Nothing tracks per-run visit
-  history yet, so no first-visit/return-visit switching happens automatically; a caller
-  that wants that has to track it itself for now.
+- **`node.read_aloud`** — the engine tracks visit count per node per run
+  (`state.visited_nodes`, engine bookkeeping like `consumed_routes`, stripped from
+  `publicState`) and picks exactly one text itself: `read_aloud_revisit` on a return
+  visit if the node has one, explicit `read_aloud` otherwise, `narrative.arrival_text` as
+  the last resort either way. `read_aloud_revisit` is no longer exposed raw alongside
+  it — earlier revisions returned both and left the caller to guess which applied from
+  conversation memory; the node projection now also reports `visit_count` and
+  `presentation` (`"first_visit"` or `"revisit"`) so the choice is explicit rather than
+  inferred.
 - **`node.narrative`** — the rest of the node's narrative block (`arrival_text` is
   dropped here since it's already folded into `read_aloud`).
 - **`route.stakes` / `route.hook`** — on every route in `available_routes`.
@@ -157,11 +170,12 @@ and sets `WEBSITE_RUN_FROM_PACKAGE=1`.
 push to `main` using only `az`/Kudu REST calls in PowerShell — no `Azure/*` third-party
 action. It installs, runs `smoke:entrypoint` (loads every `src/functions/*.js` file
 cold, same as the Functions worker would, catching a broken asset or bad require before
-it ships), runs the test suite, prunes dev dependencies, zips the runtime files, then
-uploads via Kudu `zipdeploy`, syncs triggers, and polls the anonymous `/api/health`
-endpoint (retrying with a host restart once if it doesn't come up). Auth is the Function
-App's publish profile, stored as the `AZUREAPPSERVICE_PUBLISHPROFILE_...` GitHub secret
-(get it with `az functionapp deployment list-publishing-profiles --xml`).
+it ships), runs the test suite, then `validate`/`check:reachability`/`simulate` against
+the adventure asset that's actually about to ship, prunes dev dependencies, zips the
+runtime files, then uploads via Kudu `zipdeploy`, syncs triggers, and polls the anonymous
+`/api/health` endpoint (retrying with a host restart once if it doesn't come up). Auth is
+the Function App's publish profile, stored as the `AZUREAPPSERVICE_PUBLISHPROFILE_...`
+GitHub secret (get it with `az functionapp deployment list-publishing-profiles --xml`).
 
 Because the app is deployed with `WEBSITE_RUN_FROM_PACKAGE=1`, each deploy is an atomic,
 read-only mount of the new zip rather than a file-by-file extraction over the running
@@ -171,10 +185,12 @@ app — no partial-deploy window, no file locks.
 
 ```bash
 npm install
-npm test            # engine + protocol test suite (no Azure needed)
-npm run validate    # audit the adventure asset
+npm test                     # engine + protocol test suite (no Azure needed)
+npm run validate             # audit the adventure asset
+npm run check:reachability   # every node reachable, no non-terminal dead ends
+npm run simulate             # 300 random playthroughs — soft locks, ending coverage
 cp local.settings.sample.json local.settings.json
-npm start           # func start — needs Azure Functions Core Tools + Azurite
+npm start                    # func start — needs Azure Functions Core Tools + Azurite
 ```
 
 Once running, `POST http://localhost:7071/api/mcp` with a JSON-RPC body speaks MCP
@@ -187,20 +203,27 @@ mid-walk on bad content.
 
 ## Content notes
 
-The shipped graph is content revision 0.2.1. 0.2.0 was a purely additive narrative
+The shipped graph is content revision 0.2.3. 0.2.0 was a purely additive narrative
 enrichment over 0.1.1 — same 47 nodes, 108 routes, entry node and terminals; every
 condition, effect, test and cost byte-identical to 0.1.1 (verified diff, not just a
 version bump) — adding a `narrative`/`narrative_semantics` field to every node, route,
-item, encounter and region, plus a top-level `semantic_layer` block. 0.2.1 is a further
-additive fix on top: 0.2.0's new node narrative included `narrative.arrival_text` for
-every node, but at that point nothing in the engine read `narrative` at all, so it never
-reached a caller — 0.2.1 adds an explicit `read_aloud` string (and a `read_aloud_revisit`)
-to every node so the runtime picks it up. Both revisions are mechanically identical to
-0.1.1; see [Narrative content](#narrative-content) above for exactly what's surfaced.
+item, encounter and region, plus a top-level `semantic_layer` block. 0.2.1 added an
+explicit `read_aloud`/`read_aloud_revisit` to every node so the engine could actually
+read it (0.2.0's `narrative.arrival_text` existed but nothing consumed `narrative` yet).
+0.2.2 added `route.stakes`/`route.hook`. 0.2.3 refined the read-aloud prose with sensory
+detail and added `node.narrative.emotional_undertone`/`sensory_focus`. Every revision so
+far has been mechanically identical to 0.1.1 — verified by diffing every
+condition/effect/test/cost, not inferred from the version bump; see
+[Narrative content](#narrative-content) above for exactly what's surfaced.
 
-Random-playthrough simulation (300 runs, rerun against 0.2.1) surfaces the same two
-*content* soft-locks the runtime deliberately does not paper over, unchanged since
-0.1.1: a player can reach `vault_antechamber` (all three exits need items) or
-`gate_of_tithes` (all four exits need a permit, a supplies
-pack, or 3 gold) without the means to leave. Per the spec, content fixes
-belong in the JSON, not the engine.
+Two CI-gated scripts watch for regressions on every content update:
+`check-reachability.js` (deterministic — every node must be structurally reachable from
+the entry node and have an exit or be terminal, ignoring conditions entirely) and
+`simulate-playthroughs.js` (a randomised Monte Carlo signal for state-dependent problems,
+run 300 times per CI run). Both currently report the same two *content* soft-locks the
+runtime deliberately does not paper over, unchanged since 0.1.1: a player can reach
+`vault_antechamber` (all three exits need items) or `gate_of_tithes` (all four exits need
+a permit, a supplies pack, or 3 gold) without the means to leave. Per the spec, content
+fixes belong in the JSON, not the engine — the simulation script deliberately doesn't
+fail CI over their continued presence (see the script's own comment for why), so this
+stays visible without blocking unrelated content or engine changes.

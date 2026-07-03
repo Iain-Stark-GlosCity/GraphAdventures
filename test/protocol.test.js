@@ -78,6 +78,27 @@ test("tools/call drives new_run then walk through the real engine end to end", a
   );
   const step = JSON.parse(walkResp.result.content[0].text);
   assert.equal(step.to, "bent_nail_inn");
+
+  // structuredContent carries the same data as a real object, not just
+  // packed into the text block a client would otherwise have to re-parse.
+  assert.deepEqual(newRunResp.result.structuredContent, payload);
+  assert.deepEqual(walkResp.result.structuredContent, step);
+});
+
+test("tools/call error results also carry structuredContent, not just text", async () => {
+  const response = await handleMessage(
+    {
+      jsonrpc: "2.0",
+      id: 6,
+      method: "tools/call",
+      params: { name: "get_node", arguments: { run_id: "no-such-run" } },
+    },
+    ctx()
+  );
+  assert.equal(response.result.isError, true);
+  const fromText = JSON.parse(response.result.content[0].text);
+  assert.deepEqual(response.result.structuredContent, fromText);
+  assert.equal(response.result.structuredContent.code, "run_not_found");
 });
 
 test("tools/call surfaces an EngineError as a tool result with isError, not a JSON-RPC error", async () => {
