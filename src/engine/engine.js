@@ -124,36 +124,69 @@ function createEngine({ adventure, store, now = () => new Date().toISOString(), 
     return state.visited_nodes[nodeId];
   }
 
-  // Adds name/description/narrative_semantics to add_item effect records —
-  // computed fresh from the adventure asset for walk's live response only,
-  // same as node/available_routes below. What's actually persisted in
-  // doc.log (see the step object in walk, and get_log) keeps the lean,
-  // spec-minimal { op, item } shape; only the moment an item is picked up
-  // gets the narrative flavour, not every subsequent read of the inventory.
-  function enrichItemEffects(effects) {
+  // Adds narrative flavour to add_item and add_knowledge effect records —
+  // computed fresh from the adventure asset for a live response only, same
+  // as node/available_routes below. What's actually persisted in doc.log
+  // (see the step object in walk, and get_log) keeps the lean, spec-minimal
+  // shape; only the moment an item is picked up or a fact is learned gets
+  // the enrichment, not every subsequent read of the inventory/knowledge.
+  // Used for both walk's effects_applied and either tool's
+  // arrival_effects_applied (node.knowledge_grants synthesises the same
+  // add_knowledge shape on arrival).
+  function enrichEffects(effects) {
     return effects.map((effect) => {
-      if (effect.op !== "add_item") return effect;
-      const item = adventure.itemsById.get(effect.item);
-      if (!item) return effect;
-      const enriched = { ...effect, name: item.name, description: item.description };
-      if (item.narrative_semantics) enriched.narrative = structuredClone(item.narrative_semantics);
-      return enriched;
+      if (effect.op === "add_item") {
+        const item = adventure.itemsById.get(effect.item);
+        if (!item) return effect;
+        const enriched = { ...effect, name: item.name, description: item.description };
+        if (item.narrative_semantics) enriched.narrative = structuredClone(item.narrative_semantics);
+        return enriched;
+      }
+      if (effect.op === "add_knowledge") {
+        const revelation = adventure.doc.semantic_layer?.knowledge_revelations?.[effect.fact];
+        if (!revelation) return effect;
+        // meaning is narrator subtext (foreshadowing, what the fact implies),
+        // same treatment as node.narrative.hidden_truth — available to
+        // inform narration, not something to state outright.
+        return { ...effect, title: revelation.title, player_text: revelation.player_text, meaning: revelation.meaning };
+      }
+      return effect;
     });
   }
 
-  function publicNode(node, visitCount) {
+  // Content revision 0.2.5's runtime_contract: "Present the highest-
+  // priority matching node.read_aloud_variant, if any." A matching variant
+  // takes over read_aloud entirely for that arrival — it supersedes the
+  // usual first-visit/revisit choice rather than sitting alongside it,
+  // since variants are about current state truth (a licence held, a fact
+  // known), not visit history.
+  function selectReadAloud(node, state, isRevisit) {
+    const variants = node.read_aloud_variants ?? [];
+    const matching = variants
+      .filter((v) => allPass(v.conditions, state))
+      .sort((a, b) => (b.priority ?? 0) - (a.priority ?? 0));
+    if (matching.length > 0) return matching[0].text;
+    const explicit = isRevisit ? (node.read_aloud_revisit ?? node.read_aloud) : node.read_aloud;
+    return explicit ?? node.narrative?.arrival_text;
+  }
+
+  function publicNode(node, state, visitCount) {
     const out = { id: node.id, title: node.title, summary: node.summary };
     const isRevisit = visitCount > 1;
-    // The engine picks exactly one read_aloud rather than handing back
-    // both first-visit and revisit text and leaving the caller to infer
-    // which applies from conversation memory: read_aloud_revisit on a
-    // return trip if the node has one, explicit read_aloud otherwise,
-    // narrative.arrival_text as the last resort for either case.
-    const explicit = isRevisit ? (node.read_aloud_revisit ?? node.read_aloud) : node.read_aloud;
-    const readAloud = explicit ?? node.narrative?.arrival_text;
+    const readAloud = selectReadAloud(node, state, isRevisit);
     if (readAloud) out.read_aloud = readAloud;
     out.visit_count = visitCount;
     out.presentation = isRevisit ? "revisit" : "first_visit";
+    // Always present when the node has one (content revision 0.2.5) — e.g.
+    // the succession-judgement framing at the Warden and the treasure
+    // vault. A separate field rather than concatenated into read_aloud so
+    // the narrator can judge whether it's already implied rather than
+    // repeating it verbatim.
+    if (node.mandatory_exposition) out.mandatory_exposition = structuredClone(node.mandatory_exposition);
+    // Per-NPC rumour attribution at the Bent Nail Inn (speaker/text/
+    // truth_status) — not referenced by runtime_contract, but the same
+    // kind of safe, verified-content-safe flavour as everything else here.
+    if (node.rumour_delivery) out.rumour_delivery = structuredClone(node.rumour_delivery);
     // The rest of node.narrative (local_history, present_tension,
     // hidden_truth, sensory_details, semantic_refs, narrative_hooks and
     // similar) minus arrival_text, which is already folded into read_aloud
@@ -193,7 +226,7 @@ function createEngine({ adventure, store, now = () => new Date().toISOString(), 
       log: [],
     };
     await store.create(runId, doc);
-    return {
+    const result = {
       run_id: runId,
       label: doc.label,
       adventure_id: doc.adventure_id,
@@ -201,10 +234,15 @@ function createEngine({ adventure, store, now = () => new Date().toISOString(), 
       adventure_hash: doc.adventure_hash,
       revision: 0,
       status: "active",
-      node: publicNode(entryNode, entryVisitCount),
+      node: publicNode(entryNode, state, entryVisitCount),
       state: publicState(state),
-      arrival_effects_applied: arrivalEffects,
+      arrival_effects_applied: enrichEffects(arrivalEffects),
     };
+    // One-time scene-setting text (content revision 0.2.5), shown once at
+    // the start of a run rather than repeated on every subsequent call.
+    const intro = adventure.doc.graph.opening_context?.player_facing_introduction;
+    if (intro) result.opening_context = intro;
+    return result;
   }
 
   // Shared by get_node and walk's response (not by what walk persists to
@@ -221,6 +259,19 @@ function createEngine({ adventure, store, now = () => new Date().toISOString(), 
           isNotConsumed(r, state)
       )
       .map(publicRoute);
+  }
+
+  // Content revision 0.2.5's semantic_layer.route_resolutions[route_id]:
+  // success_text always, failure_text only on routes with a test. Verified
+  // safe to reveal post-hoc — where it names the failure destination, that
+  // destination is already exposed by the same walk response's own
+  // to/node fields, so this adds narration, not a new leak. Computed fresh
+  // for the live response only, same treatment as node/route narrative
+  // elsewhere — not persisted to doc.log.
+  function routeResolutionText(routeId, success) {
+    const resolution = adventure.doc.semantic_layer?.route_resolutions?.[routeId];
+    if (!resolution) return undefined;
+    return success ? resolution.success_text : resolution.failure_text;
   }
 
   // Strictly read-only: no mutation, no revision bump, no ETag write. Also
@@ -240,7 +291,7 @@ function createEngine({ adventure, store, now = () => new Date().toISOString(), 
       revision: doc.revision,
       status: doc.status,
       state: publicState(state),
-      node: publicNode(node, visitCount),
+      node: publicNode(node, state, visitCount),
       available_routes: availableRoutesFor(state, doc.status),
     };
   }
@@ -345,18 +396,22 @@ function createEngine({ adventure, store, now = () => new Date().toISOString(), 
     }
 
     // The step above is exactly what's persisted in doc.log — get_log will
-    // always return that unmodified. node, available_routes and the
-    // item-narrative enrichment on effects_applied are all computed fresh
-    // from the state/asset already in memory (no extra storage read) and
-    // appended only to this live response, so the common case of "walk,
-    // then narrate" doesn't need a follow-up get_node round trip. None of
-    // it is written to the log.
-    return {
+    // always return that unmodified. node, available_routes, the item/
+    // knowledge enrichment on both effects lists and route_resolution are
+    // all computed fresh from the state/asset already in memory (no extra
+    // storage read) and appended only to this live response, so the common
+    // case of "walk, then narrate" doesn't need a follow-up get_node round
+    // trip. None of it is written to the log.
+    const result = {
       ...step,
-      effects_applied: enrichItemEffects(step.effects_applied),
-      node: publicNode(destinationNode, destinationVisitCount),
+      effects_applied: enrichEffects(step.effects_applied),
+      arrival_effects_applied: enrichEffects(step.arrival_effects_applied),
+      node: publicNode(destinationNode, state, destinationVisitCount),
       available_routes: availableRoutesFor(state, status),
     };
+    const resolutionText = routeResolutionText(route.id, success);
+    if (resolutionText) result.route_resolution = resolutionText;
+    return result;
   }
 
   // Exempt from the adventure-hash hard-stop: still returns the log, just

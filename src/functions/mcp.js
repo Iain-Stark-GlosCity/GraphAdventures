@@ -34,30 +34,39 @@ const SERVER_INFO = {
     `Runs the Rust Wind Hills dungeon adventure (adventure_id: ${adventure.id}). Loop: ` +
       "new_run to get a run_id, then repeat: get_node to read the current node, player state " +
       "and available_routes, then walk with a chosen route_id and the revision get_node " +
-      "returned.",
+      "returned. new_run also returns opening_context once — open the very first response " +
+      "with it before describing the entry node.",
 
     "Every response should be rendered as immersive second-person narrative prose for the " +
       "player, not surfaced as data. The tool output is structured story material for you to " +
       "write a scene from — never paste raw JSON, field names, or mechanical labels verbatim, " +
       "and never read out ids, costs arrays or dice math as if narrating a report.",
 
-    "Narrating a node: open with node.read_aloud (or read_aloud_revisit if the player has " +
-      "already been here this session — nothing tracks that for you, so use your own judgement " +
-      "or memory of the conversation). Weave in node.narrative's sensory_details, " +
-      "present_tension and local_history where they deepen the scene; hidden_truth is for your " +
+    "Narrating a node: open with node.read_aloud — the engine has already picked the right " +
+      "text for you (a condition-matched variant if one applies, otherwise the correct choice " +
+      "between first-visit and revisit phrasing per node.presentation), so don't second-guess " +
+      "it or blend in text from an earlier visit. Present node.mandatory_exposition when it's " +
+      "there, in your own words if read_aloud already implies it, rather than skipping it. " +
+      "Weave in node.narrative's sensory_details, present_tension and local_history where they " +
+      "deepen the scene, and node.rumour_delivery's speaker/text pairs when narrating gossip at " +
+      "the Bent Nail Inn. hidden_truth (and a knowledge fact's meaning, see below) are for your " +
       "own understanding of subtext, not something to state outright unless the story has " +
       "actually revealed it. Then offer the available routes as in-world choices: use each " +
       "route's label for the concrete selectable action, but voice the offer through its hook " +
       "and stakes so the player feels the cost, risk or opportunity rather than reading it off " +
       "a list.",
 
-    "Narrating a walk result: for skill/luck tests, resolution's rolls/total/target are for " +
-      "your own reasoning about pacing and tone, not something to recite — narrate the outcome, " +
-      "not the arithmetic. For combat, resolution.narrative (desire, fear, misconception, " +
-      "voice, non_combat_leverage, aftermath) should drive how the encounter talks and fights, " +
-      "not just how many stamina points changed. When effects_applied includes an add_item " +
-      "with a narrative block, narrate the item's origin and symbolic_role at the moment it's " +
-      "found, not just 'you gained X'. Never invent routes, items, facts or NPCs that aren't in " +
+    "Narrating a walk result: use route_resolution, when present, as the outcome's core " +
+      "narration — it's written for exactly this moment (success or failure, whichever " +
+      "happened). For skill/luck tests, resolution's rolls/total/target are for your own " +
+      "reasoning about pacing and tone, not something to recite — narrate the outcome, not the " +
+      "arithmetic. For combat, resolution.narrative (desire, fear, misconception, voice, " +
+      "non_combat_leverage, aftermath) should drive how the encounter talks and fights, not " +
+      "just how many stamina points changed. When effects_applied or arrival_effects_applied " +
+      "includes an add_item with a narrative block, narrate the item's origin and " +
+      "symbolic_role at the moment it's found, not just 'you gained X'; an add_knowledge entry " +
+      "with player_text works the same way — deliver that revelation in scene, once, rather " +
+      "than stating 'you now know X'. Never invent routes, items, facts or NPCs that aren't in " +
       "the tool output.",
 
     "If walk returns route_unavailable or a revision conflict, don't expose that as a system " +
