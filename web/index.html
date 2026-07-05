@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>The Dungeons Below the Rust Wind Hills</title>
+  <link rel="stylesheet" href="./style.css" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%9B%8F%EF%B8%8F%3C/text%3E%3C/svg%3E" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="masthead">
+      <h1 id="adventure-title">The Dungeons Below the Rust Wind Hills</h1>
+      <p id="adventure-subtitle" class="subtitle"></p>
+    </div>
+    <div class="header-actions">
+      <button id="restart-button" class="ghost-button" hidden>Start over</button>
+    </div>
+  </header>
+
+  <div id="loading" class="notice">Loading the adventure&hellip;</div>
+  <div id="load-error" class="notice error" hidden></div>
+
+  <section id="start-screen" hidden>
+    <div class="scene card intro-card">
+      <p id="intro-text"></p>
+      <p class="engine-note">This is the raw graph walk &mdash; the scripted read-aloud text, dice
+        and rules, without a live narrator embellishing each scene.</p>
+      <div class="start-actions">
+        <button id="begin-button" class="primary-button">Begin the delve</button>
+        <button id="continue-button" class="primary-button" hidden>Continue your delve</button>
+      </div>
+    </div>
+  </section>
+
+  <main id="game" hidden>
+    <div id="story" class="story"></div>
+    <aside id="sheet" class="sheet" aria-label="Character sheet"></aside>
+  </main>
+
+  <script type="module" src="./app.mjs"></script>
+</body>
+</html>
