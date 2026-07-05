@@ -34,6 +34,9 @@ src/
   functions/
     mcp.js             the one HTTP trigger: POST /api/mcp, anonymous, all tools live here
     health.js          anonymous GET /api/health readiness probe, used by CI and for ops
+web/                 static adventure-walking website — plays the graph in the browser
+  engine.mjs           browser port of src/engine as one dependency-free ES module
+  index.html/app.mjs/style.css   the UI: scenes, choices, dice, character sheet
 scripts/
   validate-adventure.js           audit script (same validation the app runs at startup)
   check-reachability.js           CI gate: deterministic BFS — every node reachable, no
@@ -42,6 +45,7 @@ scripts/
                                    ending coverage; only fails CI on an actual engine crash
   verify-functions-entrypoint.js  CI smoke gate: requires every src/functions/*.js file cold
   provision-azure.sh              one-shot resource group + storage + Function App bootstrap
+  serve-web.js                    zero-dependency static server for the website (npm run web)
 .github/workflows/
   main_func-rust-wind-hills-26487.yml  build, test, validate and Kudu-deploy on push to main
 test/                    node:test suite (in-memory store, scripted dice)
@@ -179,6 +183,36 @@ let a combat's `narrative` (desire/fear/misconception/voice) drive how it fights
 than just reporting stamina numbers, and narrate an item's `origin`/`symbolic_role` at
 the moment it's picked up. Raw ids, dice math, and JSON field names are for the caller's
 own reasoning, never for the player to see.
+
+## Website
+
+`web/` is a static, build-free client that walks the adventure in the browser — the
+same graph, rules and dice, without the LLM narrator layer the MCP server is built
+for. Scenes are the content's own text verbatim: `read_aloud` (with the same
+variant/first-visit/revisit selection the server does), `mandatory_exposition`,
+`rumour_delivery`, route `hook`/`stakes`, `route_resolution` on each step, and
+item/knowledge `player_text` at the moment of acquisition. Dice rolls, combat rounds,
+costs and stat changes are shown as plain mechanics. What a narrator would treat as
+subtext stays hidden from the player: `narrative.hidden_truth` and a knowledge
+revelation's `meaning` are never rendered.
+
+It runs on `web/engine.mjs`, a dependency-free ES-module port of `src/engine` —
+synchronous and storage-free (the run document autosaves to `localStorage`, so a
+delve survives a reload) but mechanically identical: costs spent on the attempt,
+`test.stat` read rather than inferred, luck tests always costing 1 luck, the death
+invariant, clamping, `one_time` consumption, and the same four availability checks
+and content-safety projections (no `failure_to`, `failure_effects` or visibility
+details ever reach the page). `test/web-engine.test.js` keeps the port honest by
+walking scripted-dice playthroughs in lockstep against `src/engine` and requiring
+identical nodes, resolutions and state at every step.
+
+```bash
+npm run web    # serves the repo root; open http://localhost:8123/web/
+```
+
+Any static host that serves the repository as-is (e.g. GitHub Pages) works too —
+the page fetches `../rust_wind_hills_adventure_knowledge_graph.json` relative to
+`/web/`, so no build step and no copying of the asset.
 
 ## Configuration
 
