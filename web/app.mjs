@@ -1,20 +1,24 @@
-// The website that walks the adventure. Plays the graph directly through
-// web/engine.mjs (the browser port of the game engine) — every scene is the
-// content's own read_aloud/exposition/rumour text and the engine's dice,
-// with no LLM narrator in the loop. The run document autosaves to
-// localStorage after every step so a delve survives a page reload.
+// The website that walks the adventure. Plays through the deployed MCP
+// server (web/mcpClient.mjs) — the exact same POST /api/mcp endpoint an LLM
+// client calls — so a delve here and a delve narrated by an LLM are the
+// same run engine and the same Azure Blob-backed state, not a local
+// simulation. Only a lightweight session (run_id, revision, status and a
+// cosmetic journal) autosaves to localStorage between visits; the adventure
+// itself lives entirely on the server.
 
-import { indexAdventure, newRun, getNode, walk, EngineError } from "./engine.mjs";
+import { indexAdventure, EngineError } from "./engine.mjs";
+import { createMcpClient } from "./mcpClient.mjs";
 
 const ASSET_URL = "../rust_wind_hills_adventure_knowledge_graph.json";
 
 let adventure;
-let runDoc = null;
+let mcp;
+let session = null; // { run_id, revision, status, journal: [{ from, to, success }] }
 
 const $ = (id) => document.getElementById(id);
 
 // DOM builder: children that are strings become text nodes, so all content
-// text is inert — nothing from the asset is ever parsed as HTML.
+// text is inert — nothing from the asset or the server is ever parsed as HTML.
 function el(tag, attrs = {}, ...children) {
   const node = document.createElement(tag);
   for (const [k, v] of Object.entries(attrs)) {
@@ -35,20 +39,23 @@ const prettify = (id) =>
     .replaceAll("_", " ")
     .replace(/\b\w/g, (c) => c.toUpperCase());
 
+// Versioned key: the session shape (run_id + revision, not a full game
+// state) is specific to the remote-server client, so bump this if that
+// shape ever changes rather than trying to migrate an old save.
 function saveKey() {
-  return `rust-wind-hills:run:${adventure.version}`;
+  return `rust-wind-hills:session:v1:${adventure.version}`;
 }
 
-function saveRun() {
+function saveSession() {
   try {
-    localStorage.setItem(saveKey(), JSON.stringify(runDoc));
+    localStorage.setItem(saveKey(), JSON.stringify(session));
   } catch {
     // Private browsing / full storage: the game still plays, it just won't
     // survive a reload.
   }
 }
 
-function loadSavedRun() {
+function loadSavedSession() {
   try {
     const raw = localStorage.getItem(saveKey());
     return raw ? JSON.parse(raw) : null;
@@ -57,7 +64,7 @@ function loadSavedRun() {
   }
 }
 
-function clearSavedRun() {
+function clearSavedSession() {
   try {
     localStorage.removeItem(saveKey());
   } catch {
@@ -160,7 +167,7 @@ function statDelta(effect) {
 // cost you and what changed.
 function stepCard(step, chosenRoute) {
   const card = el("div", { class: "step card" });
-  card.append(el("p", { class: "step-action", text: `▸ ${chosenRoute?.label ?? step.route_label ?? prettify(step.route_id)}` }));
+  card.append(el("p", { class: "step-action", text: `▸ ${chosenRoute?.label ?? prettify(step.route_id)}` }));
 
   for (const cost of step.costs_applied ?? []) {
     card.append(
@@ -309,6 +316,16 @@ function endingCard(view) {
   return card;
 }
 
+function errorCard(message) {
+  return el(
+    "div",
+    { class: "choices card stuck" },
+    el("h3", { text: "Something went wrong" }),
+    el("p", { text: message }),
+    el("button", { class: "primary-button", id: "error-retry", text: "Try again" })
+  );
+}
+
 // --------------------------------------------------------------- sheet ----
 
 function renderSheet(state) {
@@ -406,10 +423,10 @@ function renderSheet(state) {
     );
   }
 
-  const journal = el("details", { class: "journal" }, el("summary", { text: `Journal (${runDoc?.log.length ?? 0} steps)` }));
+  const journal = el("details", { class: "journal" }, el("summary", { text: `Journal (${session?.journal.length ?? 0} steps)` }));
   const list = el("ol");
-  for (const step of runDoc?.log ?? []) {
-    const outcome = step.resolution ? (step.resolution.success ? " ✓" : " ✗") : "";
+  for (const step of session?.journal ?? []) {
+    const outcome = step.success === undefined ? "" : step.success ? " ✓" : " ✗";
     list.append(el("li", { text: `${prettify(step.from)} → ${prettify(step.to)}${outcome}` }));
   }
   journal.append(list);
@@ -420,52 +437,115 @@ function renderSheet(state) {
 
 let lastStepAt = 0;
 
-function choose(route) {
-  // New choices render instantly, often under the pointer that just chose —
-  // swallow the second half of a double-click instead of walking twice.
+async function choose(route) {
+  // New choices render as soon as the response lands, often under the
+  // pointer that just chose — swallow the second half of a double-click
+  // instead of walking (and billing the server) twice.
   if (Date.now() - lastStepAt < 350) return;
   lastStepAt = Date.now();
   document.querySelectorAll(".choices .choice").forEach((b) => (b.disabled = true));
+
   let step;
   try {
-    step = walk(adventure, runDoc, route.id);
+    step = await mcp.walk(session.run_id, route.id, session.revision);
   } catch (e) {
-    document.querySelectorAll(".choices .choice").forEach((b) => (b.disabled = false));
-    if (e instanceof EngineError) {
-      // State and the page disagree (e.g. an old tab): re-sync from the run.
-      document.querySelector(".choices")?.remove();
-      renderChoices(getNode(adventure, runDoc));
-      return;
+    if (e instanceof EngineError && e.code === "revision_conflict") {
+      // Someone (another tab, an LLM client on the same run) moved this run
+      // since our last view — re-sync from the server's truth and let the
+      // player choose again rather than surfacing a raw error.
+      try {
+        const view = await mcp.getNode(session.run_id);
+        session.revision = view.revision;
+        session.status = view.status;
+        saveSession();
+        renderChoices(view);
+        return;
+      } catch {
+        // fall through to the generic error card below
+      }
     }
-    throw e;
+    document.querySelector(".choices")?.remove();
+    const card = errorCard(e instanceof EngineError ? e.message : "The adventure server didn't respond.");
+    storyAppend(card);
+    card.querySelector("#error-retry").addEventListener("click", () => {
+      card.remove();
+      choose(route);
+    });
+    return;
   }
-  saveRun();
+
+  session.revision = step.revision_after;
+  session.status = step.status;
+  session.journal.push({ from: step.from, to: step.to, success: step.resolution?.success });
+  saveSession();
   document.querySelector(".choices")?.remove();
   storyAppend(stepCard(step, route), sceneCard(step.node, { arrivalEffects: step.arrival_effects_applied }));
-  renderSheet(step.state);
+  renderSheet(step.state_after);
   renderChoices(step);
 }
 
-function beginNewRun() {
-  const { doc, result } = newRun(adventure);
-  runDoc = doc;
-  saveRun();
+async function beginNewRun() {
+  $("begin-button").disabled = true;
+  $("continue-button").disabled = true;
+  let started;
+  let view;
+  try {
+    started = await mcp.newRun(adventure.id);
+    // new_run doesn't include available_routes (an LLM caller is expected
+    // to follow it with get_node, per the tools' spec) — this is the one
+    // place the website does the same extra round trip.
+    view = await mcp.getNode(started.run_id);
+  } catch (e) {
+    $("begin-button").disabled = false;
+    $("continue-button").disabled = false;
+    const err = $("load-error");
+    err.hidden = false;
+    err.textContent = e instanceof EngineError ? e.message : "Could not reach the adventure server.";
+    return;
+  }
+  session = { run_id: started.run_id, revision: view.revision, status: view.status, journal: [] };
+  saveSession();
   showGame();
   $("story").replaceChildren();
-  if (result.opening_context) {
-    storyAppend(el("div", { class: "scene card opening" }, ...String(result.opening_context).split(/\n{2,}/).map((p) => el("p", { text: p }))));
+  if (started.opening_context) {
+    storyAppend(el("div", { class: "scene card opening" }, ...String(started.opening_context).split(/\n{2,}/).map((p) => el("p", { text: p }))));
   }
-  storyAppend(sceneCard(result.node, { arrivalEffects: result.arrival_effects_applied }));
-  renderSheet(result.state);
-  renderChoices(result);
+  storyAppend(sceneCard(view.node, { arrivalEffects: started.arrival_effects_applied }));
+  renderSheet(view.state);
+  renderChoices(view);
 }
 
-function resumeRun(saved) {
-  runDoc = saved;
+async function resumeRun(saved) {
+  session = saved;
   showGame();
-  const view = getNode(adventure, runDoc);
+  let view;
+  try {
+    view = await mcp.getNode(session.run_id);
+  } catch {
+    // The saved run is gone, mismatched or unreachable — start clean rather
+    // than getting stuck on a resume that can never succeed.
+    clearSavedSession();
+    return beginNewRun();
+  }
+  session.revision = view.revision;
+  session.status = view.status;
+  // A journal cached from a previous visit is kept as-is; a resume with
+  // none locally (a different device, or a save from before this field
+  // existed) is seeded from the server's own authoritative log.
+  if (session.journal.length === 0 && view.revision > 0) {
+    try {
+      const log = await mcp.getLog(session.run_id);
+      session.journal = log.log.map((step) => ({ from: step.from, to: step.to, success: step.resolution?.success }));
+    } catch {
+      // Cosmetic only — an empty journal is a fine fallback.
+    }
+  }
+  saveSession();
+  const steps = session.journal.length;
   $("story").replaceChildren(
-    el("div", { class: "scene card opening" }, el("p", { text: `You pick your delve back up where you left it, ${runDoc.log.length} step${runDoc.log.length === 1 ? "" : "s"} in. The journal on your character sheet remembers the way you came.` }))
+    el("div", { class: "scene card opening" }, el("p", {
+      text: `You pick your delve back up where you left it, ${steps} step${steps === 1 ? "" : "s"} in. The journal on your character sheet remembers the way you came.`,
+    }))
   );
   storyAppend(sceneCard(view.node));
   renderSheet(view.state);
@@ -473,10 +553,10 @@ function resumeRun(saved) {
 }
 
 function restart(confirmFirst = true) {
-  if (confirmFirst && runDoc?.status === "active" && runDoc.log.length > 0) {
+  if (confirmFirst && session?.status === "active" && session.journal.length > 0) {
     if (!window.confirm("Abandon this delve and start over?")) return;
   }
-  clearSavedRun();
+  clearSavedSession();
   beginNewRun();
 }
 
@@ -484,6 +564,7 @@ function showGame() {
   $("start-screen").hidden = true;
   $("game").hidden = false;
   $("restart-button").hidden = false;
+  $("load-error").hidden = true;
 }
 
 function showStartScreen(saved) {
@@ -496,7 +577,7 @@ function showStartScreen(saved) {
     $("continue-button").addEventListener("click", () => resumeRun(saved));
   }
   $("begin-button").addEventListener("click", () => {
-    clearSavedRun();
+    clearSavedSession();
     beginNewRun();
   });
 }
@@ -513,13 +594,14 @@ async function boot() {
     err.textContent = `Could not load the adventure asset (${e.message}). Serve this page from the repository — e.g. npm run web — so ${ASSET_URL} resolves.`;
     return;
   }
+  mcp = createMcpClient();
   $("loading").hidden = true;
   $("adventure-title").textContent = adventure.title;
   $("adventure-subtitle").textContent = adventure.subtitle ?? "";
   document.title = adventure.title;
   $("restart-button").addEventListener("click", () => restart(true));
 
-  const saved = loadSavedRun();
+  const saved = loadSavedSession();
   showStartScreen(saved && saved.status === "active" ? saved : null);
 }
 

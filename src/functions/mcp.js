@@ -79,22 +79,39 @@ const SERVER_INFO = {
   ].join("\n\n"),
 };
 
+// Anonymous, key-free and free of any secret in the response, so a wide-open
+// Allow-Origin matches this endpoint's existing access model — it lets the
+// browser-based adventure-walking website (web/) call it directly, cross-
+// origin, the same way an LLM's MCP client already does server-to-server
+// (where CORS never applied). Content-Type: application/json on the POST
+// makes every browser call preflighted, hence the explicit OPTIONS handler.
+const CORS_HEADERS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type",
+};
+
 // A single, plain HTTP endpoint that speaks MCP's JSON-RPC 2.0 protocol
 // directly (initialize / tools/list / tools/call), with every tool
 // consolidated under this one URL. Anonymous auth — no function key,
 // no Azure Functions MCP-extension system route. This mirrors the
 // Difference Engine / llm-library Functions apps' wiring pattern.
 app.http("mcp", {
-  methods: ["POST"],
+  methods: ["POST", "OPTIONS"],
   authLevel: "anonymous",
   route: "mcp",
   handler: async (request, context) => {
+    if (request.method === "OPTIONS") {
+      return { status: 204, headers: CORS_HEADERS };
+    }
+
     let message;
     try {
       message = await request.json();
     } catch {
       return {
         status: 400,
+        headers: CORS_HEADERS,
         jsonBody: { jsonrpc: "2.0", id: null, error: { code: -32700, message: "Parse error" } },
       };
     }
@@ -108,9 +125,9 @@ app.http("mcp", {
     });
 
     if (response === null) {
-      return { status: 202 };
+      return { status: 202, headers: CORS_HEADERS };
     }
-    return { status: 200, jsonBody: response };
+    return { status: 200, headers: CORS_HEADERS, jsonBody: response };
   },
 });
 
