@@ -3104,6 +3104,7 @@
           "amount": 2
         }
       ],
+      "one_time": true,
       "narrative": {
         "player_intent": "Buy the delver's pack and return",
         "dramatic_role": "Express player preference or state through movement and consequence.",
@@ -3207,6 +3208,7 @@
           "amount": 8
         }
       ],
+      "one_time": true,
       "narrative": {
         "player_intent": "Hire Pell Vane",
         "dramatic_role": "Express player preference or state through movement and consequence.",
