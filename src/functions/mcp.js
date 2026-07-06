@@ -3,18 +3,19 @@
 const path = require("node:path");
 const { app } = require("@azure/functions");
 
-const { loadAdventure } = require("../engine/adventure");
+const { loadAdventure, loadAdventures } = require("../engine/adventure");
 const { createEngine } = require("../engine/engine");
 const { BlobRunStore } = require("../storage/blobRunStore");
 const { buildTools } = require("../mcp/tools");
 const { handleMessage } = require("../mcp/protocol");
 
-// Static asset is loaded, hashed and validated once at startup; a broken
-// asset fails the host rather than failing mid-game.
-const assetPath =
-  process.env.ADVENTURE_ASSET_PATH ??
-  path.join(__dirname, "..", "..", "rust_wind_hills_adventure_knowledge_graph.json");
-const adventure = loadAdventure(assetPath);
+// Static assets are loaded, hashed and validated once at startup; a broken
+// asset fails the host rather than failing mid-game. The default is every
+// adventure in adventures/manifest.json; ADVENTURE_ASSET_PATH narrows the
+// deployment to a single asset (the original single-adventure contract).
+const adventures = process.env.ADVENTURE_ASSET_PATH
+  ? [loadAdventure(process.env.ADVENTURE_ASSET_PATH)]
+  : loadAdventures(path.join(__dirname, "..", "..", "adventures", "manifest.json"));
 
 const connectionString =
   process.env.ADVENTURE_STORAGE_CONNECTION_STRING ?? process.env.AzureWebJobsStorage;
@@ -25,22 +26,27 @@ if (!connectionString) {
 }
 const store = new BlobRunStore(connectionString);
 
-const tools = buildTools(adventure.id);
+const tools = buildTools(adventures);
 
 const SERVER_INFO = {
-  name: "rust-wind-hills",
-  version: adventure.version,
+  name: "graph-adventures",
+  version: "2.0.0",
   instructions: [
-    `Runs the Rust Wind Hills dungeon adventure (adventure_id: ${adventure.id}). Loop: ` +
-      "new_run to get a run_id, then repeat: get_node to read the current node, player state " +
-      "and available_routes, then walk with a chosen route_id and the revision get_node " +
-      "returned. new_run also returns opening_context once — open the very first response " +
-      "with it before describing the entry node.",
+    `Runs gamebook-style graph adventures — this deployment hosts: ${adventures
+      .map((a) => `${a.doc.graph.title} (adventure_id: ${a.id})`)
+      .join("; ")}. Call list_adventures to see each one's genre, tone and premise, and let ` +
+      "the player choose unless they already have. Loop: new_run with the chosen adventure_id " +
+      "to get a run_id, then repeat: get_node to read the current node, player state and " +
+      "available_routes, then walk with a chosen route_id and the revision get_node returned. " +
+      "new_run also returns opening_context once — open the very first response with it " +
+      "before describing the entry node.",
 
     "Every response should be rendered as immersive second-person narrative prose for the " +
-      "player, not surfaced as data. The tool output is structured story material for you to " +
-      "write a scene from — never paste raw JSON, field names, or mechanical labels verbatim, " +
-      "and never read out ids, costs arrays or dice math as if narrating a report.",
+      "player, not surfaced as data — in the voice and register of whichever adventure is " +
+      "being played (each declares its genre and tone). The tool output is structured story " +
+      "material for you to write a scene from — never paste raw JSON, field names, or " +
+      "mechanical labels verbatim, and never read out ids, costs arrays or dice math as if " +
+      "narrating a report.",
 
     "Narrating a node: open with node.read_aloud — the engine has already picked the right " +
       "text for you (a condition-matched variant if one applies, otherwise the correct choice " +
@@ -48,8 +54,8 @@ const SERVER_INFO = {
       "it or blend in text from an earlier visit. Present node.mandatory_exposition when it's " +
       "there, in your own words if read_aloud already implies it, rather than skipping it. " +
       "Weave in node.narrative's sensory_details, present_tension and local_history where they " +
-      "deepen the scene, and node.rumour_delivery's speaker/text pairs when narrating gossip at " +
-      "the Bent Nail Inn. hidden_truth (and a knowledge fact's meaning, see below) are for your " +
+      "deepen the scene, and node.rumour_delivery's speaker/text pairs when a node carries " +
+      "gossip. hidden_truth (and a knowledge fact's meaning, see below) are for your " +
       "own understanding of subtext, not something to state outright unless the story has " +
       "actually revealed it. Then offer the available routes as in-world choices: use each " +
       "route's label for the concrete selectable action, but voice the offer through its hook " +
@@ -116,7 +122,7 @@ app.http("mcp", {
       };
     }
 
-    const engine = createEngine({ adventure, store, log: (m) => context.log(m) });
+    const engine = createEngine({ adventures, store, log: (m) => context.log(m) });
     const response = await handleMessage(message, {
       tools,
       engine,
@@ -131,4 +137,4 @@ app.http("mcp", {
   },
 });
 
-module.exports = { adventure, tools };
+module.exports = { adventures, tools };

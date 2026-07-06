@@ -1,0 +1,1227 @@
+{
+  "schema": {
+    "name": "adventure-knowledge-graph",
+    "version": "0.1.0",
+    "description": "A stateful, directed knowledge graph for an urban-fantasy night under the city: the Unseelie Court's Hollow Market, where the currencies are silver, favours and candle-marks, and the prize is a stolen true name. Same executable rule DSL as every adventure on this platform."
+  },
+  "graph": {
+    "id": "hollow-market-tithe",
+    "title": "The Tithe of Hollow Market",
+    "subtitle": "An urban fantasy of unseelie bargains beneath a sleepless city",
+    "genre": ["urban fantasy", "fae", "unseelie court", "gamebook"],
+    "tone": ["eerie", "seductive", "bittersweet", "sharp"],
+    "entry_node": "night_bus_terminus",
+    "terminal_nodes": [
+      "ending_name_reclaimed",
+      "ending_bound_knight",
+      "ending_changeling_swap",
+      "ending_dawnlocked",
+      "ending_dead"
+    ],
+    "design_notes": [
+      "Favours are the fae economy: earned by selling pieces of yourself at the Broker of Hours, spent at the Pale Auction.",
+      "Candle-marks are the dawn clock; when they run out, only the free choices remain — and one of them is staying forever.",
+      "Cold iron is a skeleton key with a price: it opens the gaol and marks you 'hunted' in the same stroke.",
+      "Glamour is a real stat that real tests roll against, raised by fae goods rather than birthright.",
+      "Every ending except death is a bargain of some kind; the Court always gets something."
+    ],
+    "narrative_premise": "At three minutes past midnight your sister stopped answering to her own name — because the Unseelie Court took it, in settlement of a tithe your family forgot it owed. The Hollow Market under the city trades in exactly such goods. You have until dawn, a pocket of silver, a cold iron nail, and her hair ribbon. Buy the name back, steal it, or win it. The Court is patient. The candles are not.",
+    "core_mystery": "What did your family trade away seven years ago, and why does the Court want its debts settled tonight?",
+    "dramatic_question": "How much of yourself will you spend to buy back someone else?",
+    "hidden_truth": "The tithe was never your sister's to pay. It was yours: you were promised to the Court as a child, and she has spent seven years quietly outbidding them for you.",
+    "opening_context": {
+      "player_facing_introduction": "The last night bus doesn't appear in any timetable, and its driver never turns around. You ride it because tonight, at 00:03, your sister looked at you across the kitchen and could not remember what she was called — and because the old woman downstairs, who keeps salt on every windowsill, pressed a cold iron nail into your hand and said: 'Hollow Market. Below the city. Bring silver, take nothing free, thank no one, and be out by dawn.' The bus is slowing now, at a stop that isn't one. The doors open onto an alley you have walked past a thousand times and never once seen."
+    }
+  },
+  "ruleset": {
+    "mode": "single_player_gamebook",
+    "player_state": {
+      "stats": {
+        "skill": { "type": "integer", "min": 1, "max": 12, "initial": 8 },
+        "stamina": { "type": "integer", "min": 0, "max": 24, "initial": 16 },
+        "luck": { "type": "integer", "min": 0, "max": 12, "initial": 8 },
+        "glamour": { "type": "integer", "min": 0, "max": 10, "initial": 2 }
+      },
+      "resources": {
+        "silver": { "type": "integer", "min": 0, "initial": 12 },
+        "favours": { "type": "integer", "min": 0, "initial": 0 },
+        "candle_marks": { "type": "integer", "min": 0, "initial": 10 }
+      },
+      "collections": {
+        "inventory": { "type": "set", "initial": ["cold_iron_nail", "sisters_ribbon"] },
+        "conditions": { "type": "set", "initial": [] },
+        "knowledge": { "type": "set", "initial": [] }
+      },
+      "flags": {
+        "oath_status": { "type": "enum", "values": ["unsworn", "sworn", "twisted"], "initial": "unsworn" },
+        "court_standing": { "type": "enum", "values": ["unnoticed", "marked", "favoured", "hunted"], "initial": "unnoticed" },
+        "name_located": { "type": "boolean", "initial": false },
+        "name_recovered": { "type": "boolean", "initial": false }
+      }
+    },
+    "condition_dsl": {
+      "operators": [
+        "has_item", "missing_item", "flag_is", "flag_not", "stat_at_least", "stat_below",
+        "resource_at_least", "has_condition", "missing_condition", "knows", "not_knows"
+      ],
+      "combination": "All conditions on a route must pass unless the route uses an explicit any block."
+    },
+    "effect_dsl": {
+      "operators": [
+        "add_item", "remove_item", "set_flag", "modify_stat", "modify_resource",
+        "add_condition", "remove_condition", "add_knowledge", "emit_event"
+      ]
+    },
+    "test_dsl": {
+      "types": ["skill", "luck", "combat"],
+      "notes": "2d6 against stat plus modifier; luck tests always spend 1 luck; combat runs rounds against an encounter's skill and stamina. Glamour is a legal test stat like any other."
+    }
+  },
+  "regions": [
+    {
+      "id": "threshold",
+      "name": "The Thin Places",
+      "depth": 0,
+      "theme": "the city's seams, where the mortal side wears through",
+      "narrative": {
+        "surface_read": "A bus terminus, an alley, a chalk mark: infrastructure nobody claims.",
+        "deeper_truth": "Thresholds belong to whoever pays their upkeep, and the Court has been paying for centuries.",
+        "dramatic_function": "Cross the player over gently, then close the door behind them.",
+        "sensory_palette": ["diesel and wet lime blossom", "flickering sodium light", "chalk dust", "night air that tastes of pennies"]
+      }
+    },
+    {
+      "id": "hollow_market",
+      "name": "The Hollow Market",
+      "depth": 1,
+      "theme": "commerce as enchantment, enchantment as commerce",
+      "narrative": {
+        "surface_read": "A vaulted underground market of impossible stalls, lit by candles that burn down instead of out.",
+        "deeper_truth": "Everything here was somebody's once: the goods are keepsakes, the currencies are pieces of people, and the stallholders remember every sale forever.",
+        "dramatic_function": "Seduce and threaten in the same breath; make every purchase feel like a small autobiography.",
+        "sensory_palette": ["beeswax and crushed violets", "silver bells with no strikers", "moth wings against glass", "cold stone underfoot, warm air above"]
+      }
+    },
+    {
+      "id": "court_deep",
+      "name": "The Deep Court",
+      "depth": 2,
+      "theme": "the Unseelie Court at home: beauty with its teeth showing",
+      "narrative": {
+        "surface_read": "Thorn galleries, a mirror-black canal, a gaol built under a staircase that goes nowhere.",
+        "deeper_truth": "The Court's cruelty is not malice; it is bookkeeping. Every debt is real to them, and so is every payment.",
+        "dramatic_function": "Raise the stakes from shopping to sovereignty; the Queen's hall is where all bargains converge.",
+        "sensory_palette": ["thorn shadow", "still black water", "cold that smells of sloe berries", "a hush that listens back"]
+      }
+    }
+  ],
+  "items": [
+    {
+      "id": "cold_iron_nail",
+      "name": "Cold Iron Nail",
+      "type": "talisman",
+      "description": "A square-cut nail from a demolished church door, cold in the hand at any temperature. The fae cannot touch it, cannot abide it, and cannot forgive it.",
+      "traits": ["iron", "anathema", "single_use_in_practice"],
+      "narrative_semantics": {
+        "origin": "Pressed into your hand by the old woman downstairs, who has been to the Market once and come back once, which is the best ratio anyone manages.",
+        "symbolic_role": "The mortal veto: the one word in the Court's language that mortals can pronounce.",
+        "world_revelation": "Iron does not break fae law — it is outside it, which is far worse.",
+        "linked_threads": ["thread_iron_and_law"],
+        "linked_motifs": ["motif_cold_iron"]
+      }
+    },
+    {
+      "id": "sisters_ribbon",
+      "name": "Your Sister's Hair Ribbon",
+      "type": "keepsake",
+      "description": "Faded blue, frayed at one end, smelling faintly of her shampoo. It still remembers her, even if she no longer remembers herself.",
+      "traits": ["keepsake", "sympathetic_link", "priceless_and_worthless"],
+      "narrative_semantics": {
+        "origin": "You took it from the kitchen table where she left it, the night her name went out of her like a tide.",
+        "symbolic_role": "What love looks like as an object: no market value, infinite leverage.",
+        "world_revelation": "Sympathy is a real force under the city; things that belong to a person can find that person.",
+        "linked_threads": ["thread_the_tithe"],
+        "linked_motifs": ["motif_names_and_ribbons"]
+      }
+    },
+    {
+      "id": "jar_of_first_frost",
+      "name": "Jar of First Frost",
+      "type": "consumable",
+      "description": "A preserve jar holding the exact cold of the year's first frost, sealed with wax the colour of November. Broken over the eyes, it teaches them to see what is actually there.",
+      "traits": ["fae_goods", "consumable", "sight"],
+      "narrative_semantics": {
+        "origin": "Harvested by the Pale Auctioneer's collectors from a park lawn at 4 a.m., along with everything the frost had settled on.",
+        "symbolic_role": "Clarity is for sale here, like everything else, and it stings like everything true.",
+        "world_revelation": "Glamour is not innate; it is a skill of seeing, and it can be bought, taught, or stolen.",
+        "linked_threads": ["thread_glamour_trade"],
+        "linked_motifs": ["motif_candles_and_frost"]
+      }
+    },
+    {
+      "id": "thorn_key",
+      "name": "Thorn Key",
+      "type": "key",
+      "description": "A blackthorn twig that has decided, with some ceremony, to be a key. It fits any lock the Court owns and reports every use to somebody.",
+      "traits": ["fae_goods", "key", "watched"],
+      "narrative_semantics": {
+        "origin": "Grown, not forged: the Court's locks and keys are cuttings from the same hedge.",
+        "symbolic_role": "Permission, purchased — with the Court's knowledge and therefore on the Court's terms.",
+        "world_revelation": "There is no burglary in the Deep Court, only invitations you paid for without reading.",
+        "linked_threads": ["thread_the_tithe"],
+        "linked_motifs": ["motif_thorns"]
+      }
+    },
+    {
+      "id": "moth_lantern",
+      "name": "Moth Lantern",
+      "type": "trade_goods",
+      "description": "A glass lantern in which a single grey moth circles a candle flame forever, never burning. The Moth-Keeper has wanted it back for two hundred years.",
+      "traits": ["fae_goods", "trade_goods", "coveted"],
+      "narrative_semantics": {
+        "origin": "Stolen from the Moth-Keeper's own stall by the Pale Auctioneer, as a joke that has outlived several of its witnesses.",
+        "symbolic_role": "The Market's oldest grudge, portable and for sale.",
+        "world_revelation": "The stallholders' feuds are older than the city above, and a mortal who reads them can spend them like coin.",
+        "linked_threads": ["thread_market_feuds"],
+        "linked_motifs": ["motif_candles_and_frost"]
+      }
+    },
+    {
+      "id": "sisters_true_name",
+      "name": "Your Sister's True Name",
+      "type": "prize",
+      "description": "A small braid of sound and candlelight, kept in a stoppered inkwell. It weighs nothing and everything. Through the glass, faintly, you can hear her laughing at a joke you told when you were nine.",
+      "traits": ["prize", "unique", "fragile"],
+      "narrative_semantics": {
+        "origin": "Taken at 00:03 by the Court's collectors, in settlement of a tithe recorded in the teind ledger under a date seven years old.",
+        "symbolic_role": "A person's selfhood as portable property: the Court's entire moral universe in one object.",
+        "world_revelation": "Names can be owed, seized, pawned and redeemed; the Court is, above all else, a creditor.",
+        "linked_threads": ["thread_the_tithe"],
+        "linked_motifs": ["motif_names_and_ribbons"]
+      }
+    }
+  ],
+  "encounters": [
+    {
+      "id": "barghest_tollhound",
+      "name": "The Tollhound",
+      "kind": "guardian_beast",
+      "skill": 8,
+      "stamina": 9,
+      "special": "A barghest the size of a doorway, employed rather than owned. It accepts tolls, respects oaths, and despises queue-jumpers.",
+      "narrative_semantics": {
+        "desire": "To do its job perfectly forever; the Tollhound is the only honest broker in the Market.",
+        "fear": "Cold iron — not the pain, the paperwork.",
+        "misconception": "It believes every mortal knows the toll rules and is therefore always cheating on purpose.",
+        "voice": "It does not speak. Its growl has clauses.",
+        "non_combat_leverage": ["silver paid promptly", "oaths sworn properly", "genuine respect for procedure"],
+        "aftermath": "Fought or paid, the Tollhound remembers you exactly and forever, without resentment or mercy."
+      }
+    },
+    {
+      "id": "knight_of_thorns",
+      "name": "The Knight of Thorns",
+      "kind": "unseelie_champion",
+      "skill": 10,
+      "stamina": 11,
+      "special": "The Queen's duellist: armour of blackthorn, a sword like a February wind. It has never lost, and it is politely curious about what that would feel like.",
+      "narrative_semantics": {
+        "desire": "A worthy defeat, someday, to make the centuries of victory mean something.",
+        "fear": "That it has become a formality — that no one truly fights it any more.",
+        "misconception": "It believes mortals fight hardest for their own lives. They fight hardest for other people's.",
+        "voice": "Old-fashioned courtesy, genuinely meant; it will compliment your footwork while it kills you.",
+        "non_combat_leverage": ["formal challenge etiquette", "the Queen's explicit word", "cold iron, dishonourably"],
+        "aftermath": "To fight the Knight and live is to be someone in the Deep Court, whatever else you are."
+      }
+    }
+  ],
+  "nodes": [
+    {
+      "id": "night_bus_terminus",
+      "type": "start",
+      "region": "threshold",
+      "title": "The Terminus That Isn't",
+      "summary": "The unnumbered night bus deposits you at a stop that exists only at night, at the mouth of an alley you've never been able to see.",
+      "tags": ["start", "threshold"],
+      "knowledge_grants": ["rule_of_names"],
+      "read_aloud": "The bus sighs away into the dark, and its light goes with it in a way light shouldn't. You are standing at a terminus with one bench, one timetable frame holding no timetable, and one streetlamp that flickers in a rhythm your heartbeat keeps trying to match. Ahead, between a shuttered kebab shop and a bank that closed in another decade, an alley opens that was never there in daylight. Chalk marks climb its bricks like ivy. The old woman's rules replay in your head, in her exact voice: bring silver. Take nothing free. Thank no one. Never — never — give your whole name.",
+      "read_aloud_revisit": "The terminus again: the bench, the empty timetable, the patient lamp. There is no bus due. There is no bus at all, until dawn does or doesn't come for you.",
+      "narrative": {
+        "local_history": "Every city keeps a few stops like this one, serviced by a route the depot doesn't own. Drivers transfer onto it by mistake exactly once.",
+        "present_tension": "The alley is open tonight because the Court wants tonight's business to happen.",
+        "hidden_truth": "The bus was sent for you specifically. It has your family's account number painted under the paint.",
+        "sensory_details": ["diesel fading into lime blossom", "chalk dust on the wind", "the lamp's flicker syncing to your pulse"],
+        "emotional_undertone": "The held breath before a door you can't unknock."
+      }
+    },
+    {
+      "id": "chalk_door_alley",
+      "type": "threshold",
+      "region": "threshold",
+      "title": "The Chalk Door",
+      "summary": "At the alley's end, a door drawn in chalk stands ajar in a brick wall, and something the size of a doorway is waiting beside it for the toll.",
+      "tags": ["threshold", "toll"],
+      "read_aloud": "The alley narrows as you walk it, or you widen; it's hard to say. At its end, drawn on sooty brick in white chalk, is a door — and the door is ajar, which chalk has no business being. Beside it sits the Tollhound: a black dog built to the scale of the doorway, eyes like banked coals, patient as an invoice. It does not growl. It simply looks at your hands, your pockets, and your intentions, in that order. The toll, you understand without words, may be paid in silver, in promises, or — its gaze rests on you a moment longer — the hard way.",
+      "read_aloud_revisit": "The chalk door stands ajar as before. The Tollhound tracks your approach with the calm of a creature that has already filed you under a heading it finds neither surprising nor interesting.",
+      "narrative": {
+        "local_history": "The chalk is renewed nightly by somebody nobody has ever caught doing it. Rain does not touch it.",
+        "present_tension": "The Tollhound is fair, which is not at all the same as kind.",
+        "hidden_truth": "The toll is a filter, not a fee: the Court only wants visitors who are already willing to pay for things.",
+        "sensory_details": ["chalk lines brighter than the light allows", "coal-glow eyes blinking sideways", "warm air breathing out through the door's gap"],
+        "emotional_undertone": "A border crossing where the guard reads souls instead of passports."
+      }
+    },
+    {
+      "id": "hollow_market_gallery",
+      "type": "hub",
+      "region": "hollow_market",
+      "title": "The Hollow Market",
+      "summary": "A vaulted gallery of impossible stalls under the city: candle chandeliers, silver bells, and commerce in things people didn't know they could sell.",
+      "tags": ["hub", "commerce"],
+      "read_aloud": "The door opens onto a market that the city above has been standing on, unknowing, for a thousand years. Vaulted brick recedes in every direction, hung with chandeliers of candles that burn downward in slow, deliberate marks — the only clocks here, and everyone watches them. Stalls crowd the gallery: bottled weather, regrets by the yard, shoes for roads not taken. The stallholders are beautiful the way knives are. Somewhere in this glittering warren, in a ledger or a gaol or a sleeve, is your sister's name. The candles burn down. The Market smiles at you with all its teeth and calls you, fondly, custom.",
+      "read_aloud_revisit": "The gallery again: bells, beeswax, the same slow arithmetic of candlelight. A stallholder you don't remember waves as if it remembers you, which it does, and always will.",
+      "read_aloud_variants": [
+        {
+          "conditions": [{ "op": "flag_is", "flag": "court_standing", "value": "hunted" }],
+          "priority": 10,
+          "text": "The Market has changed key. The bells still ring but the ringing follows you; conversations resume a half-beat after you pass. Iron has been used tonight, says the silence between the stalls, and every beautiful face that turns your way knows exactly whose hand held it. The candles burn down. Nobody sells to the hunted at the old prices."
+        }
+      ],
+      "rumour_delivery": [
+        {
+          "speaker": "A stallholder selling bottled arguments",
+          "text": "The teind ledger came out this evening, dearie. First time in seven years. Somebody's account is being settled to the last drop.",
+          "truth_status": "true"
+        },
+        {
+          "speaker": "A child with silver eyes, holding no stall at all",
+          "text": "The Moth-Keeper knows where every taken name is kept. Ask it nicely. Or ask it usefully — nicely is cheaper but slower.",
+          "truth_status": "true"
+        },
+        {
+          "speaker": "Two identical twins, alternating words",
+          "text": "The Queen — of Wents — is holding — audiences. She likes — mortals — this season. Last season — she collected — them.",
+          "truth_status": "true_but_menacing"
+        }
+      ],
+      "narrative": {
+        "local_history": "The Market predates the city; the city was built on it the way a table is built over a cellar, and for similar reasons.",
+        "present_tension": "Word of the reopened teind ledger has every stallholder watching you trade.",
+        "hidden_truth": "The Market's affection for you is real. It is the affection of a spider for a moth with excellent credit.",
+        "sensory_details": ["candle-marks dripping in unison", "silver bells with no strikers, ringing anyway", "crushed violets underfoot where no violets are"],
+        "emotional_undertone": "Enchantment with a running meter."
+      }
+    },
+    {
+      "id": "pale_auction",
+      "type": "market",
+      "region": "hollow_market",
+      "title": "The Pale Auction",
+      "summary": "The Market's high table: an auctioneer the colour of moonlight sells keys, frost and grudges to whoever can pay in favours.",
+      "tags": ["commerce", "auction"],
+      "read_aloud": "The Pale Auctioneer conducts business from a rostrum of stacked birdcages, gavel poised, skin the exact colour of moonlight on paper. Before it, on velvet: a blackthorn twig that is obviously a key, a preserve jar furred inside with frost, a lantern in which a grey moth circles a flame forever. 'Favours preferred,' the Auctioneer says, to you specifically, though you haven't spoken. 'Silver accepted, from mortals, at mortal rates. Souls refused — ' a papery sigh, ' — since the regulations.'",
+      "read_aloud_revisit": "The birdcage rostrum, the velvet, the gavel that has never once been brought down in anger. The Pale Auctioneer inclines its head a precise three degrees: a returning customer is a kept promise.",
+      "narrative": {
+        "local_history": "The Auction has been held nightly since before the word 'auction'; the birdcages once held the lots.",
+        "present_tension": "The Auctioneer knows why you're here and prices accordingly — not cruelly, just accurately.",
+        "hidden_truth": "The moth lantern is stolen goods, and the Auctioneer displays it partly as an insult to the Moth-Keeper and partly as bait for exactly the kind of go-between you could be.",
+        "sensory_details": ["velvet worn to a map of centuries of lots", "the gavel's shadow moving before the gavel", "frost creaking inside the jar like a small opinion"],
+        "emotional_undertone": "Elegance doing arithmetic on you."
+      }
+    },
+    {
+      "id": "broker_of_hours",
+      "type": "market",
+      "region": "hollow_market",
+      "title": "The Broker of Hours",
+      "summary": "A stall of scales and hourglasses where the fae currency is minted: memories, luck and time, exchanged for favours at the night's posted rate.",
+      "tags": ["commerce", "exchange"],
+      "read_aloud": "The Broker's stall is all scales: brass scales, bone scales, a set of golden ones that weigh nothing you can see. The Broker itself is shaped like a bank clerk remembered from a dream — visor, sleeve garters, too many knuckles. 'Favours, favours,' it says, in a voice like a ledger closing. 'The Market runs on them and mortals arrive so poor. Happily — ' every scale on the stall tilts toward you at once, ' — you are carrying value. Bright memories. Unspent luck. The Broker gives fair rates. The Broker gives, above all, receipts.'",
+      "read_aloud_revisit": "The scales tilt toward you as one, hopeful as dogs. The Broker's visor lifts: 'More value to realise? The rates have not moved. The rates never move. That is what makes them the rates.'",
+      "narrative": {
+        "local_history": "Every favour in the Market was minted here or is counterfeit; the Broker's receipts are the closest thing the Court has to scripture.",
+        "present_tension": "Selling to the Broker is safe, painless and permanent, which is the trap in three words.",
+        "hidden_truth": "The Broker holds your family's old account. It recognised you the moment you walked in, and it is contractually forbidden to say so unless asked in the correct words.",
+        "sensory_details": ["hourglasses running sideways", "the scratch of a nib recording things you haven't said yet", "receipts filed under headings like FONDNESS, MISCELLANEOUS"],
+        "emotional_undertone": "The gentlest violence in the Market: a fair price for irreplaceable things."
+      }
+    },
+    {
+      "id": "moth_keepers_stall",
+      "type": "encounter",
+      "region": "hollow_market",
+      "title": "The Moth-Keeper's Stall",
+      "summary": "A tent of grey wings where the Market's oldest archivist trades in locations, secrets and riddles — and mourns one stolen lantern.",
+      "tags": ["information", "riddles"],
+      "read_aloud": "The stall is a tent, and the tent is moths: thousands upon thousands of grey wings, folded into the shape of a pavilion, shivering in unison when you speak. Inside, the Moth-Keeper sits at a desk of stacked atlases — a figure of dust and patience with eyes like pinholes into a lit room. 'Everything that is kept somewhere,' it says, 'is written somewhere. I keep the somewheres. You want a name's. Names are expensive somewheres. You may pay in riddles answered — ' the tent shivers, ' — or in kindnesses I have wanted for two hundred years.'",
+      "read_aloud_revisit": "The tent of wings parts for you again. The Moth-Keeper does not look up: 'The somewhere you want has not moved. Somewheres rarely do. That is the whole point of them.'",
+      "narrative": {
+        "local_history": "The Moth-Keeper indexed the Market before the Court arrived and will index whatever comes after; archivists outlast dynasties.",
+        "present_tension": "It genuinely wants its lantern back, and everyone in the Market knows it, and no one will carry the insult of returning it except an outsider.",
+        "hidden_truth": "The Moth-Keeper knows the whole truth about your family's tithe — the ledger passed across its desk seven years ago — but no one has ever asked it the right question.",
+        "sensory_details": ["wingbeats like a held breath", "atlas pages turning themselves to be helpful", "dust that settles upward"],
+        "emotional_undertone": "Loneliness wearing the uniform of knowledge."
+      }
+    },
+    {
+      "id": "understair_gaol",
+      "type": "challenge",
+      "region": "court_deep",
+      "title": "The Gaol Under the Stair",
+      "summary": "Beneath a staircase that climbs to nowhere, the Court keeps its seized goods: shelves of stoppered inkwells, each one a person's name.",
+      "tags": ["heist", "prize"],
+      "read_aloud": "The staircase rises grandly into solid rock — steps worn by centuries of no one — and beneath it, where a cupboard would be in a mortal house, the Court keeps its gaol. Not for people: for what it takes from them. Shelf upon shelf of stoppered inkwells recede under the stair's slope, each glowing faintly with a different pulse, each labelled in thorn-writing. From one of them, close enough to find by feel, comes a sound you have known your whole life: your sister, laughing at a joke you told when you were nine. Between you and the shelves stands a gate of grown blackthorn, and its lock is a knot of living wood.",
+      "read_aloud_revisit": "The gaol under the stair, the shelves, the pulse of stoppered lives. Her laughter reaches you again through the glass, patient and nine years old forever.",
+      "narrative": {
+        "local_history": "The gaol was a wine cellar when the Court was young; the racks were never rebuilt, only repurposed. Some of the oldest inkwells no longer have living owners, and glow anyway.",
+        "present_tension": "The gate reports. Everything in the Deep Court reports.",
+        "hidden_truth": "Two shelves down from your sister's inkwell is an older one, labelled in the same family hand. It has your name on it — the one you were promised under, as a child. It is empty, and waiting.",
+        "sensory_details": ["inkwells pulsing out of rhythm like a ward of heartbeats", "thorn-writing that rearranges when read", "her laugh, smaller than glass"],
+        "emotional_undertone": "A library of thefts, one of which is yours."
+      }
+    },
+    {
+      "id": "thorn_court",
+      "type": "encounter",
+      "region": "court_deep",
+      "title": "The Court of Wents",
+      "summary": "The Unseelie Queen holds audience in a hall of woven blackthorn, granting exactly what is asked for, at exactly its price.",
+      "tags": ["audience", "pivotal"],
+      "mandatory_exposition": {
+        "purpose": "Make the Court's bargaining law explicit before any bargain is struck.",
+        "text": "The Court of Wents grants petitions. That is not mercy — it is policy. Whatever the Queen gives, she prices, and the price is always something she wants more than the thing she gave. Nothing here is a trick except the whole arrangement."
+      },
+      "read_aloud": "The hall is grown, not built: blackthorn woven into vaults and galleries, white blossom falling upward like slow snow. Courtiers line the walls with faces you would follow off a bridge. And on a throne of thorn and February sits the Queen of Wents — beautiful the way a cliff edge is, crowned in sloe berries, her eyes the exact dark of the hour your sister lost her name. 'A mortal,' she says, and the blossom pauses mid-fall. 'With iron in one pocket and love in the other. Approach. The Court hears petitions. The Court is famous for it.'",
+      "read_aloud_revisit": "The blossom resumes its upward snow as you enter. The Queen of Wents watches you cross the hall with the patience of winter: whatever you have come back to say, she has been expecting it since before you thought of it.",
+      "narrative": {
+        "local_history": "Went is the old word for a way, a crossing: the Queen rules every path between the mortal city and the Market, which is why every path eventually leads here.",
+        "present_tension": "The courtiers are wagering — openly, in favours — on which of the classic petitions you will make.",
+        "hidden_truth": "The Queen reopened your family's tithe deliberately, tonight, because the sister who has outbid the Court for you for seven years has nearly paid off your debt — and the Queen would rather have you.",
+        "sensory_details": ["blossom falling upward past your face", "sloe-dark eyes that hold no reflections", "courtiers' wagers clicking like knitting"],
+        "emotional_undertone": "Absolute power being scrupulously, terribly fair."
+      }
+    },
+    {
+      "id": "mirror_canal",
+      "type": "challenge",
+      "region": "court_deep",
+      "title": "The Mirror Canal",
+      "summary": "A dead-still waterway crosses the Deep Court; its surface reflects not you, but the you the Court would prefer. A shortcut for those with the sight to walk it.",
+      "tags": ["shortcut", "hazard"],
+      "read_aloud": "The canal lies black and absolutely still, a stripe of night cut through the Court's stone. There is a path along it, and the path is a lie: the true walkway runs where the water pretends to be. Your reflection stands on the surface, looking up at you — dressed a little better than you are, smiling a little more easily, holding out a hand. Walking the canal means trusting your own sight against its. The frost-taught eyes of the glamoured cross in a minute. Everyone else feeds the water a little of themselves for the privilege of being lost.",
+      "read_aloud_revisit": "The canal is still exactly, insultingly still. Your reflection has been waiting. It looks slightly more like you than it did before, which you decide not to think about.",
+      "narrative": {
+        "local_history": "The canal was the Market's first road; the Court paved it with reflection when mortals learned it too well.",
+        "present_tension": "Your reflection is patient and improving.",
+        "hidden_truth": "What the water takes from failed crossings is not blood but resemblance; the reflection is a slow portrait of everyone who ever fell in.",
+        "sensory_details": ["water without one ripple in living memory", "your reflection's clothes, subtly finer", "cold rising off the surface like a held note"],
+        "emotional_undertone": "Vertigo standing perfectly still."
+      }
+    },
+    {
+      "id": "iron_footbridge",
+      "type": "refuge",
+      "region": "court_deep",
+      "title": "The Iron Footbridge",
+      "summary": "A Victorian iron footbridge, swallowed whole by the underground long ago: neutral ground the fae cannot set foot on, where a mortal can breathe.",
+      "tags": ["refuge", "rest"],
+      "read_aloud": "The city above once dropped a whole iron footbridge down here — subsidence, said the newspapers; housekeeping, says the Court — and it lies where it fell, spanning a dry channel, riveted and rusting and utterly out of place. No stall stands within twenty feet of it. No courtier looks directly at it. When you step onto the iron, the Market's music thins like fog, and for the first time since the chalk door your thoughts arrive in your own voice, in your own order.",
+      "read_aloud_revisit": "The footbridge takes your weight with a mortal, engineered honesty. Out beyond its railings the Market glitters and schemes; here on the iron there is only rust, and quiet, and you.",
+      "narrative": {
+        "local_history": "The Court could have the bridge hauled away, but leaves it: even the fae find it useful that mortals have somewhere to stop panicking.",
+        "present_tension": "Rest is real here, and the candles burn down anyway.",
+        "hidden_truth": "The old woman downstairs slept two nights on this bridge, once. Her initials are scratched under the rail, next to older initials in the same family hand as yours.",
+        "sensory_details": ["rust flaking like dried leaves", "rivets cold and factual under your palm", "the Market's music arriving thin, as if through glass"],
+        "emotional_undertone": "The relief of standing on something that obeys physics."
+      }
+    },
+    {
+      "id": "dawn_stairs",
+      "type": "threshold",
+      "region": "court_deep",
+      "title": "The Dawn Stairs",
+      "summary": "The way out: a spiral stair that climbs toward a coin of grey morning light. What you carry up it, you keep. What you haven't finished, stays.",
+      "tags": ["threshold", "endgame"],
+      "read_aloud": "At the Market's far edge a stair spirals upward around a column of grey, growing light — actual morning, actual sky, a coin of it far above, getting slowly brighter. The stallholders do not look at the Dawn Stairs; dawn is the one competitor they cannot undercut. The rules here are courteously displayed on a slate, in chalk, in every language you have ever almost learned: WHAT YOU CARRY, YOU KEEP. WHAT YOU OWE, KEEPS YOU.",
+      "read_aloud_revisit": "The coin of sky at the stairhead is brighter than it was. The slate's chalk rules have not changed, and will not: the Dawn Stairs are the only stall in the Market that never haggles.",
+      "read_aloud_variants": [
+        {
+          "conditions": [
+            { "op": "has_item", "item": "sisters_true_name" },
+            { "op": "flag_is", "flag": "court_standing", "value": "hunted" }
+          ],
+          "priority": 10,
+          "text": "The stair rises toward its coin of morning — and on its third turn, unhurried as frost, stands the Knight of Thorns. Blackthorn armour, February sword, and a courtesy so old it predates apology. 'You carry seized property of the Court,' it says, with real regret, 'and you carried iron under our roof. I am the invoice. I am so very rarely paid in full.'"
+        }
+      ],
+      "narrative": {
+        "local_history": "The stairs predate the Court and possibly the dawn; even the Queen's writ ends at the third step.",
+        "present_tension": "The light above is a deadline made visible.",
+        "hidden_truth": "The slate's second rule is the operative one. What you owe keeps you — and your family's account, tonight, is the oldest one open.",
+        "sensory_details": ["grey light on worn stone", "chalk rules refreshing themselves as you read", "morning air reaching down like a hand"],
+        "emotional_undertone": "The exit, pricing you as you approach."
+      }
+    },
+    {
+      "id": "ending_name_reclaimed",
+      "type": "ending",
+      "region": "threshold",
+      "title": "Her Name, Coming Home",
+      "summary": "You carry your sister's name up into the morning and pour it back where it belongs. The Court's ledger closes — this page of it, anyway.",
+      "tags": ["ending", "triumph"],
+      "read_aloud": "Dawn takes you the way water takes a swimmer: all at once, and colder than expected, and then you are standing in an ordinary alley in an ordinary morning with an inkwell full of laughter in your hands. Your sister is at the kitchen table when you get home, staring at her tea as if it belongs to someone else. You unstopper the inkwell. It is not dramatic. She looks up — and she is there in the looking, all of her, arriving in her own eyes like a light coming on in a house you thought was empty. She says your name. You are very careful, for the rest of your life, about who else you let say it. On the windowsill, where you will find it years from now, someone has left a single sloe berry and a receipt marked PAID IN FULL — ONE FAVOUR OUTSTANDING.",
+      "narrative": {
+        "local_history": "Mortals do come back from the Market with what they went for. The stallholders speak of them the way anglers speak of the fish that won.",
+        "present_tension": "Spent — except for one receipt's postscript.",
+        "hidden_truth": "The outstanding favour is real, and the Court's memory is geological. But that is another night's adventure.",
+        "sensory_details": ["tea going cold, forgotten, for the best reason", "her name sounding new in the kitchen", "a sloe berry, dark as a kept eye, on the sill"],
+        "emotional_undertone": "Joy, with one thorn left in it."
+      }
+    },
+    {
+      "id": "ending_bound_knight",
+      "type": "ending",
+      "region": "court_deep",
+      "title": "Seven Years of Thorns",
+      "summary": "You swear the Queen's service in exchange for your sister's name. She wakes whole. You wake in armour.",
+      "tags": ["ending", "bittersweet"],
+      "read_aloud": "The Queen does not smile when you swear; the Court of Wents takes oaths too seriously for that. The words go out of you like teeth and stand in the air, visible, articled, permanent. Somewhere above, in a morning you will not see for seven years, your sister looks up from her tea and is entirely herself, and does not know the rate at which the debt was refinanced. The blackthorn armour grows to fit you. It is, you discover, surprisingly light — the Court's bindings always are, that is how they hold. The Knight of Thorns bows to you as to a colleague, with something in its old, courteous face that took you a moment to recognise. It was hope. Seven years. Mortals have served longer, for less. And the Court, whatever else is true of it, keeps its bargains to the letter — so for seven years, you intend to study letters.",
+      "narrative": {
+        "local_history": "The Court has always taken mortal knights; the best of them are remembered in blossom, white against the black thorn.",
+        "present_tension": "Transformed into a very long game, played from inside.",
+        "hidden_truth": "The Queen wanted you, not your service — but wanting was her opening bid, and you have seven years to learn what she'll pay.",
+        "sensory_details": ["oath-words hanging in the air like frost", "armour settling like a hand on the shoulder", "blossom falling upward, and one petal falling down"],
+        "emotional_undertone": "A cage entered with open eyes, and a key somewhere in it."
+      }
+    },
+    {
+      "id": "ending_changeling_swap",
+      "type": "ending",
+      "region": "court_deep",
+      "title": "The Old Arrangement",
+      "summary": "You take your sister's place in the Court's ledger. She goes home with her name. You stay, and learn what you were always promised to.",
+      "tags": ["ending", "bittersweet"],
+      "read_aloud": "'Yourself for her,' the Queen repeats, and for the first time all night the Court is silent — the courtiers' wagers suspended, the blossom hanging still. 'Accepted. And, little went-walker, since honesty is my only vice: that is the trade I set this table for. You were promised to us before you could talk. She has been buying you back for seven years, favour by favour, and had nearly done it. Now you have spent her savings.' The inkwell with her laughter in it travels home in her pocket, along with a memory of tonight edited down to a strange dream. You watch from the gallery as the chalk door closes behind her. The Court is not unkind to its own; you are one of its own now, which is the whole of the sorrow and — the Queen's sloe-dark eyes hold yours, and something in them is almost gentle — possibly, in seven years or seventy, the start of something else.",
+      "narrative": {
+        "local_history": "Changeling trades are the Court's oldest instrument; the ledger's first page is one.",
+        "present_tension": "Resolved into something slower: a life on the other side of the chalk.",
+        "hidden_truth": "Your sister will not remember tonight — but the old woman downstairs will know at a glance, and she has been to the Market once before, and she still has her nail.",
+        "sensory_details": ["the chalk door's outline fading like breath off glass", "her footsteps going home without yours beside them", "blossom resuming its upward fall"],
+        "emotional_undertone": "Love completing the circle it was always drawing."
+      }
+    },
+    {
+      "id": "ending_dawnlocked",
+      "type": "ending",
+      "region": "hollow_market",
+      "title": "Fixture and Fitting",
+      "summary": "Dawn arrives while you are still below. The Market keeps what the morning finds in it, and it has found you.",
+      "tags": ["ending", "tragedy"],
+      "read_aloud": "You feel it before you understand it: the candles gutter all at once, every chandelier in the gallery, and do not go out — they simply stop being clocks, because there is nothing left to count. Somewhere far above, morning happens without you. The change is gentle, which is the worst of it. The stallholders nod to you differently now: not as custom, but as colleague. There is a stall, you notice, that you had never seen before, small and well-placed and empty, with your coat already hanging behind it. In time — the Market has nothing but time — you will sell what you brought down here: a story about a sister, a ribbon that remembers someone, the particular way a mortal misses the sun. Trade is trade. You will be very good at it. Everyone here was somebody's rescue attempt, once.",
+      "narrative": {
+        "local_history": "Every stallholder in the Market arrived the same way: after dawn, one candle too late.",
+        "present_tension": "Dissolved into the Market's long, patient hum.",
+        "hidden_truth": "Your sister, nameless above, will feel the moment you stop being expected home — and the old woman downstairs will start keeping two nails.",
+        "sensory_details": ["candles burning without counting", "your coat on a hook you never hung it on", "the sun becoming a rumour"],
+        "emotional_undertone": "Defeat administered as a welcome."
+      }
+    },
+    {
+      "id": "ending_dead",
+      "type": "ending",
+      "region": "court_deep",
+      "title": "Blossom on Black Water",
+      "summary": "The Deep Court's oldest transaction: everything, for nothing. The Market observes a moment's appreciative silence.",
+      "tags": ["ending", "death"],
+      "read_aloud": "The Court is quiet about it, afterward — the fae do not gloat over the dead; that would be gauche, and anyway you were customers. The Tollhound files you under CLOSED. The Broker annotates your family's account in a hand smaller than sorrow. On the mirror canal, for a while, the water wears a little more of your face than it used to. And white blossom drifts down — downward, for once, the Court's one flag of mourning — to settle on the black water where the Market keeps, in its fashion, all of its receipts. Above, in a kitchen filling slowly with morning, a woman without a name waits for a knock that isn't coming, and cannot remember who it is she misses.",
+      "narrative": {
+        "local_history": "Mortals have died in the Market since before it had a door; it keeps their receipts and, at the winter's turning, rings its bells for them once.",
+        "present_tension": "Ended.",
+        "hidden_truth": "The Queen paid off your family's tithe herself, quietly, afterward. The Court is a creditor, not a monster; the distinction matters to no one who would most deserve to hear it.",
+        "sensory_details": ["blossom falling the mourning way", "bells ringing once, unstruck", "black water, patient as ledgers"],
+        "emotional_undertone": "Grief, filed correctly."
+      }
+    }
+  ],
+  "routes": [
+    {
+      "id": "h001",
+      "from": "night_bus_terminus",
+      "to": "chalk_door_alley",
+      "label": "Walk into the alley that was never there",
+      "kind": "open",
+      "effects": [],
+      "stakes": "The threshold crossed cannot be uncrossed by the same feet.",
+      "hook": "The chalk marks climb the bricks like ivy that learned to write.",
+      "narrative": { "player_intent": "Enter the fae side of the city.", "dramatic_role": "The point of no polite return." }
+    },
+    {
+      "id": "h010",
+      "from": "chalk_door_alley",
+      "to": "hollow_market_gallery",
+      "label": "Pay the Tollhound three silver",
+      "kind": "toll",
+      "costs": [{ "resource": "silver", "amount": 3 }],
+      "effects": [],
+      "stakes": "A quarter of your silver, spent before you've seen a single stall.",
+      "hook": "The Tollhound counts the coins by smell and nods you through, incorruptible and satisfied.",
+      "narrative": { "player_intent": "Pay the toll honestly.", "dramatic_role": "The clean entry: silver spent, standing intact." }
+    },
+    {
+      "id": "h011",
+      "from": "chalk_door_alley",
+      "to": "hollow_market_gallery",
+      "label": "Swear a small oath of good conduct instead",
+      "kind": "bargain",
+      "effects": [
+        { "op": "set_flag", "flag": "oath_status", "value": "sworn" },
+        { "op": "set_flag", "flag": "court_standing", "value": "marked" }
+      ],
+      "stakes": "Free at the door, priced at the exit: sworn guests are marked guests, and the Court remembers its guest list.",
+      "hook": "The Tollhound's growl arranges itself into clauses. You only have to agree to them.",
+      "narrative": { "player_intent": "Enter on credit.", "dramatic_role": "The tempting free option that quietly changes your legal status." }
+    },
+    {
+      "id": "h012",
+      "from": "chalk_door_alley",
+      "to": "hollow_market_gallery",
+      "label": "Refuse toll and terms both — and let the Tollhound object",
+      "kind": "combat",
+      "test": {
+        "type": "combat",
+        "encounter_id": "barghest_tollhound",
+        "failure_to": "ending_dead"
+      },
+      "effects": [{ "op": "set_flag", "flag": "court_standing", "value": "marked" }],
+      "stakes": "The hard way in: win, and the Market opens to you bruised but unindebted — and thoroughly noticed.",
+      "hook": "It rises from its haunches with the weary professionalism of a bouncer who has seen your kind of plan before.",
+      "narrative": { "player_intent": "Force entry.", "dramatic_role": "Violence as a legitimate but costly key." }
+    },
+    {
+      "id": "h013",
+      "from": "chalk_door_alley",
+      "to": "night_bus_terminus",
+      "label": "Step back from the door",
+      "kind": "open",
+      "effects": [],
+      "stakes": "The night gets no longer, and neither does your list of options.",
+      "hook": "The Tollhound watches you retreat without judgement. Doors, its eyes say, are patient.",
+      "narrative": { "player_intent": "Hesitate at the threshold.", "dramatic_role": "Free retreat; the threshold is a choice, not a trap." }
+    },
+    {
+      "id": "h020",
+      "from": "hollow_market_gallery",
+      "to": "pale_auction",
+      "label": "Approach the Pale Auction",
+      "kind": "open",
+      "effects": [],
+      "stakes": "The Market's best goods, at the Market's honest, terrible prices.",
+      "hook": "The gavel's shadow moves before the gavel does.",
+      "narrative": { "player_intent": "Browse the high table.", "dramatic_role": "Hub spoke to the key purchases." }
+    },
+    {
+      "id": "h021",
+      "from": "hollow_market_gallery",
+      "to": "broker_of_hours",
+      "label": "Visit the Broker of Hours",
+      "kind": "open",
+      "effects": [],
+      "stakes": "The only mint in the Market: favours bought with pieces of yourself.",
+      "hook": "Every scale on the stall tilts toward you at once, hopeful as dogs.",
+      "narrative": { "player_intent": "Earn fae currency.", "dramatic_role": "Hub spoke to the economy." }
+    },
+    {
+      "id": "h022",
+      "from": "hollow_market_gallery",
+      "to": "moth_keepers_stall",
+      "label": "Part the tent of wings",
+      "kind": "open",
+      "effects": [],
+      "stakes": "Information has a keeper, and the keeper has wants.",
+      "hook": "'Everything that is kept somewhere is written somewhere. I keep the somewheres.'",
+      "narrative": { "player_intent": "Find out where the name is held.", "dramatic_role": "Hub spoke to the intelligence chain." }
+    },
+    {
+      "id": "h023",
+      "from": "hollow_market_gallery",
+      "to": "thorn_court",
+      "label": "Follow the blossom to the Court of Wents",
+      "kind": "open",
+      "costs": [{ "resource": "candle_marks", "amount": 1 }],
+      "effects": [],
+      "stakes": "A candle-mark of the night to stand where every bargain in the Market converges.",
+      "hook": "White petals drift along the gallery floor, upstream, showing the way.",
+      "narrative": { "player_intent": "Seek an audience with the Queen.", "dramatic_role": "Hub spoke to the seat of power." }
+    },
+    {
+      "id": "h024",
+      "from": "hollow_market_gallery",
+      "to": "mirror_canal",
+      "label": "Take the towpath along the Mirror Canal",
+      "kind": "open",
+      "effects": [],
+      "stakes": "The Deep Court's shortcut, guarded by your own reflection.",
+      "hook": "Somebody on the water is wearing your face slightly better than you are.",
+      "narrative": { "player_intent": "Scout the fast road to the gaol.", "dramatic_role": "Hub spoke to the skill-gated shortcut." }
+    },
+    {
+      "id": "h025",
+      "from": "hollow_market_gallery",
+      "to": "understair_gaol",
+      "label": "Go to the gaol under the stair",
+      "kind": "open",
+      "visibility": { "conditions": [{ "op": "knows", "fact": "teind_ledger_entry" }] },
+      "costs": [{ "resource": "candle_marks", "amount": 1 }],
+      "effects": [],
+      "stakes": "You know the somewhere now; a candle-mark's walk through the Deep Court puts you in front of it.",
+      "hook": "Third gallery, past the staircase that climbs into stone. Exactly where the Moth-Keeper's atlas said.",
+      "narrative": { "player_intent": "Go to the name.", "dramatic_role": "The intelligence chain's payoff: the heist becomes reachable." }
+    },
+    {
+      "id": "h026",
+      "from": "hollow_market_gallery",
+      "to": "iron_footbridge",
+      "label": "Rest your eyes on the iron footbridge",
+      "kind": "open",
+      "effects": [],
+      "stakes": "Neutral ground: the one place under the city where your thoughts are your own.",
+      "hook": "No stall stands within twenty feet of it. That alone recommends it.",
+      "narrative": { "player_intent": "Find safe ground.", "dramatic_role": "Hub spoke to the refuge." }
+    },
+    {
+      "id": "h027",
+      "from": "hollow_market_gallery",
+      "to": "dawn_stairs",
+      "label": "Walk to the Dawn Stairs",
+      "kind": "open",
+      "effects": [],
+      "stakes": "The exit is always available. Whether you can afford to use it is another matter.",
+      "hook": "WHAT YOU CARRY, YOU KEEP. WHAT YOU OWE, KEEPS YOU.",
+      "narrative": { "player_intent": "Consider leaving.", "dramatic_role": "Hub spoke to the endgame threshold." }
+    },
+    {
+      "id": "h030",
+      "from": "pale_auction",
+      "to": "pale_auction",
+      "label": "Buy the thorn key — three favours",
+      "kind": "commerce",
+      "one_time": true,
+      "costs": [{ "resource": "favours", "amount": 3 }],
+      "effects": [{ "op": "add_item", "item": "thorn_key" }],
+      "stakes": "Three favours for the key to every Court lock — and a key that reports its every turning.",
+      "hook": "'Grown on the same hedge as the locks,' says the Auctioneer, which is either a guarantee or a warning.",
+      "narrative": { "player_intent": "Buy legitimate access to the gaol.", "dramatic_role": "The clean key: expensive, watched, safe." }
+    },
+    {
+      "id": "h031",
+      "from": "pale_auction",
+      "to": "pale_auction",
+      "label": "Buy the jar of first frost — two favours",
+      "kind": "commerce",
+      "one_time": true,
+      "costs": [{ "resource": "favours", "amount": 2 }],
+      "effects": [{ "op": "add_item", "item": "jar_of_first_frost" }],
+      "stakes": "Two favours for eyes that can call the canal's bluff.",
+      "hook": "The frost creaks inside the jar like a small opinion forming.",
+      "narrative": { "player_intent": "Buy the means to raise glamour.", "dramatic_role": "The stat-boost purchase; unlocks the shortcut road." }
+    },
+    {
+      "id": "h032",
+      "from": "pale_auction",
+      "to": "pale_auction",
+      "label": "Buy the moth lantern — five silver",
+      "kind": "commerce",
+      "one_time": true,
+      "costs": [{ "resource": "silver", "amount": 5 }],
+      "effects": [{ "op": "add_item", "item": "moth_lantern" }],
+      "stakes": "Five silver for the Market's oldest grudge, portable — worthless to you, priceless to exactly one archivist.",
+      "hook": "The Auctioneer sells it with a papery smile aimed at someone who isn't present.",
+      "narrative": { "player_intent": "Buy leverage over the Moth-Keeper.", "dramatic_role": "The diplomatic key: silver converts to information via a two-hundred-year feud." }
+    },
+    {
+      "id": "h033",
+      "from": "pale_auction",
+      "to": "pale_auction",
+      "label": "Bid on the caged echo, for the thrill of it",
+      "kind": "gamble",
+      "test": {
+        "type": "luck",
+        "stat": "luck",
+        "modifier": 0,
+        "failure_to": "pale_auction",
+        "failure_effects": [{ "op": "set_flag", "flag": "court_standing", "value": "marked" }]
+      },
+      "effects": [{ "op": "modify_resource", "resource": "favours", "amount": 1 }],
+      "stakes": "Win, and the Court's gamblers owe you a favour; lose, and you've shown the whole gallery your tells.",
+      "hook": "Something in a birdcage repeats the last thing anyone shouted, in their own mother's voice.",
+      "narrative": { "player_intent": "Gamble for favours.", "dramatic_role": "A luck-test flutter with a social price for losing." }
+    },
+    {
+      "id": "h034",
+      "from": "pale_auction",
+      "to": "hollow_market_gallery",
+      "label": "Step back into the gallery",
+      "kind": "open",
+      "effects": [],
+      "stakes": "The Auction keeps; it always keeps.",
+      "hook": "The gavel has still never once come down in anger.",
+      "narrative": { "player_intent": "Return to the hub.", "dramatic_role": "Free exit." }
+    },
+    {
+      "id": "h040",
+      "from": "broker_of_hours",
+      "to": "broker_of_hours",
+      "label": "Sell a bright memory — one favour",
+      "kind": "exchange",
+      "conditions": [{ "op": "stat_at_least", "stat": "luck", "value": 2 }],
+      "effects": [
+        { "op": "modify_stat", "stat": "luck", "amount": -1 },
+        { "op": "modify_resource", "resource": "favours", "amount": 1 }
+      ],
+      "stakes": "A favour minted from a birthday, a first snow, a perfect afternoon — gone so cleanly you won't know which one you miss.",
+      "hook": "'Painless,' says the Broker, truthfully, which is precisely the problem.",
+      "narrative": { "player_intent": "Convert luck into currency.", "dramatic_role": "The economy's dark engine: repeatable, fair, corrosive." }
+    },
+    {
+      "id": "h041",
+      "from": "broker_of_hours",
+      "to": "broker_of_hours",
+      "label": "Change four silver into a favour",
+      "kind": "exchange",
+      "costs": [{ "resource": "silver", "amount": 4 }],
+      "effects": [{ "op": "modify_resource", "resource": "favours", "amount": 1 }],
+      "stakes": "Mortal money at mortal rates: expensive, but it costs nothing that was ever part of you.",
+      "hook": "The Broker handles silver with tongs, respectfully, the way one handles someone else's religion.",
+      "narrative": { "player_intent": "Convert silver into currency.", "dramatic_role": "The safe exchange rate; protects the unwary from the memory trade." }
+    },
+    {
+      "id": "h042",
+      "from": "broker_of_hours",
+      "to": "broker_of_hours",
+      "label": "Ask, in the correct words, about your family's account",
+      "kind": "revelation",
+      "one_time": true,
+      "effects": [{ "op": "add_knowledge", "fact": "family_tithe" }],
+      "stakes": "Free, because the Broker has been waiting seven years for someone to ask.",
+      "hook": "'Ah,' says the Broker, and every hourglass on the stall turns itself over. 'You said it properly. Then I may speak.'",
+      "narrative": { "player_intent": "Learn the truth about the tithe.", "dramatic_role": "The backstory revelation: reframes the whole night and unlocks honest bargaining at Court." }
+    },
+    {
+      "id": "h043",
+      "from": "broker_of_hours",
+      "to": "hollow_market_gallery",
+      "label": "Fold your receipts and go",
+      "kind": "open",
+      "effects": [],
+      "stakes": "The rates never move. That is what makes them the rates.",
+      "hook": "The scales settle back, disappointed, patient.",
+      "narrative": { "player_intent": "Return to the hub.", "dramatic_role": "Free exit." }
+    },
+    {
+      "id": "h050",
+      "from": "moth_keepers_stall",
+      "to": "moth_keepers_stall",
+      "label": "Answer the Moth-Keeper's riddle",
+      "kind": "challenge",
+      "one_time": true,
+      "test": {
+        "type": "skill",
+        "stat": "skill",
+        "modifier": 0,
+        "failure_to": "hollow_market_gallery",
+        "failure_effects": [{ "op": "modify_resource", "resource": "candle_marks", "amount": -1 }]
+      },
+      "effects": [
+        { "op": "add_knowledge", "fact": "teind_ledger_entry" },
+        { "op": "set_flag", "flag": "name_located", "value": true }
+      ],
+      "stakes": "Wit against an archivist: fail, and the tent politely ejects you a candle-mark poorer in thinking time.",
+      "hook": "'I am taken before you have me, and kept best by being given away. What am I?' The moths leans in.",
+      "narrative": { "player_intent": "Win the name's location with wit.", "dramatic_role": "The riddle road to the gaol." }
+    },
+    {
+      "id": "h051",
+      "from": "moth_keepers_stall",
+      "to": "moth_keepers_stall",
+      "label": "Return the moth lantern to its keeper",
+      "kind": "bargain",
+      "one_time": true,
+      "conditions": [{ "op": "has_item", "item": "moth_lantern" }],
+      "effects": [
+        { "op": "remove_item", "item": "moth_lantern" },
+        { "op": "add_knowledge", "fact": "teind_ledger_entry" },
+        { "op": "set_flag", "flag": "name_located", "value": true },
+        { "op": "modify_stat", "stat": "glamour", "amount": 1 }
+      ],
+      "stakes": "End a two-hundred-year grudge and the archives open like wings.",
+      "hook": "The Moth-Keeper takes the lantern in both dusty hands, and ten thousand wings go absolutely still.",
+      "narrative": { "player_intent": "Trade the lantern for the location.", "dramatic_role": "The kindness road to the gaol, with a blessing thrown in." }
+    },
+    {
+      "id": "h052",
+      "from": "moth_keepers_stall",
+      "to": "hollow_market_gallery",
+      "label": "Back out through the wings",
+      "kind": "open",
+      "effects": [],
+      "stakes": "The somewheres keep. The candles don't.",
+      "hook": "The tent closes behind you with a sound like a book deciding.",
+      "narrative": { "player_intent": "Return to the hub.", "dramatic_role": "Free exit." }
+    },
+    {
+      "id": "h060",
+      "from": "understair_gaol",
+      "to": "understair_gaol",
+      "label": "Open the thorn gate with the thorn key",
+      "kind": "heist",
+      "one_time": true,
+      "conditions": [{ "op": "has_item", "item": "thorn_key" }],
+      "effects": [
+        { "op": "add_item", "item": "sisters_true_name" },
+        { "op": "set_flag", "flag": "name_recovered", "value": true },
+        { "op": "set_flag", "flag": "court_standing", "value": "marked" }
+      ],
+      "stakes": "The key turns, the key reports: you leave with the name and the Court's polite, complete awareness.",
+      "hook": "The lock recognises its hedge-cousin and opens with something like family feeling.",
+      "narrative": { "player_intent": "Take the name with purchased permission.", "dramatic_role": "The clean heist: watched but lawful-ish." }
+    },
+    {
+      "id": "h061",
+      "from": "understair_gaol",
+      "to": "understair_gaol",
+      "label": "Fight the gaol's warden for it",
+      "kind": "combat",
+      "one_time": true,
+      "test": {
+        "type": "combat",
+        "encounter_id": "barghest_tollhound",
+        "failure_to": "ending_dead"
+      },
+      "effects": [
+        { "op": "add_item", "item": "sisters_true_name" },
+        { "op": "set_flag", "flag": "name_recovered", "value": true },
+        { "op": "set_flag", "flag": "court_standing", "value": "marked" }
+      ],
+      "stakes": "The Tollhound moonlights as gaoler. Beat it fairly and even the Court must call the taking fair — loudly, and to everyone.",
+      "hook": "It recognises you, of course. It files you, of course, under RECIDIVIST.",
+      "narrative": { "player_intent": "Take the name by honest force.", "dramatic_role": "The duel road: costly, fair, unhidden." }
+    },
+    {
+      "id": "h062",
+      "from": "understair_gaol",
+      "to": "understair_gaol",
+      "label": "Drive the cold iron nail into the living lock",
+      "kind": "transgression",
+      "one_time": true,
+      "conditions": [{ "op": "has_item", "item": "cold_iron_nail" }],
+      "effects": [
+        { "op": "remove_item", "item": "cold_iron_nail" },
+        { "op": "add_item", "item": "sisters_true_name" },
+        { "op": "set_flag", "flag": "name_recovered", "value": true },
+        { "op": "set_flag", "flag": "court_standing", "value": "hunted" }
+      ],
+      "stakes": "Iron answers every lock and asks one question back: how fast can you reach the dawn with the whole Court behind you?",
+      "hook": "The lock does not break. It recoils — and everything under the city feels it do so.",
+      "narrative": { "player_intent": "Take the name by mortal veto.", "dramatic_role": "The transgression road: instant success, 'hunted' consequences, and the Knight on the stairs." }
+    },
+    {
+      "id": "h063",
+      "from": "understair_gaol",
+      "to": "hollow_market_gallery",
+      "label": "Leave the shelves undisturbed",
+      "kind": "open",
+      "effects": [],
+      "stakes": "Her laughter stays under the stair, patient in glass.",
+      "hook": "You memorise the shelf, the row, the pulse of the light. You will be back, or nothing else tonight matters.",
+      "narrative": { "player_intent": "Withdraw from the gaol.", "dramatic_role": "Free exit from the heist room." }
+    },
+    {
+      "id": "h070",
+      "from": "thorn_court",
+      "to": "thorn_court",
+      "label": "Petition the Queen and hear her price",
+      "kind": "audience",
+      "effects": [{ "op": "add_knowledge", "fact": "queens_price" }],
+      "stakes": "Asking is free. Knowing what she wants will cost you sleep for years.",
+      "hook": "'The Court hears petitions. The Court is famous for it.'",
+      "narrative": { "player_intent": "Learn the Queen's terms.", "dramatic_role": "The audience that opens both royal bargains." }
+    },
+    {
+      "id": "h071",
+      "from": "thorn_court",
+      "to": "hollow_market_gallery",
+      "label": "Withdraw from the hall, bargains unstruck",
+      "kind": "open",
+      "effects": [],
+      "stakes": "The Queen lets you go the way winter lets a day go: certain of more of them.",
+      "hook": "The blossom parts around your exit, courteous as everything here.",
+      "narrative": { "player_intent": "Leave the Court.", "dramatic_role": "Free exit from the seat of power." }
+    },
+    {
+      "id": "h072",
+      "from": "thorn_court",
+      "to": "ending_bound_knight",
+      "label": "Swear seven years of service for her name",
+      "kind": "bargain",
+      "conditions": [{ "op": "knows", "fact": "queens_price" }],
+      "effects": [],
+      "stakes": "Seven years in thorn armour, priced against a lifetime of her being herself.",
+      "hook": "The Queen's terms, spoken once, hang in the air like frost: service, sworn and articled.",
+      "narrative": { "player_intent": "Buy the name with servitude.", "dramatic_role": "The bittersweet royal bargain." }
+    },
+    {
+      "id": "h073",
+      "from": "thorn_court",
+      "to": "ending_changeling_swap",
+      "label": "Offer yourself in your sister's place",
+      "kind": "bargain",
+      "conditions": [{ "op": "knows", "fact": "queens_price" }],
+      "effects": [],
+      "stakes": "The whole of you, for the whole of her: the Court's oldest trade, and the one the table was set for.",
+      "hook": "For the first time all night, the courtiers stop wagering.",
+      "narrative": { "player_intent": "Take her place.", "dramatic_role": "The sacrificial royal bargain; the hidden truth surfaces." }
+    },
+    {
+      "id": "h074",
+      "from": "thorn_court",
+      "to": "hollow_market_gallery",
+      "label": "Face what the Queen sends after an iron-wielder",
+      "kind": "combat",
+      "visibility": { "conditions": [{ "op": "flag_is", "flag": "court_standing", "value": "hunted" }] },
+      "test": {
+        "type": "combat",
+        "encounter_id": "knight_of_thorns",
+        "failure_to": "ending_dead"
+      },
+      "effects": [],
+      "stakes": "You brought iron into her house and then walked into her hall. The Knight is the reply, and it does not do warnings twice.",
+      "hook": "'You carried iron under our roof,' the Knight says, with real regret. 'I am the invoice.'",
+      "narrative": { "player_intent": "Survive the Court's answer to iron.", "dramatic_role": "Consequence collection for the transgression road, at the worst possible venue." }
+    },
+    {
+      "id": "h075",
+      "from": "thorn_court",
+      "to": "ending_name_reclaimed",
+      "label": "Lay the whole truth of the tithe before the Court",
+      "kind": "bargain",
+      "conditions": [
+        { "op": "knows", "fact": "family_tithe" },
+        { "op": "has_item", "item": "sisters_true_name" },
+        { "op": "flag_not", "flag": "court_standing", "value": "hunted" }
+      ],
+      "effects": [],
+      "stakes": "Name the debt, name its true debtor, and dare the Court to be what it claims: a creditor, not a thief.",
+      "hook": "'Honesty is my only vice,' the Queen said. Test it, with the ledger's own facts in your mouth.",
+      "narrative": { "player_intent": "Win release by out-lawyering the Court.", "dramatic_role": "The hidden fourth road: knowledge plus the name equals the triumph, ratified in open court." }
+    },
+    {
+      "id": "h080",
+      "from": "mirror_canal",
+      "to": "understair_gaol",
+      "label": "Walk the water's lie with frost-taught eyes",
+      "kind": "shortcut",
+      "conditions": [{ "op": "knows", "fact": "teind_ledger_entry" }],
+      "test": {
+        "type": "skill",
+        "stat": "glamour",
+        "modifier": 4,
+        "failure_to": "hollow_market_gallery",
+        "failure_effects": [{ "op": "modify_stat", "stat": "stamina", "amount": -2 }]
+      },
+      "effects": [],
+      "stakes": "The fast road to the gaol, tolled in resemblance: fail, and the water keeps a little of your face and all of your bearings.",
+      "hook": "Your reflection steps aside with a bow — if you can tell which of you is doing the bowing.",
+      "narrative": { "player_intent": "Take the glamour shortcut.", "dramatic_role": "The stat-investment payoff: glamour opens the Deep Court's fast lane." }
+    },
+    {
+      "id": "h081",
+      "from": "mirror_canal",
+      "to": "mirror_canal",
+      "label": "Break the jar of first frost over your eyes",
+      "kind": "consumable",
+      "one_time": true,
+      "conditions": [{ "op": "has_item", "item": "jar_of_first_frost" }],
+      "effects": [
+        { "op": "remove_item", "item": "jar_of_first_frost" },
+        { "op": "modify_stat", "stat": "glamour", "amount": 3 }
+      ],
+      "stakes": "The frost stings like every true thing; afterwards, the Market's lies stand out like wet paint.",
+      "hook": "November breaks across your sight, and the canal's trick becomes a diagram.",
+      "narrative": { "player_intent": "Spend the jar for sight.", "dramatic_role": "Consumable stat boost, staged exactly where it's needed." }
+    },
+    {
+      "id": "h082",
+      "from": "mirror_canal",
+      "to": "hollow_market_gallery",
+      "label": "Leave the canal to its reflections",
+      "kind": "open",
+      "effects": [],
+      "stakes": "The slow road remains the safe one.",
+      "hook": "Your reflection waves you off with your own hand, a half-second late.",
+      "narrative": { "player_intent": "Decline the shortcut.", "dramatic_role": "Free exit." }
+    },
+    {
+      "id": "h090",
+      "from": "iron_footbridge",
+      "to": "iron_footbridge",
+      "label": "Rest on cold iron while the candles burn",
+      "kind": "rest",
+      "costs": [{ "resource": "candle_marks", "amount": 2 }],
+      "effects": [{ "op": "modify_stat", "stat": "stamina", "amount": 5 }],
+      "stakes": "Two candle-marks of the night for breath, warmth and your own thoughts in your own order.",
+      "hook": "The rivets are cold and factual under your palm. Nothing here is negotiating with you.",
+      "narrative": { "player_intent": "Recover.", "dramatic_role": "The rest loop, priced in the dawn clock." }
+    },
+    {
+      "id": "h091",
+      "from": "iron_footbridge",
+      "to": "hollow_market_gallery",
+      "label": "Step off the iron, back into the music",
+      "kind": "open",
+      "effects": [],
+      "stakes": "The Market resumes you like a sentence it had bookmarked.",
+      "hook": "Three steps off the bridge and the bells already know your name isn't for sale. Yet.",
+      "narrative": { "player_intent": "Return to the hub.", "dramatic_role": "Free exit." }
+    },
+    {
+      "id": "h092",
+      "from": "iron_footbridge",
+      "to": "dawn_stairs",
+      "label": "Follow the dry channel to the Dawn Stairs",
+      "kind": "open",
+      "effects": [],
+      "stakes": "The channel runs straight to the way out, iron to morning.",
+      "hook": "Under the rail, initials in a familiar family hand point the way like an arrow.",
+      "narrative": { "player_intent": "Head for the exit.", "dramatic_role": "Refuge to endgame." }
+    },
+    {
+      "id": "h100",
+      "from": "dawn_stairs",
+      "to": "ending_name_reclaimed",
+      "label": "Carry her name up into the morning",
+      "kind": "climax",
+      "conditions": [
+        { "op": "has_item", "item": "sisters_true_name" },
+        { "op": "flag_not", "flag": "court_standing", "value": "hunted" }
+      ],
+      "effects": [],
+      "stakes": "What you carry, you keep — and no one below has cause to stop you.",
+      "hook": "The coin of sky widens with every turn of the stair, and the inkwell hums against your heart like a struck bell.",
+      "narrative": { "player_intent": "Leave with the prize.", "dramatic_role": "The clean victory ascent." }
+    },
+    {
+      "id": "h101",
+      "from": "dawn_stairs",
+      "to": "ending_name_reclaimed",
+      "label": "Fight the Knight of Thorns on the stair",
+      "kind": "combat",
+      "conditions": [{ "op": "has_item", "item": "sisters_true_name" }],
+      "visibility": { "conditions": [{ "op": "flag_is", "flag": "court_standing", "value": "hunted" }] },
+      "test": {
+        "type": "combat",
+        "encounter_id": "knight_of_thorns",
+        "failure_to": "ending_dead"
+      },
+      "effects": [],
+      "stakes": "The Court's champion against a mortal with a name to deliver: the stairs are narrow, the morning is close, and the Knight has never lost.",
+      "hook": "'I am so very rarely paid in full,' it says, and salutes you with February.",
+      "narrative": { "player_intent": "Cut a way out.", "dramatic_role": "The transgression road's final bill: beat the unbeaten or die at the threshold." }
+    },
+    {
+      "id": "h102",
+      "from": "dawn_stairs",
+      "to": "ending_dawnlocked",
+      "label": "Sit on the bottom step and let the last candles decide",
+      "kind": "surrender",
+      "effects": [],
+      "stakes": "Stop striving, and the Market will find you a coat hook and a stall: it keeps what the morning finds in it.",
+      "hook": "The stairs will still be here tomorrow, whispers the Market. And so, now, will you.",
+      "narrative": { "player_intent": "Give up.", "dramatic_role": "The always-available surrender; defeat as a choice rather than an ambush." }
+    },
+    {
+      "id": "h103",
+      "from": "dawn_stairs",
+      "to": "hollow_market_gallery",
+      "label": "Turn back from the light — the night isn't finished",
+      "kind": "open",
+      "effects": [],
+      "stakes": "The stairs never haggle, and never close; go finish what you came for.",
+      "hook": "The chalk rules refresh themselves behind you, unoffended.",
+      "narrative": { "player_intent": "Return to the Market.", "dramatic_role": "Free return; the exit is a fact, not a trap." }
+    }
+  ],
+  "relations": [],
+  "validation": {
+    "notes": "Counts are maintained by scripts/validate-adventure.js and the CI reachability gate; see README.",
+    "node_count": 16,
+    "route_count": 38,
+    "known_soft_locks": []
+  },
+  "semantic_layer": {
+    "version": "0.1.0",
+    "purpose": "Narrative resolution and revelation text consumed by the engine's route_resolution and add_knowledge enrichment; everything else is reference material for a narrator.",
+    "knowledge_revelations": {
+      "rule_of_names": {
+        "title": "The Old Woman's Rules",
+        "player_text": "Bring silver. Take nothing free. Thank no one — thanks acknowledges debt. And never, under the earth or over it, give a fae your whole name: what they can say, they can call, and what they can call, they can keep.",
+        "meaning": "Every free gift and every oath in the Market is a hook; the rules are the player's armour, and forgetting them is the real difficulty curve."
+      },
+      "teind_ledger_entry": {
+        "title": "The Somewhere of Her Name",
+        "player_text": "The teind ledger records the seizure: one true name, taken at 00:03 in settlement of account 7,777, held in the gaol under the stair — third gallery, past the staircase that climbs into stone, in a stoppered inkwell on the low shelf.",
+        "meaning": "The heist is now reachable; the location is exact and the Court knows exactly who asked for it."
+      },
+      "family_tithe": {
+        "title": "Account 7,777",
+        "player_text": "The Broker's oldest ledger is plain: the tithe was never your sister's. Seven years ago your family promised the Court a child — you — and your sister has been quietly buying you back ever since, favour by favour, memory by memory. Her name was taken because her payments stopped one instalment short. Tonight's whole crisis is an overdue notice.",
+        "meaning": "The night reframes: the player is the debt. This truth, spoken in open court with the name in hand, is the lever for the hidden clean ending — and it makes both royal bargains land differently."
+      },
+      "queens_price": {
+        "title": "The Queen's Price",
+        "player_text": "The Queen of Wents will release your sister's name for one of two payments, spoken plainly: seven years of sworn service in her Court — or the older trade, yourself in your sister's place, the account settled in the currency it was opened in.",
+        "meaning": "Both royal endings are now unlocked; the Queen's 'honesty is my only vice' line is literal and can be turned against her with the family_tithe fact."
+      }
+    },
+    "route_resolutions": {
+      "h012": {
+        "success_text": "It is like fighting a landslide with manners. But the Tollhound respects a paid bill in any currency, and bruises are a currency: it steps aside and marks you through, adding you to a very short list of mortals it looks forward to seeing again.",
+        "failure_text": ""
+      },
+      "h033": {
+        "success_text": "Your bid lands at the exact moment the gavel's shadow commits. The birdcage is yours for a breath — you decline delivery, gracefully — and the gallery's gamblers pay out one favour with the good humour of professionals beaten fairly.",
+        "failure_text": "You bid a half-beat late and a courtier in dove-grey takes the lot with a smile aimed at you rather than the cage. The gallery has your measure now: eager, mortal, and playing at tables whose stakes it cannot read."
+      },
+      "h050": {
+        "success_text": "'A name,' you say. The tent goes still, ten thousand wings holding one breath — and then the Moth-Keeper laughs, a sound like pages turning fast, and the atlases fall open to the exact somewhere you need.",
+        "failure_text": "You reach for cleverness and grasp only the obvious. The wings sigh; the tent unfolds itself around you and sets you gently back in the gallery, a candle-mark older and no wiser."
+      },
+      "h060": {
+        "success_text": "The key and the lock greet each other like cousins at a funeral — formal, familiar, briefly tender. The gate swings wide; her inkwell is exactly where the ledger promised, warm as a held hand. Somewhere far above you, a bell you cannot hear makes a note in the Court's accounts.",
+        "failure_text": ""
+      },
+      "h061": {
+        "success_text": "The Tollhound fights the way it keeps accounts: thoroughly and without malice. When at last it yields, it does so completely — stepping aside, sitting, and watching you take the inkwell with the satisfaction of a creature whose books now balance. The whole Deep Court heard. Fair, its posture announces, is fair.",
+        "failure_text": ""
+      },
+      "h080": {
+        "success_text": "You walk where the water pretends to be, eyes full of November, and the canal's lie parts around your certainty. Your reflection walks beside you the whole way, matching you step for step — and at the far bank it bows first, conceding the game.",
+        "failure_text": "For one step your certainty blinks — and the water has you, cold as arithmetic. You haul yourself out on the gallery side, dripping and diminished, and behind you your reflection wears your face a shade more convincingly than before."
+      },
+      "h101": {
+        "success_text": "The Knight of Thorns fights like winter given a curriculum, and you fight like someone whose sister is waiting. On the stair's last turn your blow lands — the first in centuries to land — and the Knight sinks to one knee, blackthorn cracking, and laughs with unmistakable joy. 'Paid,' it says, 'in full,' and stands aside with the deepest bow the Deep Court has ever seen it give.",
+        "failure_text": ""
+      },
+      "h100": {
+        "success_text": "No hand is raised against you. Stall by stall the Market watches you climb, and the bells ring you out — unstruck, unbidden, and not entirely unkind. What you carry, you keep. The Court's own law lifts you the last step into morning.",
+        "failure_text": ""
+      }
+    }
+  },
+  "runtime_contract": {
+    "read_aloud": "Present node.read_aloud as the scene's opening; the engine selects variant/first-visit/revisit text.",
+    "mandatory_exposition": "Deliver in substance when present (the Court of Wents' bargaining law).",
+    "stakes_and_hook": "Voice each route through its hook and stakes rather than listing labels.",
+    "hidden_truth": "Narrator subtext only — never stated outright until the story reveals it.",
+    "route_resolutions": "Use the matching success_text/failure_text as the core narration of a walk outcome."
+  }
+}

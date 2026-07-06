@@ -1,6 +1,7 @@
 "use strict";
 
 const fs = require("node:fs");
+const path = require("node:path");
 const crypto = require("node:crypto");
 
 const { SUPPORTED_OPERATORS: CONDITION_OPS } = require("./conditions");
@@ -43,6 +44,29 @@ function loadAdventure(filePath) {
     throw new Error(`Adventure asset failed validation:\n- ${errors.join("\n- ")}`);
   }
   return adventure;
+}
+
+/**
+ * Loads every adventure listed in a manifest file ({ assets: [paths] },
+ * relative to the manifest's own directory). Each asset goes through the
+ * same loadAdventure validation; duplicate adventure ids are a startup
+ * error, since new_run dispatches on them.
+ */
+function loadAdventures(manifestPath) {
+  const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+  if (!Array.isArray(manifest.assets) || manifest.assets.length === 0) {
+    throw new Error(`Adventure manifest ${manifestPath} has no assets`);
+  }
+  const dir = path.dirname(manifestPath);
+  const adventures = manifest.assets.map((rel) => loadAdventure(path.resolve(dir, rel)));
+  const seen = new Set();
+  for (const adventure of adventures) {
+    if (seen.has(adventure.id)) {
+      throw new Error(`Adventure manifest ${manifestPath} lists duplicate adventure id ${adventure.id}`);
+    }
+    seen.add(adventure.id);
+  }
+  return adventures;
 }
 
 function validateAdventure(adventure) {
@@ -167,4 +191,4 @@ function initialState(adventure) {
   };
 }
 
-module.exports = { loadAdventure, validateAdventure, initialState };
+module.exports = { loadAdventure, loadAdventures, validateAdventure, initialState };

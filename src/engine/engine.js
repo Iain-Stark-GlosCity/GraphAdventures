@@ -12,16 +12,31 @@ const { initialState } = require("./adventure");
 const RUN_SCHEMA_VERSION = "1.0";
 
 /**
- * The game engine behind the four MCP tools. Pure of any hosting concern:
+ * The game engine behind the MCP tools. Pure of any hosting concern:
  * storage, clock and dice are injected so tests can drive it
  * deterministically against an in-memory store.
+ *
+ * The engine hosts one or more adventures at once — pass `adventures` (an
+ * array) or `adventure` (a single one; kept as sugar so single-adventure
+ * tests and scripts read naturally). Every run records which adventure it
+ * belongs to (id + version + hash); new_run dispatches on adventure_id and
+ * the run-scoped tools resolve the right adventure from the run document,
+ * so runs of different adventures share one store without ever crossing.
  *
  * store contract:
  *   create(runId, doc)        -> rejects if the run already exists
  *   read(runId)               -> { doc, etag } | null
  *   update(runId, doc, etag)  -> throws StoreConflictError on ETag mismatch
  */
-function createEngine({ adventure, store, now = () => new Date().toISOString(), randomInt, log = () => {} }) {
+function createEngine({ adventure, adventures, store, now = () => new Date().toISOString(), randomInt, log = () => {} }) {
+  const hosted = adventures ?? (adventure ? [adventure] : []);
+  if (hosted.length === 0) {
+    throw new Error("createEngine requires at least one adventure (pass adventure or adventures)");
+  }
+  const adventuresById = new Map(hosted.map((a) => [a.id, a]));
+  if (adventuresById.size !== hosted.length) {
+    throw new Error("createEngine was given duplicate adventure ids");
+  }
   const roll = makeRoller(randomInt);
 
   async function loadRun(runId) {
@@ -30,25 +45,31 @@ function createEngine({ adventure, store, now = () => new Date().toISOString(), 
     return found;
   }
 
-  function adventureMismatch(doc) {
-    return (
-      doc.adventure_id !== adventure.id ||
-      doc.adventure_version !== adventure.version ||
-      doc.adventure_hash !== adventure.hash
-    );
+  // A run matches only the exact content it was created against: same id,
+  // same version, same byte hash. A hosted adventure with the same id but
+  // different bytes is still a mismatch — formatting-only edits
+  // intentionally invalidate existing runs.
+  function adventureForRunOrNull(doc) {
+    const candidate = adventuresById.get(doc.adventure_id);
+    if (!candidate) return null;
+    if (doc.adventure_version !== candidate.version || doc.adventure_hash !== candidate.hash) return null;
+    return candidate;
   }
 
-  function assertAdventureMatches(doc) {
-    if (adventureMismatch(doc)) {
+  function adventureForRun(doc) {
+    const candidate = adventureForRunOrNull(doc);
+    if (!candidate) {
       throw new EngineError(
         "adventure_mismatch",
-        "This run was created against a different version of the adventure content.",
+        "This run was created against adventure content this server no longer hosts in that exact version.",
         {
+          run_adventure_id: doc.adventure_id,
           run_adventure_hash: doc.adventure_hash,
-          deployed_adventure_hash: adventure.hash,
+          deployed_adventure_hash: adventuresById.get(doc.adventure_id)?.hash ?? null,
         }
       );
     }
+    return candidate;
   }
 
   // The four availability checks used by get_node; walk re-runs them
@@ -68,7 +89,7 @@ function createEngine({ adventure, store, now = () => new Date().toISOString(), 
 
   // Public route projection: never expose failure_to, failure_effects or
   // visibility details.
-  function publicRoute(route) {
+  function publicRoute(adventure, route) {
     let test = null;
     if (route.test) {
       if (route.test.type === "combat") {
@@ -92,7 +113,7 @@ function createEngine({ adventure, store, now = () => new Date().toISOString(), 
     // stakes/hook (content revision 0.2.2): player-facing cost/risk/
     // opportunity framing and a short flavour line, meant to sit alongside
     // the short mechanical label rather than replace it. Verified across
-    // all 108 routes to carry no hidden-destination detail.
+    // every adventure's routes to carry no hidden-destination detail.
     if (route.stakes) out.stakes = route.stakes;
     if (route.hook) out.hook = route.hook;
     // Route-level narrative (player_intent, dramatic_role, continuity_refs,
@@ -133,7 +154,7 @@ function createEngine({ adventure, store, now = () => new Date().toISOString(), 
   // Used for both walk's effects_applied and either tool's
   // arrival_effects_applied (node.knowledge_grants synthesises the same
   // add_knowledge shape on arrival).
-  function enrichEffects(effects) {
+  function enrichEffects(adventure, effects) {
     return effects.map((effect) => {
       if (effect.op === "add_item") {
         const item = adventure.itemsById.get(effect.item);
@@ -177,15 +198,13 @@ function createEngine({ adventure, store, now = () => new Date().toISOString(), 
     if (readAloud) out.read_aloud = readAloud;
     out.visit_count = visitCount;
     out.presentation = isRevisit ? "revisit" : "first_visit";
-    // Always present when the node has one (content revision 0.2.5) — e.g.
-    // the succession-judgement framing at the Warden and the treasure
-    // vault. A separate field rather than concatenated into read_aloud so
-    // the narrator can judge whether it's already implied rather than
+    // Always present when the node has one (content revision 0.2.5) — a
+    // separate field rather than concatenated into read_aloud so the
+    // narrator can judge whether it's already implied rather than
     // repeating it verbatim.
     if (node.mandatory_exposition) out.mandatory_exposition = structuredClone(node.mandatory_exposition);
-    // Per-NPC rumour attribution at the Bent Nail Inn (speaker/text/
-    // truth_status) — not referenced by runtime_contract, but the same
-    // kind of safe, verified-content-safe flavour as everything else here.
+    // Per-NPC rumour attribution (speaker/text/truth_status) — the same
+    // kind of verified-content-safe flavour as everything else here.
     if (node.rumour_delivery) out.rumour_delivery = structuredClone(node.rumour_delivery);
     // The rest of node.narrative (local_history, present_tension,
     // hidden_truth, sensory_details, semantic_refs, narrative_hooks and
@@ -198,11 +217,34 @@ function createEngine({ adventure, store, now = () => new Date().toISOString(), 
     return out;
   }
 
+  // The catalogue behind list_adventures: enough for a caller (or a player-
+  // facing picker) to choose an adventure and call new_run, nothing from
+  // inside any graph that the projections above wouldn't expose anyway.
+  function listAdventures() {
+    return {
+      adventures: hosted.map((a) => ({
+        adventure_id: a.id,
+        title: a.doc.graph.title,
+        subtitle: a.doc.graph.subtitle ?? null,
+        genre: structuredClone(a.doc.graph.genre ?? []),
+        tone: structuredClone(a.doc.graph.tone ?? []),
+        narrative_premise: a.doc.graph.narrative_premise ?? null,
+        version: a.version,
+        adventure_hash: a.hash,
+        node_count: a.nodesById.size,
+        route_count: a.routesById.size,
+        ending_count: a.terminalNodes.size,
+      })),
+    };
+  }
+
   async function newRun(adventureId, label = null) {
-    if (adventureId !== adventure.id) {
+    const adventure = adventuresById.get(adventureId);
+    if (!adventure) {
       throw new EngineError(
         "unknown_adventure",
-        `Unknown adventure ${adventureId}; this server hosts ${adventure.id}.`
+        `Unknown adventure ${adventureId}; this server hosts: ${[...adventuresById.keys()].join(", ")}.`,
+        { hosted_adventures: [...adventuresById.keys()] }
       );
     }
     const runId = crypto.randomBytes(16).toString("base64url");
@@ -236,7 +278,7 @@ function createEngine({ adventure, store, now = () => new Date().toISOString(), 
       status: "active",
       node: publicNode(entryNode, state, entryVisitCount),
       state: publicState(state),
-      arrival_effects_applied: enrichEffects(arrivalEffects),
+      arrival_effects_applied: enrichEffects(adventure, arrivalEffects),
     };
     // One-time scene-setting text (content revision 0.2.5), shown once at
     // the start of a run rather than repeated on every subsequent call.
@@ -248,7 +290,7 @@ function createEngine({ adventure, store, now = () => new Date().toISOString(), 
   // Shared by get_node and walk's response (not by what walk persists to
   // doc.log — see the comment on walk's return below). Needs only the
   // state already held in memory, no storage read.
-  function availableRoutesFor(state, status) {
+  function availableRoutesFor(adventure, state, status) {
     if (status !== "active") return [];
     return (adventure.routesByFrom.get(state.current_node) ?? [])
       .filter(
@@ -258,7 +300,7 @@ function createEngine({ adventure, store, now = () => new Date().toISOString(), 
           isAffordable(r, state) &&
           isNotConsumed(r, state)
       )
-      .map(publicRoute);
+      .map((r) => publicRoute(adventure, r));
   }
 
   // Content revision 0.2.5's semantic_layer.route_resolutions[route_id]:
@@ -268,7 +310,7 @@ function createEngine({ adventure, store, now = () => new Date().toISOString(), 
   // to/node fields, so this adds narration, not a new leak. Computed fresh
   // for the live response only, same treatment as node/route narrative
   // elsewhere — not persisted to doc.log.
-  function routeResolutionText(routeId, success) {
+  function routeResolutionText(adventure, routeId, success) {
     const resolution = adventure.doc.semantic_layer?.route_resolutions?.[routeId];
     if (!resolution) return undefined;
     return success ? resolution.success_text : resolution.failure_text;
@@ -279,7 +321,7 @@ function createEngine({ adventure, store, now = () => new Date().toISOString(), 
   // ending after the final walk.
   async function getNode(runId) {
     const { doc } = await loadRun(runId);
-    assertAdventureMatches(doc);
+    const adventure = adventureForRun(doc);
     const state = doc.state;
     const node = adventure.nodesById.get(state.current_node);
     // Read-only: reports the visit count already on record rather than
@@ -288,17 +330,18 @@ function createEngine({ adventure, store, now = () => new Date().toISOString(), 
     const visitCount = state.visited_nodes?.[state.current_node] ?? 1;
     return {
       run_id: doc.run_id,
+      adventure_id: doc.adventure_id,
       revision: doc.revision,
       status: doc.status,
       state: publicState(state),
       node: publicNode(node, state, visitCount),
-      available_routes: availableRoutesFor(state, doc.status),
+      available_routes: availableRoutesFor(adventure, state, doc.status),
     };
   }
 
   async function walk(runId, routeId, expectedRevision) {
     const { doc, etag } = await loadRun(runId);
-    assertAdventureMatches(doc);
+    const adventure = adventureForRun(doc);
     if (doc.status !== "active") {
       throw new EngineError("run_not_active", `Run ${runId} is ${doc.status}.`);
     }
@@ -404,35 +447,37 @@ function createEngine({ adventure, store, now = () => new Date().toISOString(), 
     // trip. None of it is written to the log.
     const result = {
       ...step,
-      effects_applied: enrichEffects(step.effects_applied),
-      arrival_effects_applied: enrichEffects(step.arrival_effects_applied),
+      effects_applied: enrichEffects(adventure, step.effects_applied),
+      arrival_effects_applied: enrichEffects(adventure, step.arrival_effects_applied),
       node: publicNode(destinationNode, state, destinationVisitCount),
-      available_routes: availableRoutesFor(state, status),
+      available_routes: availableRoutesFor(adventure, state, status),
     };
-    const resolutionText = routeResolutionText(route.id, success);
+    const resolutionText = routeResolutionText(adventure, route.id, success);
     if (resolutionText) result.route_resolution = resolutionText;
     return result;
   }
 
   // Exempt from the adventure-hash hard-stop: still returns the log, just
-  // flagged, when the deployed content has moved on.
+  // flagged, when the deployed content has moved on (or the adventure is
+  // no longer hosted at all).
   async function getLog(runId) {
     const { doc } = await loadRun(runId);
     const result = {
       run_id: doc.run_id,
+      adventure_id: doc.adventure_id,
       revision: doc.revision,
       status: doc.status,
       log: doc.log,
     };
-    if (adventureMismatch(doc)) {
+    if (!adventureForRunOrNull(doc)) {
       result.adventure_mismatch = true;
       result.run_adventure_hash = doc.adventure_hash;
-      result.deployed_adventure_hash = adventure.hash;
+      result.deployed_adventure_hash = adventuresById.get(doc.adventure_id)?.hash ?? null;
     }
     return result;
   }
 
-  return { newRun, getNode, walk, getLog };
+  return { newRun, getNode, walk, getLog, listAdventures };
 }
 
 module.exports = { createEngine };

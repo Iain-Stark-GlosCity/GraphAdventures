@@ -4,19 +4,34 @@
  * The tool manifest served by tools/list and dispatched by tools/call.
  * Each handler receives (args, engine) and returns the JSON-serializable
  * result the client sees as the tool's output.
+ *
+ * The manifest is adventure-agnostic: it takes the hosted adventures only
+ * to name them in the tool descriptions, so a caller reading tools/list
+ * already knows what adventure_ids new_run accepts.
  */
-function buildTools(adventureId) {
+function buildTools(adventures) {
+  const ids = adventures.map((a) => a.id);
   return [
+    {
+      name: "list_adventures",
+      description:
+        "Catalogue of every adventure this server hosts: adventure_id, title, genre, tone, premise and size. Call this first to choose what to play (or offer the choice to the player), then pass the chosen adventure_id to new_run.",
+      inputSchema: {
+        type: "object",
+        properties: {},
+      },
+      handler: (args, engine) => engine.listAdventures(),
+    },
     {
       name: "new_run",
       description:
-        "Start a new run of the Rust Wind Hills adventure. Returns the run_id, the entry node and the freshly seeded player state.",
+        `Start a new run of one of the hosted adventures (${ids.join(", ")}). Returns the run_id, the entry node and the freshly seeded player state.`,
       inputSchema: {
         type: "object",
         properties: {
           adventure_id: {
             type: "string",
-            description: `Adventure to run; this server hosts "${adventureId}".`,
+            description: `Adventure to run — one of: ${ids.join(", ")}. See list_adventures for what each one is.`,
           },
           label: {
             type: "string",

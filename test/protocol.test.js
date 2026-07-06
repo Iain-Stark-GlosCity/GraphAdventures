@@ -11,7 +11,7 @@ const SERVER_INFO = { name: "rust-wind-hills", version: adventure.version, instr
 
 function ctx() {
   const { engine } = makeEngine();
-  return { tools: buildTools(adventure.id), engine, serverInfo: SERVER_INFO, log: () => {} };
+  return { tools: buildTools([adventure]), engine, serverInfo: SERVER_INFO, log: () => {} };
 }
 
 test("initialize returns protocol version, tools capability and server info", async () => {
@@ -41,10 +41,10 @@ test("ping replies with an empty result", async () => {
   assert.deepEqual(response, { jsonrpc: "2.0", id: 2, result: {} });
 });
 
-test("tools/list returns all four tools with input schemas, no handlers leaked", async () => {
+test("tools/list returns all five tools with input schemas, no handlers leaked", async () => {
   const response = await handleMessage({ jsonrpc: "2.0", id: 3, method: "tools/list" }, ctx());
   const names = response.result.tools.map((t) => t.name).sort();
-  assert.deepEqual(names, ["get_log", "get_node", "new_run", "walk"]);
+  assert.deepEqual(names, ["get_log", "get_node", "list_adventures", "new_run", "walk"]);
   for (const tool of response.result.tools) {
     assert.deepEqual(Object.keys(tool).sort(), ["description", "inputSchema", "name"]);
   }

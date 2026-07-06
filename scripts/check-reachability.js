@@ -19,56 +19,60 @@
 // what simulate-playthroughs.js probes for instead.
 
 const path = require("node:path");
-const { loadAdventure } = require("../src/engine/adventure");
+const { loadAdventure, loadAdventures } = require("../src/engine/adventure");
 
-const assetPath =
-  process.argv[2] ??
-  path.join(__dirname, "..", "rust_wind_hills_adventure_knowledge_graph.json");
+// With an argument: check that one asset. Without: check every adventure in
+// adventures/manifest.json, same set the Functions app loads at startup.
+const adventures = process.argv[2]
+  ? [loadAdventure(process.argv[2])]
+  : loadAdventures(path.join(__dirname, "..", "adventures", "manifest.json"));
 
-const adventure = loadAdventure(assetPath);
+function checkAdventure(adventure) {
+  const edges = new Map();
+  const addEdge = (from, to) => {
+    if (!edges.has(from)) edges.set(from, new Set());
+    edges.get(from).add(to);
+  };
+  for (const route of adventure.doc.routes) {
+    addEdge(route.from, route.to);
+    if (route.test?.failure_to) addEdge(route.from, route.test.failure_to);
+  }
 
-const edges = new Map();
-const addEdge = (from, to) => {
-  if (!edges.has(from)) edges.set(from, new Set());
-  edges.get(from).add(to);
-};
-for (const route of adventure.doc.routes) {
-  addEdge(route.from, route.to);
-  if (route.test?.failure_to) addEdge(route.from, route.test.failure_to);
-}
-
-const reached = new Set([adventure.entryNode]);
-const queue = [adventure.entryNode];
-while (queue.length > 0) {
-  const nodeId = queue.shift();
-  for (const next of edges.get(nodeId) ?? []) {
-    if (!reached.has(next)) {
-      reached.add(next);
-      queue.push(next);
+  const reached = new Set([adventure.entryNode]);
+  const queue = [adventure.entryNode];
+  while (queue.length > 0) {
+    const nodeId = queue.shift();
+    for (const next of edges.get(nodeId) ?? []) {
+      if (!reached.has(next)) {
+        reached.add(next);
+        queue.push(next);
+      }
     }
   }
+
+  const allNodeIds = [...adventure.nodesById.keys()];
+  const unreachable = allNodeIds.filter((id) => !reached.has(id));
+  const deadEnds = allNodeIds.filter(
+    (id) => !adventure.terminalNodes.has(id) && (edges.get(id) ?? new Set()).size === 0
+  );
+
+  console.log(`Structural reachability: ${adventure.id} v${adventure.version}`);
+  console.log(`  nodes: ${allNodeIds.length}, reachable from entry: ${reached.size}`);
+
+  let failed = false;
+  if (unreachable.length > 0) {
+    failed = true;
+    console.error(`  UNREACHABLE from ${adventure.entryNode}: ${unreachable.join(", ")}`);
+  }
+  if (deadEnds.length > 0) {
+    failed = true;
+    console.error(`  NON-TERMINAL DEAD ENDS (no outgoing routes at all): ${deadEnds.join(", ")}`);
+  }
+  if (!failed) {
+    console.log("  OK: every node is structurally reachable and has an exit or is terminal.");
+  }
+  return failed;
 }
 
-const allNodeIds = [...adventure.nodesById.keys()];
-const unreachable = allNodeIds.filter((id) => !reached.has(id));
-const deadEnds = allNodeIds.filter(
-  (id) => !adventure.terminalNodes.has(id) && (edges.get(id) ?? new Set()).size === 0
-);
-
-console.log(`Structural reachability: ${adventure.id} v${adventure.version}`);
-console.log(`  nodes: ${allNodeIds.length}, reachable from entry: ${reached.size}`);
-
-let failed = false;
-if (unreachable.length > 0) {
-  failed = true;
-  console.error(`  UNREACHABLE from ${adventure.entryNode}: ${unreachable.join(", ")}`);
-}
-if (deadEnds.length > 0) {
-  failed = true;
-  console.error(`  NON-TERMINAL DEAD ENDS (no outgoing routes at all): ${deadEnds.join(", ")}`);
-}
-if (!failed) {
-  console.log("  OK: every node is structurally reachable and has an exit or is terminal.");
-}
-
-process.exit(failed ? 1 : 0);
+const anyFailed = adventures.map(checkAdventure).some(Boolean);
+process.exit(anyFailed ? 1 : 0);

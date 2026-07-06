@@ -1,0 +1,1324 @@
+{
+  "schema": {
+    "name": "adventure-knowledge-graph",
+    "version": "0.1.0",
+    "description": "A stateful, directed knowledge graph for a modern-day espionage mystery. Same executable traversal rules as every adventure on this platform (conditions, effects, costs, tests), themed entirely through content: tradecraft instead of torches, heat instead of curses."
+  },
+  "graph": {
+    "id": "vienna-clearing-house",
+    "title": "The Clearing House",
+    "subtitle": "A modern spy mystery of dead drops, doubles and deniability in Vienna",
+    "genre": ["espionage", "mystery", "modern day", "gamebook"],
+    "tone": ["paranoid", "wry", "melancholy", "precise"],
+    "entry_node": "cafe_sperl_brief",
+    "terminal_nodes": [
+      "ending_extraction",
+      "ending_mole_wins",
+      "ending_burned",
+      "ending_walk_away",
+      "ending_dead"
+    ],
+    "design_notes": [
+      "Time is the true currency: most productive moves cost hours, and the clock never refunds.",
+      "Heat is a stat, not a resource, so routes can gate on it rising and falling.",
+      "The mole can be identified by burglary (records room) or by charm (the opera), two mechanically different roads to the same fact.",
+      "There is always a free way to stand down: walking away is an ending, not a failure state."
+    ],
+    "narrative_premise": "A cipher clerk at a Viennese clearing bank — codename MERIDIAN — wants to defect, carrying proof that someone inside your own station has been selling agent identities. You are the deniable freelancer sent to bring the clerk out. You have one weekend, a modest float of euros, and no official existence.",
+    "core_mystery": "Which officer of your own station is the mole, and can you prove it before the exchange?",
+    "dramatic_question": "Do you trust the service that does not officially employ you?",
+    "hidden_truth": "The mole, Kessler, requested you for this job personally — because your file says you follow orders.",
+    "opening_context": {
+      "player_facing_introduction": "Vienna does not hurry. The trams keep time like a metronome and the cafés keep secrets like a vault, which is why the trade never really left. You arrived this morning on a passport with eleven honest stamps and one lie. In your pocket: a phone that has never made a call, and a note in pencil — SPERL, 10:15, COME ALONE. Somewhere across this polite, wedding-cake city, a frightened clerk is waiting to hand you the name of a traitor. You have until Sunday night."
+    }
+  },
+  "ruleset": {
+    "mode": "single_player_gamebook",
+    "player_state": {
+      "stats": {
+        "skill": { "type": "integer", "min": 1, "max": 12, "initial": 8 },
+        "stamina": { "type": "integer", "min": 0, "max": 24, "initial": 16 },
+        "luck": { "type": "integer", "min": 0, "max": 12, "initial": 8 },
+        "heat": { "type": "integer", "min": 0, "max": 10, "initial": 0 }
+      },
+      "resources": {
+        "euros": { "type": "integer", "min": 0, "initial": 160 },
+        "hours": { "type": "integer", "min": 0, "initial": 14 }
+      },
+      "collections": {
+        "inventory": { "type": "set", "initial": [] },
+        "conditions": { "type": "set", "initial": [] },
+        "knowledge": { "type": "set", "initial": [] }
+      },
+      "flags": {
+        "cover_status": { "type": "enum", "values": ["intact", "thin", "blown"], "initial": "intact" },
+        "meridian_trust": { "type": "enum", "values": ["unmet", "wary", "convinced", "spooked"], "initial": "unmet" },
+        "mole_identified": { "type": "boolean", "initial": false },
+        "station_alerted": { "type": "boolean", "initial": false },
+        "evidence_secured": { "type": "boolean", "initial": false }
+      }
+    },
+    "condition_dsl": {
+      "operators": [
+        "has_item", "missing_item", "flag_is", "flag_not", "stat_at_least", "stat_below",
+        "resource_at_least", "has_condition", "missing_condition", "knows", "not_knows"
+      ],
+      "combination": "All conditions on a route must pass unless the route uses an explicit any block."
+    },
+    "effect_dsl": {
+      "operators": [
+        "add_item", "remove_item", "set_flag", "modify_stat", "modify_resource",
+        "add_condition", "remove_condition", "add_knowledge", "emit_event"
+      ]
+    },
+    "test_dsl": {
+      "types": ["skill", "luck", "combat"],
+      "notes": "2d6 against stat plus modifier; luck tests always spend 1 luck; combat runs rounds against an encounter's skill and stamina."
+    }
+  },
+  "regions": [
+    {
+      "id": "vienna_surface",
+      "name": "Vienna, Above the Line",
+      "depth": 0,
+      "theme": "imperial politeness over cold machinery",
+      "narrative": {
+        "surface_read": "Cafés, trams, opera intervals, market stalls: a city performing its own postcard.",
+        "deeper_truth": "Every institution here has hosted every intelligence service at least once, and the waiters have seen it all.",
+        "dramatic_function": "Make tradecraft feel like errands, until the errands start to bite.",
+        "sensory_palette": ["coffee and beeswax", "tram bells", "wet cobbles", "newsprint", "cigarette smoke under awnings"]
+      }
+    },
+    {
+      "id": "vienna_night",
+      "name": "Vienna, After the Interval",
+      "depth": 1,
+      "theme": "the same city with the lights behind the windows",
+      "narrative": {
+        "surface_read": "Canal fog, empty platforms, embassies asleep behind railings.",
+        "deeper_truth": "Exchanges happen at night not for secrecy but because witnesses prefer not to have seen anything.",
+        "dramatic_function": "Raise stakes as the graph converges on the exchange.",
+        "sensory_palette": ["diesel and river damp", "sodium lamps", "a violin through a closed window"]
+      }
+    }
+  ],
+  "items": [
+    {
+      "id": "press_credentials",
+      "name": "Danube Courier Press Pass",
+      "type": "cover_document",
+      "description": "A laminated press card for a weekly paper that exists mostly to issue press cards. It will not survive a phone call, but nobody in a marble lobby wants to make the phone call.",
+      "traits": ["cover", "inspectable", "fragile"],
+      "narrative_semantics": {
+        "origin": "Printed in a Favoriten basement by a man who used to do this for two governments at once.",
+        "symbolic_role": "Legitimacy is a performance with props.",
+        "world_revelation": "Vienna's institutions run on the mutual agreement not to look too closely.",
+        "linked_threads": ["thread_cover_identity"],
+        "linked_motifs": ["motif_paper_lies"]
+      }
+    },
+    {
+      "id": "burner_phone",
+      "name": "Prepaid Handset",
+      "type": "equipment",
+      "description": "A cash-bought phone with one number in it and a battery you keep out of the case. Its only job is to be thrown in the canal later.",
+      "traits": ["disposable", "deniable"],
+      "narrative_semantics": {
+        "origin": "One of a tray of forty identical handsets at the Naschmarkt stall.",
+        "symbolic_role": "Modern tradecraft is the art of owning nothing traceable.",
+        "world_revelation": "The old dead-drop city has learned new protocols without changing its manners.",
+        "linked_threads": ["thread_exchange"],
+        "linked_motifs": ["motif_signal_and_noise"]
+      }
+    },
+    {
+      "id": "bypass_kit",
+      "name": "Registry Bypass Kit",
+      "type": "equipment",
+      "description": "A slim wallet of picks, shims and a contact cloner, sold to you as 'locksmith's samples'. Illegal in nine countries including this one.",
+      "traits": ["illegal", "concealable"],
+      "narrative_semantics": {
+        "origin": "Assembled from trade-fair leftovers by the market's quietest stallholder.",
+        "symbolic_role": "Doors are opinions.",
+        "world_revelation": "Even your own service's locks are only as loyal as their keyholders.",
+        "linked_threads": ["thread_mole_hunt"],
+        "linked_motifs": ["motif_locked_rooms"]
+      }
+    },
+    {
+      "id": "kessler_ledger",
+      "name": "Kessler's Private Ledger",
+      "type": "evidence",
+      "description": "A pocket notebook in a station officer's own hand: payment dates, courier initials, and a column of six-figure sums that no salary explains.",
+      "traits": ["evidence", "incriminating", "unique"],
+      "narrative_semantics": {
+        "origin": "Kept, with fatal vanity, in the station annexe's registry cage — because Kessler audits the registry himself.",
+        "symbolic_role": "The traitor's love of order becomes the rope that hangs him.",
+        "world_revelation": "The mole is not an ideologue; he is an accountant of himself.",
+        "linked_threads": ["thread_mole_hunt"],
+        "linked_motifs": ["motif_paper_lies"]
+      }
+    },
+    {
+      "id": "cipher_notebook",
+      "name": "MERIDIAN's Cipher Notebook",
+      "type": "prize",
+      "description": "A clerk's exercise book, dense with settlement codes. Read correctly, it maps every payment the mole ever routed through the clearing bank.",
+      "traits": ["prize", "unique", "protected"],
+      "narrative_semantics": {
+        "origin": "Copied out by MERIDIAN over eight months of lunch breaks, one page at a time, in the bank's own shorthand.",
+        "symbolic_role": "Courage looks like handwriting practice.",
+        "world_revelation": "The whole betrayal ran through ordinary banking infrastructure, invoiced and settled like freight.",
+        "linked_threads": ["thread_exchange", "thread_mole_hunt"],
+        "linked_motifs": ["motif_signal_and_noise"]
+      }
+    }
+  ],
+  "encounters": [
+    {
+      "id": "watcher_team",
+      "name": "The Grey Hats",
+      "kind": "surveillance_team",
+      "skill": 7,
+      "stamina": 8,
+      "special": "They would rather follow you than fight you; violence means their cover is already spent.",
+      "narrative_semantics": {
+        "desire": "To stay a rumour: a good watcher team is never a fact.",
+        "fear": "Being photographed back.",
+        "misconception": "They believe you are the courier, not the case officer, and staff the job accordingly.",
+        "voice": "They do not speak. Their tradecraft is their voice: the newspaper refolded, the shop window used as a mirror.",
+        "non_combat_leverage": ["knowing their faces", "boring them with routine", "public places with one exit they cannot cover"],
+        "aftermath": "Beaten or evaded, they report upward — and someone in your own station reads that report."
+      }
+    },
+    {
+      "id": "kessler_enforcer",
+      "name": "Brandt",
+      "kind": "professional",
+      "skill": 9,
+      "stamina": 10,
+      "special": "Ex-service close protection, paid in cash, told just enough. He has done this before and it shows.",
+      "narrative_semantics": {
+        "desire": "A clean job and a quiet pension in Carinthia.",
+        "fear": "That Kessler will one day tidy him away like a receipt.",
+        "misconception": "He thinks he is the insurance policy. He is the deductible.",
+        "voice": "Courteous, unhurried, faintly apologetic — the manner of a man who considers violence a scheduling matter.",
+        "non_combat_leverage": ["evidence that Kessler burns his own people", "money he can retire on", "witnesses"],
+        "aftermath": "If Brandt falls, Kessler has no second layer; the mole must act personally, and personally is where he is weak."
+      }
+    }
+  ],
+  "nodes": [
+    {
+      "id": "cafe_sperl_brief",
+      "type": "start",
+      "region": "vienna_surface",
+      "title": "Café Sperl, 10:15",
+      "summary": "The handler VESPER briefs you over melange and marble: MERIDIAN wants out, and the rot is inside your own station.",
+      "tags": ["start", "safe", "briefing"],
+      "knowledge_grants": ["rumour_mole_exists"],
+      "read_aloud": "Café Sperl smells of coffee, beeswax and a hundred years of discretion. VESPER is already seated, an unremarkable woman with remarkable posture, a newspaper folded to the chess column. 'A clerk at the Continental Clearing House wants to come across,' she says, at conversational volume, which here is safer than a whisper. 'Codename MERIDIAN. The price of the ticket is proof — proof that one of ours has been selling names through the bank. You are not on any roster, which is precisely why it must be you. You have until Sunday night.' She leaves a key on the saucer: a safehouse in Margareten. She does not leave a name for the traitor.",
+      "read_aloud_revisit": "Sperl again. Different waiter, same beeswax hush. VESPER's table is occupied by two students arguing about football; whatever this café gave you this morning, it has already given.",
+      "narrative": {
+        "local_history": "Officers of four services have used Sperl's chess tables as neutral ground since the Allied occupation; the house rule is that nobody wins too often.",
+        "present_tension": "VESPER is breaking protocol by meeting you at all, which tells you how few people she can trust.",
+        "hidden_truth": "VESPER shortlisted three freelancers for this job. Kessler struck two of the names.",
+        "sensory_details": ["steam knocking in the ancient radiator", "the chess clock's soft click from the corner", "sugar crust on the strudel nobody is eating"],
+        "emotional_undertone": "Calm words over a live wire.",
+        "narrative_hooks": [
+          "Establish the deadline and the double game: bring MERIDIAN out, and find the mole first.",
+          "Make Vienna itself feel like a colleague: helpful, watchful, neutral to a fault."
+        ]
+      }
+    },
+    {
+      "id": "safehouse_margareten",
+      "type": "hub",
+      "region": "vienna_surface",
+      "title": "The Margareten Safehouse",
+      "summary": "A third-floor flat with net curtains, a kettle, and sightlines on both ends of the street. Your base for the weekend.",
+      "tags": ["hub", "safe", "rest"],
+      "read_aloud": "The flat is furnished the way safehouses always are: enough to live, nothing to remember. Net curtains grey the street to a watercolour. On the kitchen table, someone has left the essentials — instant coffee, a city map, and a list of tram routes with three lines pencilled out. From the window you can watch both corners, and you do, twice, before you take your coat off.",
+      "read_aloud_revisit": "The safehouse receives you with its rented indifference. Kettle, curtains, corners: you check the street from the window out of habit that is rapidly becoming instinct.",
+      "read_aloud_variants": [
+        {
+          "conditions": [{ "op": "stat_at_least", "stat": "heat", "value": 8 }],
+          "priority": 10,
+          "text": "Something is wrong with the street. The florist's van has been parked too long and too well; a window opposite that was shut this morning is open exactly ten centimetres. The safehouse is still yours, but the city has started reading over your shoulder. Whatever you still have to do, the time to do it is now."
+        }
+      ],
+      "narrative": {
+        "local_history": "The service has rented this flat through four landlords and two currencies; the pencilled tram lines on the map are a dead officer's handwriting.",
+        "present_tension": "Every hour you spend here is an hour MERIDIAN spends losing nerve.",
+        "hidden_truth": "The flat is on Kessler's internal list of deniable properties. He has not yet checked who drew the keys.",
+        "sensory_details": ["kettle limescale rattle", "tram sparks lighting the ceiling at night", "the neighbour's radio playing yesterday's news"],
+        "emotional_undertone": "Shelter that never quite becomes safety."
+      }
+    },
+    {
+      "id": "naschmarkt_stalls",
+      "type": "market",
+      "region": "vienna_surface",
+      "title": "Naschmarkt, Rear Aisles",
+      "summary": "Behind the olive barrels and spice pyramids, the market's quieter aisles sell covers, handsets and other groceries of the trade.",
+      "tags": ["commerce", "public"],
+      "read_aloud": "The front of the Naschmarkt sells apricots and gossip. The back sells quieter goods. A stallholder with a jeweller's loupe on a cord looks you over once and adjusts his prices accordingly. Between the crates you can buy a press card that almost bears scrutiny, phones by the tray, and 'locksmith's samples' in a slim leather wallet. Nobody asks questions here; questions cost extra.",
+      "read_aloud_revisit": "The rear aisles again. The stallholder's loupe swings your way, notes that you are still alive, and returns to a tray of watches that all tell slightly different times.",
+      "rumour_delivery": [
+        {
+          "speaker": "The stallholder with the loupe",
+          "text": "Grey hats about, this weekend. Two teams, working the first district and the parks. Somebody with a budget is very interested in somebody.",
+          "truth_status": "true"
+        },
+        {
+          "speaker": "The tea seller opposite",
+          "text": "They say the Continental Clearing House counts other people's secrets the way it counts other people's money — for a fee, and without receipts.",
+          "truth_status": "true_in_spirit"
+        }
+      ],
+      "narrative": {
+        "local_history": "This market has equipped every underdog since the siege: deserters, smugglers, station officers on unofficial errands.",
+        "present_tension": "The stallholders know the watchers are out; prices reflect the weather in the trade.",
+        "hidden_truth": "The loupe man reports to nobody, which is why everybody uses him.",
+        "sensory_details": ["saffron and machine oil", "awnings snapping in the wind", "the till bell of the honest half of the market"],
+        "emotional_undertone": "Commerce as armistice."
+      }
+    },
+    {
+      "id": "clearing_bank_lobby",
+      "type": "location",
+      "region": "vienna_surface",
+      "title": "The Continental Clearing House",
+      "summary": "A marble lobby where the money of forty countries changes hands politely. Somewhere upstairs, MERIDIAN keys settlement codes.",
+      "tags": ["institution", "risk"],
+      "read_aloud": "The Clearing House lobby is built to make you feel like a rounding error: forty metres of marble, a chandelier the size of a tram, and a reception desk staffed by people who can smell an appointment's absence. Somewhere above the cornices, in a room without a view, a frightened clerk is keeping a promise to themselves one page at a time.",
+      "read_aloud_revisit": "The chandelier, the marble, the receptionists' cool triage. The lobby has already forgotten you once; it is ready to do so again.",
+      "narrative": {
+        "local_history": "The bank cleared reparations, then flight capital, then everything; neutrality is its only product.",
+        "present_tension": "Bank security is polite and plainclothes and everywhere.",
+        "hidden_truth": "Kessler's payments route through an account four floors above your head, numbered like any other.",
+        "sensory_details": ["marble cold rising through shoe soles", "the hush of money at rest", "a lift bell like a struck glass"],
+        "emotional_undertone": "Power that never raises its voice."
+      }
+    },
+    {
+      "id": "meridian_meeting",
+      "type": "encounter",
+      "region": "vienna_surface",
+      "title": "The Back Room at Prückel",
+      "summary": "MERIDIAN in person: younger than the file, braver than the voice, one bad hour from bolting.",
+      "tags": ["contact", "pivotal"],
+      "read_aloud": "MERIDIAN is not what the file suggested. Younger. Steadier hands than voice. They sit with their back to the wall of Prückel's rear room, a coffee untouched, and study you the way a clerk studies a suspicious invoice. 'Anyone can say they were sent,' they say quietly. 'The last person who said it wanted me to name my sources first. So. Show me you're real — or leave me alive by leaving now.'",
+      "read_aloud_revisit": "Prückel's back room. MERIDIAN's coffee is a fresh one, equally untouched. The look you get says the clock in their chest has ticked several thousand times since you last sat down.",
+      "narrative": {
+        "local_history": "Prückel's rear room has hosted a hundred years of nervous first meetings; the waiters seat lone readers there unasked.",
+        "present_tension": "MERIDIAN has already survived one false contact — sent, though they cannot prove it, by the mole himself.",
+        "hidden_truth": "MERIDIAN's price is not money. It is that somebody, once, keeps a promise to them.",
+        "sensory_details": ["cup rotated a quarter-turn at a time", "the rear room's dead air", "a folded napkin aligned to the table edge, twice"],
+        "emotional_undertone": "Courage in a borrowed coat."
+      }
+    },
+    {
+      "id": "stadtpark_dead_drop",
+      "type": "location",
+      "region": "vienna_surface",
+      "title": "Stadtpark, the Third Bench",
+      "summary": "A magnetic key box under the lip of a park bench: MERIDIAN's dead drop, and possibly somebody's mousetrap.",
+      "tags": ["tradecraft", "exposed"],
+      "read_aloud": "Stadtpark performs its Sunday all week: brass band shelter, gilded Strauss, pensioners feeding sparrows against municipal advice. The third bench past the bandstand has a shadow under its seat-lip that only matters if you know to look. Twenty metres of open gravel separate you from it, and every step of it is observable from three directions. The drop is either the safest object in Vienna or the bait in a beautifully municipal trap.",
+      "read_aloud_revisit": "The third bench again. Same sparrows, same sightlines. The gravel between you and the bench has not grown any shorter since last time.",
+      "narrative": {
+        "local_history": "This bench has served three networks running back to the Cold War proper; drops survive because parks do not gossip.",
+        "present_tension": "The Grey Hats have the park in their weekend rotation.",
+        "hidden_truth": "MERIDIAN loaded the drop three days ago and has walked past it, unable to check it, every lunchtime since.",
+        "sensory_details": ["brass warming up out of tune", "gravel crunch with too much echo", "the gilded statue catching low sun like a flare"],
+        "emotional_undertone": "Stage fright in a public garden."
+      }
+    },
+    {
+      "id": "station_annex",
+      "type": "location",
+      "region": "vienna_surface",
+      "title": "The Station Annexe",
+      "summary": "Your own service's back office, where you officially do not exist and the registry cage officially holds nothing.",
+      "tags": ["institution", "risk", "home_ground"],
+      "read_aloud": "The annexe hides behind a trade delegation's brass plate: coat rack, franking machine, and a duty officer whose whole career is remembering faces. This is your own service — and that is precisely the problem. Somewhere past the second door is the registry cage, and in it, if VESPER's fear is right, the mole's paperwork sleeps in a drawer he audits himself. You do not exist on any roster. In this building, that cuts both ways.",
+      "read_aloud_revisit": "The annexe's brass plate shines with bureaucratic innocence. The duty officer's eyes do their little filing action as you pass — a face, refiled.",
+      "read_aloud_variants": [
+        {
+          "conditions": [{ "op": "flag_is", "flag": "station_alerted", "value": true }],
+          "priority": 10,
+          "text": "The annexe has changed temperature. The franking machine is silent, the second door stands shut, and the duty officer's smile arrives a half-second too early, like a recording started at the wrong moment. Somebody has reported something. The building knows you were in the cage — it just hasn't decided, yet, what to do about you."
+        }
+      ],
+      "narrative": {
+        "local_history": "The annexe was set up 'temporarily' during a summit forty years ago; permanence crept in like damp.",
+        "present_tension": "Everyone here trusts everyone, on paper, which is what makes a mole possible.",
+        "hidden_truth": "Kessler signs the registry audit himself every quarter. Order is his vanity and his hiding place.",
+        "sensory_details": ["franking machine thump", "dead file smell of old paper and older cigarettes", "the duty officer's chair creak, always twice"],
+        "emotional_undertone": "Home ground that might be a minefield."
+      }
+    },
+    {
+      "id": "records_room",
+      "type": "challenge",
+      "region": "vienna_surface",
+      "title": "The Registry Cage",
+      "summary": "A wire-mesh cage of numbered drawers. In one of them, the mole's private ledger — if you can get it open and get out unlogged.",
+      "tags": ["heist", "evidence"],
+      "read_aloud": "The registry cage is a room within a room: floor-to-ceiling wire mesh, drawers numbered in a clerk's hand, a lock older than your service career and a signing-in book older than that. The drawer you want — you are suddenly certain — is the tidiest one. Behind you, the annexe's ordinary noises continue: the kettle, the franking machine, feet on parquet. Any of them could stop at any moment and become a person in the doorway.",
+      "read_aloud_revisit": "The cage again, mesh and numbered drawers. The signing-in book lies open on its chain, keeping its slow, dangerous diary.",
+      "narrative": {
+        "local_history": "The cage predates the annexe: it came from the old consulate, mesh and all, because some kinds of furniture are institutional memory.",
+        "present_tension": "There is no plausible reason for you to be in this room. None.",
+        "hidden_truth": "Kessler's drawer is 41. The ledger sits under a tin of pencils, because a locked box would invite curiosity and a tin of pencils repels it.",
+        "sensory_details": ["mesh shadows crosshatching the drawers", "pencil-tin rattle", "your own breathing, suddenly loud"],
+        "emotional_undertone": "Burglary in a church you were baptised in."
+      }
+    },
+    {
+      "id": "tram_line_d",
+      "type": "transition",
+      "region": "vienna_surface",
+      "title": "Line D, Rolling",
+      "summary": "The long tram north: standing room, reflections in the glass, and at least one passenger who got on when you did.",
+      "tags": ["chase", "exposed"],
+      "read_aloud": "Line D takes its time along the Ring, and so does the man who boarded behind you: grey cap, paper he isn't reading, weight on the balls of his feet. In the black mirror of the window the carriage sorts itself into the innocent and the interested. The tram sways, the stops tick past like a countdown, and somewhere before the terminus you and your reflection are going to have to make a decision.",
+      "read_aloud_revisit": "Line D again, same slow ballet of stops and reflections. You read the carriage the way the duty officer reads faces — and the carriage, possibly, reads you back.",
+      "narrative": {
+        "local_history": "Watchers love trams: fixed route, good glass, and nobody ever remembers who was standing.",
+        "present_tension": "A tail confirmed is a decision demanded: lose them, bore them, or break them.",
+        "hidden_truth": "The Grey Hats' controller is required to report to a liaison contact. The liaison contact is Kessler.",
+        "sensory_details": ["rail squeal on the curve by the university", "coat damp steaming in the heated car", "the recorded announcement's eternal patience"],
+        "emotional_undertone": "A duel conducted entirely in glass."
+      }
+    },
+    {
+      "id": "opera_interval",
+      "type": "encounter",
+      "region": "vienna_night",
+      "title": "Interval at the Staatsoper",
+      "summary": "Champagne, chandeliers, and Kessler — off duty, expansive, and dangerous to charm.",
+      "tags": ["social", "pivotal"],
+      "read_aloud": "The interval bell scatters the Staatsoper's audience into gilded corridors, and there — glass in hand, holding court by the tall windows — is Kessler. Deputy head of station. Charming in the way of a man doing an impression of himself: the anecdotes polished, the laugh timed, the eyes doing inventory over your shoulder. 'A face I don't know,' he says pleasantly as you drift into his orbit. 'In Vienna, in season. How refreshing. And what brings you to the opera?'",
+      "read_aloud_revisit": "The gilded corridor again, the same expensive light. Kessler's circle has reshuffled but the man himself is constant: glass half-raised, attention fully armed.",
+      "narrative": {
+        "local_history": "The Staatsoper interval is Vienna's true stock exchange; more careers are settled by the tall windows than in any ministry.",
+        "present_tension": "Kessler collects new faces the way the registry collects paper — automatically, and forever.",
+        "hidden_truth": "Kessler has already guessed why a freelancer might be in town. He is enjoying the suspense on your behalf.",
+        "sensory_details": ["champagne fizz against gilt", "the orchestra tuning behind padded doors", "perfume and dry-cleaning fluid in equal measure"],
+        "emotional_undertone": "A fencing match scored in pleasantries."
+      }
+    },
+    {
+      "id": "danube_canal_exchange",
+      "type": "climax",
+      "region": "vienna_night",
+      "title": "The Canal Quay, 23:40",
+      "summary": "Fog on the Danube canal, MERIDIAN on the quay with a satchel, and every choice you made this weekend arriving at once.",
+      "tags": ["climax", "night", "exposed"],
+      "mandatory_exposition": {
+        "purpose": "Make the convergence explicit before the final choice.",
+        "text": "This is the exchange. Whatever you know about the mole, whatever trust you built with MERIDIAN, whatever heat you carry — all of it is on the quay with you now. There will not be another window."
+      },
+      "read_aloud": "The canal exhales fog under the sodium lamps. MERIDIAN stands where the quay steps meet the water, satchel strap wrapped twice around one fist, coat too thin for the hour. Footsteps carry a long way down here; so does silence. Somewhere above, on the bridge, a car slows without stopping. MERIDIAN's eyes find yours and ask the only question left: now, and with whom?",
+      "read_aloud_revisit": "The quay, the fog, the wet stone. The canal keeps no appointments and holds no grudges; it simply waits to see who comes down the steps.",
+      "narrative": {
+        "local_history": "The canal quays have hosted exchanges since the four-power days; the water has heard every language say 'slowly, now'.",
+        "present_tension": "If the mole knows about tonight, this fog is full of Brandt.",
+        "hidden_truth": "Kessler does know about tonight. What he does not know is what you are carrying.",
+        "sensory_details": ["fog beading on iron railings", "the underside of the bridge dripping in three rhythms", "a barge engine idling somewhere unseen"],
+        "emotional_undertone": "Everything owed, falling due."
+      }
+    },
+    {
+      "id": "embassy_gate",
+      "type": "location",
+      "region": "vienna_night",
+      "title": "The Embassy Gate",
+      "summary": "Floodlit railings, a night bell, and the ten metres of pavement between the street and protection.",
+      "tags": ["threshold", "endgame"],
+      "read_aloud": "The embassy sleeps behind its railings with one eye open: a floodlit forecourt, a camera that pans a half-second after you move, a night bell polished by anxious thumbs. Ten metres of public pavement separate the street from the gate. Ten metres in which you are, officially, nobody — carrying, possibly, everything.",
+      "read_aloud_revisit": "The railings, the floodlight, the patient camera. The night bell waits with institutional calm for you to decide what kind of arrival this is.",
+      "narrative": {
+        "local_history": "Defections end at gates like this one: the last ten metres are always walked, never driven.",
+        "present_tension": "What you carry through this gate determines whether the weekend was a triumph or a confession.",
+        "hidden_truth": "VESPER has been in the gatehouse since ten o'clock, listening to the night bell not ring.",
+        "sensory_details": ["floodlight hum", "railing paint blistered by decades of repainting", "your own footsteps, suddenly official"],
+        "emotional_undertone": "The border between deniable and undeniable."
+      }
+    },
+    {
+      "id": "ending_extraction",
+      "type": "ending",
+      "region": "vienna_night",
+      "title": "Sunday Night: Clean Passage",
+      "summary": "MERIDIAN comes out, the proof comes with them, and the mole's Vienna ends at dawn with a knock on a very tidy door.",
+      "tags": ["ending", "triumph"],
+      "read_aloud": "The gate opens from the inside. MERIDIAN passes through first — one step, then another, then a breath that has been held for eight months coming out all at once. In the gatehouse light VESPER reads what you have brought her, and her remarkable posture bends, very slightly, in your direction: from her, a standing ovation. By Monday the settlement codes are being read aloud in a room with no windows. By Tuesday a tidy drawer in the annexe registry stands open and empty, and Kessler's chair is pushed back from his desk at an angle he would never have tolerated. Vienna does not hurry. But it does, in the end, settle every account.",
+      "narrative": {
+        "local_history": "Every service keeps a short private list of weekends that went right. This one goes on several.",
+        "present_tension": "None left; only paperwork, and someone else does that now.",
+        "hidden_truth": "MERIDIAN asked for one thing in the debrief: that the bench in Stadtpark be retired with honours. Unofficially, it was.",
+        "sensory_details": ["gatehouse tea, too sweet, entirely perfect", "fog burning off the canal at dawn", "a chess clock ticking somewhere, evenly now"],
+        "emotional_undertone": "Quiet, earned, complete."
+      }
+    },
+    {
+      "id": "ending_mole_wins",
+      "type": "ending",
+      "region": "vienna_night",
+      "title": "The Quay Keeps Its Secrets",
+      "summary": "The exchange goes to the other side: MERIDIAN is taken, the proof is gone, and the mole writes the report on his own investigation.",
+      "tags": ["ending", "tragedy"],
+      "read_aloud": "It happens with terrible politeness. Men step out of the fog as if the fog had been storing them for the purpose, and MERIDIAN — who trusted you by exactly one step too many — is walked to a car whose door is already open. Nobody raises a voice. Within the week, the station's internal inquiry concludes that the defection was a provocation and commends the officer who contained it: F. Kessler. You read his report in a café you no longer feel safe in. It is, you have to admit, beautifully written. There is a sentence in it about 'an unidentified freelancer' that you will hear in your sleep for years.",
+      "narrative": {
+        "local_history": "The trade's oldest arithmetic: the mole who runs the mole hunt cannot lose it.",
+        "present_tension": "Gone slack, like a cut line.",
+        "hidden_truth": "MERIDIAN's notebook was never found. Somewhere, eight months of lunch breaks still wait in a shorthand only two people can read.",
+        "sensory_details": ["a car door closing like a full stop", "fog closing over the quay steps", "newsprint ink on your fingers, days later, still"],
+        "emotional_undertone": "Defeat administered in perfect copperplate."
+      }
+    },
+    {
+      "id": "ending_burned",
+      "type": "ending",
+      "region": "vienna_surface",
+      "title": "Persona Non Grata",
+      "summary": "Blown, photographed and formally regretted: you leave Vienna by the early train, watched all the way to the border.",
+      "tags": ["ending", "failure"],
+      "read_aloud": "The interview room is beige and the coffee is worse than the trade deserves. The men across the table are courteous — this is still Vienna — but the photographs they fan out are of you: the market, the annexe door, the park. By evening a short document with a long title declares your presence 'incompatible with the good relations between friendly services'. VESPER does not come to the station. Somebody unquestionably watches you board the 06:40, and somebody unquestionably reports, in beautiful official prose, that the weekend's problem has been exported. Behind you, in a city that never hurries, a frightened clerk is still waiting for a knock that now will never come.",
+      "narrative": {
+        "local_history": "Expulsion is Vienna's most polished ritual; there is practically a form for the flowers.",
+        "present_tension": "Transferred, undiminished, to whoever inherits the case.",
+        "hidden_truth": "The tip that burned you came from inside your own station, routed through a liaison contact with impeccable manners.",
+        "sensory_details": ["beige paint, official grade", "the 06:40's doors sighing shut", "a border guard's stamp landing like a verdict"],
+        "emotional_undertone": "Failure with excellent manners."
+      }
+    },
+    {
+      "id": "ending_walk_away",
+      "type": "ending",
+      "region": "vienna_surface",
+      "title": "The Coat on the Hook",
+      "summary": "You stand the job down and leave the trade on the table. Alive, unpaid, and never entirely sure.",
+      "tags": ["ending", "ambiguous"],
+      "read_aloud": "You burn the pencil note in the safehouse sink, run the tap, and leave the key under the mat for nobody. No signal, no exchange, no ten metres of floodlit pavement. The city lets you go the way it lets everyone go — without comment. For a while you check the papers for Viennese banking scandals, then for obituaries, then you make yourself stop. On good days you tell yourself the clerk found another way out. On the other days you remember that in this trade, silence is also a message, and you sent it.",
+      "narrative": {
+        "local_history": "More operations end this way than any service admits: not blown, not won — declined.",
+        "present_tension": "Replaced by a quieter one that never fully leaves.",
+        "hidden_truth": "VESPER waited at Sperl the following Tuesday, and the Tuesday after. She never logged the meetings she was no longer supposed to be holding.",
+        "sensory_details": ["ash washing down a rented sink", "a train timetable folded to departures", "coffee that tastes of nothing in particular, anywhere else"],
+        "emotional_undertone": "Safety, purchased at cost unknown."
+      }
+    },
+    {
+      "id": "ending_dead",
+      "type": "ending",
+      "region": "vienna_night",
+      "title": "An Unattributed Incident",
+      "summary": "The trade's oldest exit: face down in a city that will spell your cover name wrong in the one paragraph it prints.",
+      "tags": ["ending", "death"],
+      "read_aloud": "The last thing Vienna shows you is one of its ordinary beauties — wet cobbles holding the lamplight, or the underside of a bridge, or the ceiling of a tram, depending on how it went. The police report is brief and wrong in the ways that matter. The paper prints a paragraph; the paragraph misspells the name that was never yours to begin with. In a café with marble tables a woman with remarkable posture reads it twice, folds the paper to the chess column, and sits for a long time without moving a piece. The city does not hurry. It closes over you like water behind a barge.",
+      "narrative": {
+        "local_history": "The unattributed incident is the trade's unmarked grave; every service maintains a few, tended by nobody, visited in thought.",
+        "present_tension": "Ended.",
+        "hidden_truth": "Your file is sealed with a commendation inside it that no one will ever read aloud.",
+        "sensory_details": ["lamplight on wet stone", "a newspaper folding", "the barge engine, receding"],
+        "emotional_undertone": "The quiet after the signal stops."
+      }
+    }
+  ],
+  "routes": [
+    {
+      "id": "r001",
+      "from": "cafe_sperl_brief",
+      "to": "safehouse_margareten",
+      "label": "Take the key and go to ground in Margareten",
+      "kind": "open",
+      "effects": [],
+      "stakes": "Establish your base before the city establishes you.",
+      "hook": "The key is still warm from the saucer.",
+      "narrative": { "player_intent": "Set up a base of operations.", "dramatic_role": "Anchor the hub and the weekend's rhythm." }
+    },
+    {
+      "id": "r002",
+      "from": "cafe_sperl_brief",
+      "to": "naschmarkt_stalls",
+      "label": "Go straight to the market and build a cover",
+      "kind": "open",
+      "effects": [],
+      "stakes": "Kit costs euros, and the best stock sells early.",
+      "hook": "VESPER's parting look said: you will need props.",
+      "narrative": { "player_intent": "Acquire cover and equipment first.", "dramatic_role": "Introduce the commerce loop." }
+    },
+    {
+      "id": "r003",
+      "from": "cafe_sperl_brief",
+      "to": "stadtpark_dead_drop",
+      "label": "Service MERIDIAN's dead drop before anything else",
+      "kind": "open",
+      "costs": [{ "resource": "hours", "amount": 1 }],
+      "effects": [],
+      "stakes": "An hour spent, and the park is watched — but the drop is the freshest intelligence in the city.",
+      "hook": "Whatever MERIDIAN left under that bench, it has been waiting three days.",
+      "narrative": { "player_intent": "Chase the intelligence immediately.", "dramatic_role": "Offer the aggressive opening." }
+    },
+    {
+      "id": "r010",
+      "from": "safehouse_margareten",
+      "to": "naschmarkt_stalls",
+      "label": "Walk down to the Naschmarkt",
+      "kind": "open",
+      "effects": [],
+      "stakes": "Public, busy, and the stalls sell what the weekend needs.",
+      "hook": "The map on the kitchen table has the rear aisles circled in old pencil.",
+      "narrative": { "player_intent": "Go shopping for tradecraft.", "dramatic_role": "Hub spoke to commerce." }
+    },
+    {
+      "id": "r011",
+      "from": "safehouse_margareten",
+      "to": "clearing_bank_lobby",
+      "label": "Reconnoitre the Clearing House",
+      "kind": "open",
+      "costs": [{ "resource": "hours", "amount": 1 }],
+      "effects": [],
+      "stakes": "An hour of the clock to stand where MERIDIAN works.",
+      "hook": "Banks tell you everything about themselves in their lobbies, if you stand still long enough.",
+      "narrative": { "player_intent": "Study the ground around the asset.", "dramatic_role": "Open the bank branch of the graph." }
+    },
+    {
+      "id": "r012",
+      "from": "safehouse_margareten",
+      "to": "station_annex",
+      "label": "Visit the station annexe",
+      "kind": "open",
+      "costs": [{ "resource": "hours", "amount": 1 }],
+      "conditions": [{ "op": "stat_below", "stat": "heat", "value": 8 }],
+      "effects": [],
+      "stakes": "Home ground where you officially don't exist — and where the mole officially does.",
+      "hook": "The registry cage audits itself, VESPER said. Think about what that means.",
+      "narrative": { "player_intent": "Hunt the mole on home ground.", "dramatic_role": "Open the burglary road to the mole's identity." }
+    },
+    {
+      "id": "r013",
+      "from": "safehouse_margareten",
+      "to": "stadtpark_dead_drop",
+      "label": "Head to the Stadtpark drop",
+      "kind": "open",
+      "costs": [{ "resource": "hours", "amount": 1 }],
+      "effects": [],
+      "stakes": "The park is in the watchers' weekend rotation.",
+      "hook": "Third bench past the bandstand. Twenty metres of open gravel.",
+      "narrative": { "player_intent": "Service the drop.", "dramatic_role": "Hub spoke to the intelligence chain." }
+    },
+    {
+      "id": "r014",
+      "from": "safehouse_margareten",
+      "to": "safehouse_margareten",
+      "label": "Sleep four hours and let the street cool",
+      "kind": "rest",
+      "costs": [{ "resource": "hours", "amount": 4 }],
+      "effects": [
+        { "op": "modify_stat", "stat": "stamina", "amount": 6 },
+        { "op": "modify_stat", "stat": "heat", "amount": -2 }
+      ],
+      "stakes": "Four irreplaceable hours for a cooler head and a colder trail.",
+      "hook": "Even the Grey Hats have shift changes.",
+      "narrative": { "player_intent": "Recover and reduce heat.", "dramatic_role": "The rest loop; time as the price of safety." }
+    },
+    {
+      "id": "r015",
+      "from": "safehouse_margareten",
+      "to": "ending_walk_away",
+      "label": "Burn your notes and stand the job down",
+      "kind": "exit",
+      "effects": [],
+      "stakes": "Alive and unpaid beats brilliant and posthumous — if you can live with the silence.",
+      "hook": "The tap is running. The note burns quickly.",
+      "narrative": { "player_intent": "Abort the operation.", "dramatic_role": "The always-available refusal; walking away is an ending, not a bug." }
+    },
+    {
+      "id": "r016",
+      "from": "safehouse_margareten",
+      "to": "opera_interval",
+      "label": "Buy a standing ticket and work the opera interval",
+      "kind": "social",
+      "costs": [
+        { "resource": "euros", "amount": 30 },
+        { "resource": "hours", "amount": 2 }
+      ],
+      "effects": [],
+      "stakes": "Thirty euros and two hours to swim in the station's social pond — where the big fish drink.",
+      "hook": "Everyone who matters in this city passes the tall windows at the interval.",
+      "narrative": { "player_intent": "Approach the mole hunt socially.", "dramatic_role": "Open the charm road to the mole's identity." }
+    },
+    {
+      "id": "r017",
+      "from": "safehouse_margareten",
+      "to": "danube_canal_exchange",
+      "label": "Signal MERIDIAN: tonight, the canal quay",
+      "kind": "climax",
+      "costs": [{ "resource": "hours", "amount": 1 }],
+      "conditions": [
+        { "op": "knows", "fact": "exfil_window" },
+        { "op": "flag_is", "flag": "meridian_trust", "value": "convinced" }
+      ],
+      "effects": [],
+      "stakes": "This is the one bullet in the gun. There is no second exchange.",
+      "hook": "Chalk mark, lamp post, 23:40. The oldest grammar in the trade.",
+      "narrative": { "player_intent": "Trigger the exchange.", "dramatic_role": "The climax gate: requires trust and the window." }
+    },
+    {
+      "id": "r018",
+      "from": "safehouse_margareten",
+      "to": "embassy_gate",
+      "label": "Go to the embassy gate",
+      "kind": "open",
+      "effects": [],
+      "stakes": "Whatever you carry becomes official the moment the gate opens.",
+      "hook": "Ten metres of floodlit pavement between deniable and undeniable.",
+      "narrative": { "player_intent": "Head for the endgame.", "dramatic_role": "Route to the accounting node." }
+    },
+    {
+      "id": "r019",
+      "from": "safehouse_margareten",
+      "to": "ending_burned",
+      "label": "Answer the knock at the door",
+      "kind": "forced",
+      "visibility": { "conditions": [{ "op": "stat_at_least", "stat": "heat", "value": 8 }] },
+      "effects": [{ "op": "set_flag", "flag": "cover_status", "value": "blown" }],
+      "stakes": "The street has been wrong all evening. The knock is polite, and there are several of them.",
+      "hook": "The florist's van was never selling flowers.",
+      "narrative": { "player_intent": "Face the consequences of running hot.", "dramatic_role": "Heat's endgame: the surveillance state cashes in." }
+    },
+    {
+      "id": "r020",
+      "from": "naschmarkt_stalls",
+      "to": "naschmarkt_stalls",
+      "label": "Buy the press credentials",
+      "kind": "commerce",
+      "one_time": true,
+      "costs": [{ "resource": "euros", "amount": 45 }],
+      "effects": [{ "op": "add_item", "item": "press_credentials" }],
+      "stakes": "Forty-five euros for a door-opener that must never be phoned in.",
+      "hook": "The Danube Courier: circulation eleven, credibility adequate.",
+      "narrative": { "player_intent": "Acquire a cover identity.", "dramatic_role": "Key that opens the bank politely." }
+    },
+    {
+      "id": "r021",
+      "from": "naschmarkt_stalls",
+      "to": "naschmarkt_stalls",
+      "label": "Buy a prepaid handset",
+      "kind": "commerce",
+      "one_time": true,
+      "costs": [{ "resource": "euros", "amount": 25 }],
+      "effects": [{ "op": "add_item", "item": "burner_phone" }],
+      "stakes": "Twenty-five euros for a phone whose whole career is one call and a swim.",
+      "hook": "The stallholder sells them by the tray, like apricots.",
+      "narrative": { "player_intent": "Acquire deniable communications.", "dramatic_role": "Flavourful kit; the trade's disposable culture." }
+    },
+    {
+      "id": "r022",
+      "from": "naschmarkt_stalls",
+      "to": "naschmarkt_stalls",
+      "label": "Buy the 'locksmith's samples'",
+      "kind": "commerce",
+      "one_time": true,
+      "costs": [{ "resource": "euros", "amount": 60 }],
+      "effects": [{ "op": "add_item", "item": "bypass_kit" }],
+      "stakes": "Sixty euros, and possession alone is a custodial sentence in nine jurisdictions.",
+      "hook": "The wallet is slim, the picks are not samples, and everyone at this stall knows it.",
+      "narrative": { "player_intent": "Acquire burglary tools.", "dramatic_role": "Key that opens the registry cage quietly." }
+    },
+    {
+      "id": "r023",
+      "from": "naschmarkt_stalls",
+      "to": "safehouse_margareten",
+      "label": "Carry your shopping back to the safehouse",
+      "kind": "open",
+      "effects": [],
+      "stakes": "Regroup and plan.",
+      "hook": "The loupe man's eyes follow you out, pricing your exit.",
+      "narrative": { "player_intent": "Return to base.", "dramatic_role": "Spoke back to hub." }
+    },
+    {
+      "id": "r025",
+      "from": "naschmarkt_stalls",
+      "to": "naschmarkt_stalls",
+      "label": "Buy the tea seller a glass and listen",
+      "kind": "social",
+      "one_time": true,
+      "costs": [{ "resource": "euros", "amount": 5 }],
+      "test": {
+        "type": "luck",
+        "stat": "luck",
+        "modifier": 0,
+        "failure_to": "naschmarkt_stalls",
+        "failure_effects": [{ "op": "modify_stat", "stat": "heat", "amount": 1 }]
+      },
+      "effects": [{ "op": "add_knowledge", "fact": "watcher_faces" }],
+      "stakes": "Five euros and a little luck: the market sees everything, including, possibly, you asking.",
+      "hook": "The tea seller has been watching the watchers all week, purely as sport.",
+      "narrative": { "player_intent": "Learn the surveillance team's faces.", "dramatic_role": "Counter-surveillance unlock: makes the tram survivable in style." }
+    },
+    {
+      "id": "r030",
+      "from": "clearing_bank_lobby",
+      "to": "meridian_meeting",
+      "label": "Present the press pass and request an interview about settlement clerks",
+      "kind": "open",
+      "conditions": [{ "op": "has_item", "item": "press_credentials" }],
+      "costs": [{ "resource": "hours", "amount": 1 }],
+      "effects": [
+        { "op": "set_flag", "flag": "meridian_trust", "value": "wary" },
+        { "op": "add_knowledge", "fact": "meridian_terms" }
+      ],
+      "stakes": "The card gets you a supervised chat and an unsupervised minute — which is all a note needs.",
+      "hook": "Nobody in a marble lobby wants to make the phone call that checks a press card.",
+      "narrative": { "player_intent": "Make first contact under cover.", "dramatic_role": "The polite road to MERIDIAN." }
+    },
+    {
+      "id": "r031",
+      "from": "clearing_bank_lobby",
+      "to": "meridian_meeting",
+      "label": "Talk your way upstairs without papers",
+      "kind": "risk",
+      "costs": [{ "resource": "hours", "amount": 1 }],
+      "test": {
+        "type": "skill",
+        "stat": "skill",
+        "modifier": -1,
+        "failure_to": "tram_line_d",
+        "failure_effects": [
+          { "op": "modify_stat", "stat": "heat", "amount": 2 },
+          { "op": "set_flag", "flag": "cover_status", "value": "thin" }
+        ]
+      },
+      "effects": [
+        { "op": "set_flag", "flag": "meridian_trust", "value": "wary" },
+        { "op": "add_knowledge", "fact": "meridian_terms" }
+      ],
+      "stakes": "Pure front, no props: fail, and bank security walks you out where the whole street can watch.",
+      "hook": "Confidence is a document too. It just can't be laminated.",
+      "narrative": { "player_intent": "Bluff into the bank.", "dramatic_role": "The daring road to MERIDIAN, with heat on failure." }
+    },
+    {
+      "id": "r032",
+      "from": "clearing_bank_lobby",
+      "to": "safehouse_margareten",
+      "label": "Withdraw and reconsider",
+      "kind": "open",
+      "effects": [],
+      "stakes": "The lobby has your face now; better it never gets your intentions.",
+      "hook": "Marble teaches patience.",
+      "narrative": { "player_intent": "Back off.", "dramatic_role": "Free retreat; no node is a trap." }
+    },
+    {
+      "id": "r033",
+      "from": "clearing_bank_lobby",
+      "to": "meridian_meeting",
+      "label": "Wait at the staff exit with the drop schedule",
+      "kind": "secret",
+      "visibility": { "conditions": [{ "op": "knows", "fact": "drop_schedule" }] },
+      "costs": [{ "resource": "hours", "amount": 1 }],
+      "effects": [
+        { "op": "set_flag", "flag": "meridian_trust", "value": "convinced" },
+        { "op": "add_knowledge", "fact": "exfil_window" },
+        { "op": "add_knowledge", "fact": "meridian_terms" }
+      ],
+      "stakes": "Quoting the drop schedule proves you are the real contact in one sentence.",
+      "hook": "Only two living people know what was under that bench. Be the second, visibly.",
+      "narrative": { "player_intent": "Prove authenticity with the drop intelligence.", "dramatic_role": "Reward for the intelligence chain: trust and the exfil window in one stroke." }
+    },
+    {
+      "id": "r040",
+      "from": "meridian_meeting",
+      "to": "safehouse_margareten",
+      "label": "Show MERIDIAN the drop schedule — prove you are real",
+      "kind": "open",
+      "conditions": [{ "op": "knows", "fact": "drop_schedule" }],
+      "effects": [
+        { "op": "set_flag", "flag": "meridian_trust", "value": "convinced" },
+        { "op": "add_knowledge", "fact": "exfil_window" }
+      ],
+      "stakes": "The one sentence that turns a wary clerk into a committed defector.",
+      "hook": "You quote the schedule back. MERIDIAN's shoulders drop half a centimetre: everything.",
+      "narrative": { "player_intent": "Win MERIDIAN's trust with proof.", "dramatic_role": "Converts intelligence into the climax key." }
+    },
+    {
+      "id": "r041",
+      "from": "meridian_meeting",
+      "to": "safehouse_margareten",
+      "label": "Press MERIDIAN to commit now, on your word alone",
+      "kind": "risk",
+      "test": {
+        "type": "skill",
+        "stat": "skill",
+        "modifier": 0,
+        "failure_to": "tram_line_d",
+        "failure_effects": [
+          { "op": "set_flag", "flag": "meridian_trust", "value": "spooked" },
+          { "op": "modify_stat", "stat": "heat", "amount": 1 }
+        ]
+      },
+      "effects": [
+        { "op": "set_flag", "flag": "meridian_trust", "value": "convinced" },
+        { "op": "add_knowledge", "fact": "exfil_window" }
+      ],
+      "stakes": "Charm against terror: push a frightened clerk too hard and they bolt — and a bolting asset is a beacon.",
+      "hook": "'Anyone can say they were sent.' Make the saying enough.",
+      "narrative": { "player_intent": "Win trust by force of persona.", "dramatic_role": "High-risk shortcut past the intelligence chain." }
+    },
+    {
+      "id": "r042",
+      "from": "meridian_meeting",
+      "to": "safehouse_margareten",
+      "label": "Break contact gently and give them time",
+      "kind": "open",
+      "effects": [],
+      "stakes": "No progress, no damage: the meeting simply ends, deniably.",
+      "hook": "You leave first, as the coffee cools. Correct procedure; cold comfort.",
+      "narrative": { "player_intent": "Withdraw without spooking the asset.", "dramatic_role": "Free exit from a pivotal scene." }
+    },
+    {
+      "id": "r050",
+      "from": "stadtpark_dead_drop",
+      "to": "safehouse_margareten",
+      "label": "Cross the gravel and clear the drop",
+      "kind": "risk",
+      "test": {
+        "type": "luck",
+        "stat": "luck",
+        "modifier": 1,
+        "failure_to": "tram_line_d",
+        "failure_effects": [{ "op": "modify_stat", "stat": "heat", "amount": 2 }]
+      },
+      "effects": [{ "op": "add_knowledge", "fact": "drop_schedule" }],
+      "stakes": "Twenty metres of open gravel, watched from three directions. Luck decides who else is looking.",
+      "hook": "The key box's magnet grips the bench like a secret refusing to let go.",
+      "narrative": { "player_intent": "Retrieve MERIDIAN's message.", "dramatic_role": "The intelligence chain's first link." }
+    },
+    {
+      "id": "r051",
+      "from": "stadtpark_dead_drop",
+      "to": "stadtpark_dead_drop",
+      "label": "Watch the bench from the bandstand for an hour first",
+      "kind": "tradecraft",
+      "one_time": true,
+      "costs": [{ "resource": "hours", "amount": 1 }],
+      "effects": [{ "op": "add_knowledge", "fact": "watcher_faces" }],
+      "stakes": "An hour of the clock buys you the watchers' faces — and faces, once known, stay known.",
+      "hook": "Surveillance detection is just birdwatching with higher stakes.",
+      "narrative": { "player_intent": "Detect surveillance before acting.", "dramatic_role": "Patience rewarded: the counter-surveillance unlock." }
+    },
+    {
+      "id": "r052",
+      "from": "stadtpark_dead_drop",
+      "to": "safehouse_margareten",
+      "label": "Leave the drop untouched and walk on",
+      "kind": "open",
+      "effects": [],
+      "stakes": "The safest move and the slowest: the bench keeps its secret another day.",
+      "hook": "A pensioner takes the third bench and feeds the sparrows. Perfect cover. Not yours.",
+      "narrative": { "player_intent": "Decline the risk.", "dramatic_role": "Free exit from an exposed node." }
+    },
+    {
+      "id": "r060",
+      "from": "station_annex",
+      "to": "records_room",
+      "label": "Sign in as visiting liaison and drift toward the cage",
+      "kind": "open",
+      "conditions": [{ "op": "flag_is", "flag": "cover_status", "value": "intact" }],
+      "costs": [{ "resource": "hours", "amount": 1 }],
+      "effects": [],
+      "stakes": "An intact cover and a confident signature get you as far as the mesh.",
+      "hook": "The signing-in book takes your alias without blinking. Books are trusting.",
+      "narrative": { "player_intent": "Penetrate the registry legitimately.", "dramatic_role": "The clean approach to the burglary." }
+    },
+    {
+      "id": "r061",
+      "from": "station_annex",
+      "to": "records_room",
+      "label": "Talk past the duty officer on nerve alone",
+      "kind": "risk",
+      "costs": [{ "resource": "hours", "amount": 1 }],
+      "test": {
+        "type": "skill",
+        "stat": "skill",
+        "modifier": 0,
+        "failure_to": "safehouse_margareten",
+        "failure_effects": [
+          { "op": "modify_stat", "stat": "heat", "amount": 1 },
+          { "op": "set_flag", "flag": "cover_status", "value": "thin" }
+        ]
+      },
+      "effects": [],
+      "stakes": "The duty officer's whole career is faces. Fail, and yours joins the collection with a query attached.",
+      "hook": "Walk like a man with a meeting. Buildings believe momentum.",
+      "narrative": { "player_intent": "Bluff into the registry.", "dramatic_role": "The thin-cover approach to the burglary." }
+    },
+    {
+      "id": "r062",
+      "from": "station_annex",
+      "to": "safehouse_margareten",
+      "label": "Leave the annexe without pushing further",
+      "kind": "open",
+      "effects": [],
+      "stakes": "Home ground stays unspoiled for another visit.",
+      "hook": "The franking machine thumps behind you like a slow pulse.",
+      "narrative": { "player_intent": "Withdraw.", "dramatic_role": "Free exit." }
+    },
+    {
+      "id": "r063",
+      "from": "station_annex",
+      "to": "safehouse_margareten",
+      "label": "Brazen it out past the wrong smile",
+      "kind": "forced",
+      "visibility": { "conditions": [{ "op": "flag_is", "flag": "station_alerted", "value": true }] },
+      "test": {
+        "type": "luck",
+        "stat": "luck",
+        "modifier": 0,
+        "failure_to": "ending_burned",
+        "failure_effects": [{ "op": "set_flag", "flag": "cover_status", "value": "blown" }]
+      },
+      "effects": [],
+      "stakes": "The building knows about the cage. Luck decides whether it has decided about you.",
+      "hook": "The duty officer's smile arrives half a second early, like a recording.",
+      "narrative": { "player_intent": "Escape a compromised annexe.", "dramatic_role": "Consequence collection: the alerted station closes in." }
+    },
+    {
+      "id": "r070",
+      "from": "records_room",
+      "to": "station_annex",
+      "label": "Open drawer 41 with the bypass kit",
+      "kind": "heist",
+      "one_time": true,
+      "conditions": [{ "op": "has_item", "item": "bypass_kit" }],
+      "effects": [
+        { "op": "add_item", "item": "kessler_ledger" },
+        { "op": "set_flag", "flag": "mole_identified", "value": true },
+        { "op": "add_knowledge", "fact": "mole_is_kessler" }
+      ],
+      "stakes": "The samples earn their sixty euros: the drawer opens without a mark, and what's inside changes the weekend.",
+      "hook": "Under a tin of pencils, because a locked box invites curiosity and a pencil tin repels it.",
+      "narrative": { "player_intent": "Steal the mole's ledger cleanly.", "dramatic_role": "The equipment payoff: evidence without noise." }
+    },
+    {
+      "id": "r071",
+      "from": "records_room",
+      "to": "station_annex",
+      "label": "Pick the old lock with a paperclip and patience",
+      "kind": "risk",
+      "one_time": true,
+      "visibility": { "conditions": [{ "op": "missing_item", "item": "bypass_kit" }] },
+      "test": {
+        "type": "skill",
+        "stat": "skill",
+        "modifier": -2,
+        "failure_to": "station_annex",
+        "failure_effects": [
+          { "op": "modify_stat", "stat": "heat", "amount": 2 },
+          { "op": "set_flag", "flag": "station_alerted", "value": true }
+        ]
+      },
+      "effects": [
+        { "op": "add_item", "item": "kessler_ledger" },
+        { "op": "set_flag", "flag": "mole_identified", "value": true },
+        { "op": "add_knowledge", "fact": "mole_is_kessler" }
+      ],
+      "stakes": "Improvised tools against an institutional lock: fail, and the scratches will be read like a confession.",
+      "hook": "The lock is older than your career and twice as stubborn.",
+      "narrative": { "player_intent": "Attempt the drawer without proper tools.", "dramatic_role": "The desperate version of the heist, with alarm on failure." }
+    },
+    {
+      "id": "r072",
+      "from": "records_room",
+      "to": "station_annex",
+      "label": "Slip back out of the cage empty-handed",
+      "kind": "open",
+      "effects": [],
+      "stakes": "Nothing gained, nothing logged.",
+      "hook": "The signing-in book's diary keeps a blank line for you.",
+      "narrative": { "player_intent": "Abort the burglary.", "dramatic_role": "Free exit from the heist room." }
+    },
+    {
+      "id": "r080",
+      "from": "tram_line_d",
+      "to": "safehouse_margareten",
+      "label": "Ride the loop until the tail gets bored",
+      "kind": "tradecraft",
+      "costs": [{ "resource": "hours", "amount": 1 }],
+      "effects": [{ "op": "modify_stat", "stat": "heat", "amount": -1 }],
+      "stakes": "An hour of the clock for a colder trail: dull tradecraft, which is the best kind.",
+      "hook": "Nothing bores a watcher like a target with nowhere to be.",
+      "narrative": { "player_intent": "Shake surveillance by patience.", "dramatic_role": "The safe answer to a tail." }
+    },
+    {
+      "id": "r081",
+      "from": "tram_line_d",
+      "to": "safehouse_margareten",
+      "label": "Turn on the tail in the underpass",
+      "kind": "combat",
+      "test": {
+        "type": "combat",
+        "encounter_id": "watcher_team",
+        "failure_to": "ending_dead"
+      },
+      "effects": [{ "op": "modify_stat", "stat": "heat", "amount": 2 }],
+      "stakes": "Violence answers the question tonight and asks a louder one tomorrow: heat, and a report on somebody's desk.",
+      "hook": "The underpass has bad light and no cameras, which is true for both of you.",
+      "narrative": { "player_intent": "Break the surveillance physically.", "dramatic_role": "The loud answer to a tail; the report it generates lands on the mole's desk." }
+    },
+    {
+      "id": "r082",
+      "from": "tram_line_d",
+      "to": "safehouse_margareten",
+      "label": "Burn the tail elegantly — you know their faces",
+      "kind": "tradecraft",
+      "visibility": { "conditions": [{ "op": "knows", "fact": "watcher_faces" }] },
+      "test": {
+        "type": "skill",
+        "stat": "skill",
+        "modifier": 1,
+        "failure_to": "safehouse_margareten",
+        "failure_effects": [{ "op": "modify_stat", "stat": "heat", "amount": 1 }]
+      },
+      "effects": [{ "op": "modify_stat", "stat": "heat", "amount": -2 }],
+      "stakes": "Knowing the faces turns the duel: done well, they lose you and doubt themselves for a week.",
+      "hook": "Grey cap by the door, tall one by the map. You could greet them by description.",
+      "narrative": { "player_intent": "Exploit counter-surveillance knowledge.", "dramatic_role": "The stylish payoff for the watcher_faces fact." }
+    },
+    {
+      "id": "r090",
+      "from": "opera_interval",
+      "to": "safehouse_margareten",
+      "label": "Charm Kessler at the tall windows",
+      "kind": "social",
+      "test": {
+        "type": "skill",
+        "stat": "skill",
+        "modifier": 0,
+        "failure_to": "tram_line_d",
+        "failure_effects": [
+          { "op": "set_flag", "flag": "cover_status", "value": "thin" },
+          { "op": "modify_stat", "stat": "heat", "amount": 1 }
+        ]
+      },
+      "effects": [
+        { "op": "set_flag", "flag": "mole_identified", "value": true },
+        { "op": "add_knowledge", "fact": "mole_is_kessler" }
+      ],
+      "stakes": "Fence with a professional on his own piste: win, and his vanity shows you everything; lose, and he starts a file on you.",
+      "hook": "He tells anecdotes about operations he shouldn't know. Count which ones.",
+      "narrative": { "player_intent": "Identify the mole socially.", "dramatic_role": "The charm road to the same fact the burglary earns — two mechanics, one truth." }
+    },
+    {
+      "id": "r091",
+      "from": "opera_interval",
+      "to": "safehouse_margareten",
+      "label": "Drift out with the second bell",
+      "kind": "open",
+      "effects": [],
+      "stakes": "The interval ends, the fencing match adjourns, no points scored either way.",
+      "hook": "Tosca resumes. Somebody on stage is also being betrayed by a policeman.",
+      "narrative": { "player_intent": "Withdraw from the social engagement.", "dramatic_role": "Free exit." }
+    },
+    {
+      "id": "r100",
+      "from": "danube_canal_exchange",
+      "to": "embassy_gate",
+      "label": "Spring the exchange with the mole's name in hand",
+      "kind": "climax",
+      "conditions": [{ "op": "flag_is", "flag": "mole_identified", "value": true }],
+      "test": {
+        "type": "skill",
+        "stat": "skill",
+        "modifier": 1,
+        "failure_to": "ending_mole_wins",
+        "failure_effects": [{ "op": "set_flag", "flag": "meridian_trust", "value": "spooked" }]
+      },
+      "effects": [
+        { "op": "add_item", "item": "cipher_notebook" },
+        { "op": "set_flag", "flag": "evidence_secured", "value": true }
+      ],
+      "stakes": "You know who is hunting this exchange, so you can shape it: right quay, wrong hour, and the fog works for you.",
+      "hook": "MERIDIAN's satchel changes hands in the time it takes a barge to pass.",
+      "narrative": { "player_intent": "Execute the exchange with foreknowledge.", "dramatic_role": "The prepared climax: knowledge converts to advantage." }
+    },
+    {
+      "id": "r101",
+      "from": "danube_canal_exchange",
+      "to": "embassy_gate",
+      "label": "Make the exchange blind and trust the fog",
+      "kind": "climax",
+      "visibility": { "conditions": [{ "op": "flag_is", "flag": "mole_identified", "value": false }] },
+      "test": {
+        "type": "luck",
+        "stat": "luck",
+        "modifier": -1,
+        "failure_to": "ending_mole_wins",
+        "failure_effects": [{ "op": "set_flag", "flag": "meridian_trust", "value": "spooked" }]
+      },
+      "effects": [{ "op": "add_item", "item": "cipher_notebook" }],
+      "stakes": "You never learned who is hunting this exchange, so the fog decides for everyone.",
+      "hook": "Somewhere above, a car slows without stopping. You proceed anyway.",
+      "narrative": { "player_intent": "Execute the exchange without identifying the mole.", "dramatic_role": "The unprepared climax: courage taxed by ignorance." }
+    },
+    {
+      "id": "r103",
+      "from": "danube_canal_exchange",
+      "to": "ending_walk_away",
+      "label": "Leave MERIDIAN on the quay and melt into the fog",
+      "kind": "exit",
+      "effects": [],
+      "stakes": "The exchange dies unmade. You live, deniably, with the fog's discretion and your own.",
+      "hook": "MERIDIAN's eyes track your silhouette until the fog takes it. That is the last anyone gives you of them.",
+      "narrative": { "player_intent": "Abort at the brink.", "dramatic_role": "The refusal, priced at its most expensive moment." }
+    },
+    {
+      "id": "r110",
+      "from": "embassy_gate",
+      "to": "ending_extraction",
+      "label": "Ring the night bell with the notebook in your coat",
+      "kind": "climax",
+      "conditions": [{ "op": "has_item", "item": "cipher_notebook" }],
+      "effects": [],
+      "stakes": "Ten floodlit metres, then everything you carry becomes official — and everything Kessler is becomes over.",
+      "hook": "The gate opens from the inside. It always does, for the ones who bring the proof.",
+      "narrative": { "player_intent": "Deliver MERIDIAN and the evidence.", "dramatic_role": "The victory condition made physical." }
+    },
+    {
+      "id": "r112",
+      "from": "embassy_gate",
+      "to": "ending_burned",
+      "label": "Come in from the cold with your cover in rags",
+      "kind": "forced",
+      "visibility": { "conditions": [{ "op": "flag_is", "flag": "cover_status", "value": "blown" }] },
+      "effects": [],
+      "stakes": "Blown is blown: the gate will open, but only to process you politely out of the country.",
+      "hook": "The camera pans to you and stays. It has been told about you.",
+      "narrative": { "player_intent": "Surrender to the process.", "dramatic_role": "The blown cover's terminus." }
+    },
+    {
+      "id": "r113",
+      "from": "embassy_gate",
+      "to": "ending_walk_away",
+      "label": "Report in empty-handed and take the early train",
+      "kind": "exit",
+      "effects": [],
+      "stakes": "No notebook, no defector, no triumph: just a debrief, a ticket, and the rest of your life to wonder.",
+      "hook": "The night bell is polished by anxious thumbs. Yours does not join them.",
+      "narrative": { "player_intent": "End the operation without the prize.", "dramatic_role": "The quiet terminus for an incomplete weekend." }
+    }
+  ],
+  "relations": [],
+  "validation": {
+    "notes": "Counts are maintained by scripts/validate-adventure.js and the CI reachability gate; see README.",
+    "node_count": 17,
+    "route_count": 41,
+    "known_soft_locks": []
+  },
+  "semantic_layer": {
+    "version": "0.1.0",
+    "purpose": "Narrative resolution and revelation text consumed by the engine's route_resolution and add_knowledge enrichment; everything else is reference material for a narrator.",
+    "knowledge_revelations": {
+      "rumour_mole_exists": {
+        "title": "The Rot Is Inside",
+        "player_text": "Someone in your own Vienna station has been selling agent identities, laundering the payments through the Continental Clearing House. MERIDIAN can prove it — if MERIDIAN survives the week.",
+        "meaning": "Every institutional interaction in this story is double-edged: home ground is also the hunting ground."
+      },
+      "meridian_terms": {
+        "title": "MERIDIAN's Price",
+        "player_text": "MERIDIAN wants no money. They want proof that the person who comes for them is real, and a promise kept: out, together, before Sunday night.",
+        "meaning": "The asset's currency is trust; every mechanical gate on the climax is really a trust gate."
+      },
+      "drop_schedule": {
+        "title": "The Paper Under the Bench",
+        "player_text": "MERIDIAN's drop holds a handwritten schedule: their shifts, their tram times, and three windows circled when they could vanish without being missed until Monday.",
+        "meaning": "Quoting this schedule is the one-sentence proof of authenticity that unlocks MERIDIAN's trust."
+      },
+      "watcher_faces": {
+        "title": "Faces in the Crowd",
+        "player_text": "You know the Grey Hats now: grey cap with the unread paper, the tall one who loves shop windows, the woman with the pram that never cries. Known faces cannot surprise you.",
+        "meaning": "Counter-surveillance converts fear into advantage; the tram duel tilts your way."
+      },
+      "exfil_window": {
+        "title": "The Window",
+        "player_text": "Sunday, 23:40, the canal quay below the bridge: eleven minutes when the patrol boat is at the lock and the bridge camera faces upstream. MERIDIAN will be there once, and once only.",
+        "meaning": "The climax is now reachable; time pressure becomes geometry."
+      },
+      "mole_is_kessler": {
+        "title": "The Tidy Drawer",
+        "player_text": "Kessler. Deputy head of station, auditor of his own registry, teller of anecdotes he should not know. The payments, the initials, the dates — it has been Kessler all along.",
+        "meaning": "Naming the mole converts the exchange from a blind gamble into a trap you set."
+      }
+    },
+    "route_resolutions": {
+      "r025": {
+        "success_text": "The tea seller talks the way other people breathe. By the second glass you have all three watchers by heart: the cap, the tall one, the pram that never cries.",
+        "failure_text": "The tea seller talks, but the wrong ears are near: a man at the next stall pays too much attention to his olives. The conversation dies, and somewhere a note is made."
+      },
+      "r031": {
+        "success_text": "You wear a meeting that doesn't exist like a good coat, and the lobby parts before it. A supervised chat, an unsupervised minute — and a note passed with a steadiness that surprises you both.",
+        "failure_text": "The receptionist's smile goes procedural, and two polite men in unpolite shoes walk you out through the revolving door. The whole street watches you being watched."
+      },
+      "r041": {
+        "success_text": "You put your word on the table with nothing behind it but the way you say it. MERIDIAN studies you for a long three seconds — then nods, once, like a clerk approving a payment they cannot verify.",
+        "failure_text": "One push too many. MERIDIAN's cup stops mid-turn, their face closes like a till drawer, and they are gone through the kitchen before you can soften it. A frightened asset is a beacon, and it is lit."
+      },
+      "r050": {
+        "success_text": "Twenty metres of gravel, one pause to admire the gilded Strauss, one hand under the bench lip. The key box comes away clean, and inside, in a clerk's careful hand: everything.",
+        "failure_text": "Halfway across the gravel, the pram wheels turn your way and the man with the paper folds it. The bench will keep its secret; your afternoon becomes a lesson in Viennese tram routes."
+      },
+      "r061": {
+        "success_text": "You walk like a man with a meeting, name a colleague two grades up, and complain about the coffee. The duty officer's filing instinct wavers — and waves you through.",
+        "failure_text": "The duty officer's eyes do their little filing action and find no file. 'One moment,' he says, reaching for the telephone, and the moment is yours to not be there for."
+      },
+      "r063": {
+        "success_text": "You return the wrong smile with a better one, sign out with a flourish, and are three streets away before anyone agrees whose job it was to stop you.",
+        "failure_text": "The second door opens before you reach it. They are courteous — this is still Vienna — but the photographs are already printed, and your weekend ends in a beige room."
+      },
+      "r070": {
+        "success_text": "The samples earn their money: the drawer yields without a mark. Under the pencil tin, a pocket notebook in a hand you will come to know very well. Drawer 41 closes on a lighter secret.",
+        "failure_text": ""
+      },
+      "r071": {
+        "success_text": "The paperclip bends, prays, and holds. The old lock gives up its institutional memory with a click like a disapproving tongue — and the ledger is yours, scratches and all.",
+        "failure_text": "The lock defeats the paperclip and keeps the scratches as evidence. Behind you, the annexe's ordinary noises have stopped being ordinary. Time to be a corridor, then a street."
+      },
+      "r081": {
+        "success_text": "In the underpass's bad light the Grey Hats discover the difference between watching and fighting. They will limp home with a story that makes someone at a desk very thoughtful.",
+        "failure_text": "They were better than their tailoring suggested. The underpass keeps what happened out of the cameras, which is no comfort at all."
+      },
+      "r082": {
+        "success_text": "You greet the grey cap with your eyes, let him see you do it, and step off between the closing doors. Behind the glass his face performs a small funeral for his week's work.",
+        "failure_text": "The switchback almost lands, but the tall one reads it — they are better today than yesterday. You lose them eventually, at the price of the evening and a little more of the city's patience."
+      },
+      "r090": {
+        "success_text": "You feed Kessler's vanity three sentences and he repays you with an anecdote about a Belgrade operation only four people knew. You count the four. He is not among them — unless he is the fifth nobody counts. His glass tilts; your certainty sets like concrete.",
+        "failure_text": "Kessler's charm never flickers, but somewhere behind it a card is filed: your face, this interval, a query mark. 'We must lunch,' he says, meaning: I will find out who you are by Tuesday."
+      },
+      "r100": {
+        "success_text": "The fog is yours because the timing is yours. MERIDIAN steps out of the dark at the minute you chose, the satchel changes hands in a barge's length, and the men who hunt this exchange hunt an hour that no longer exists.",
+        "failure_text": "You shaped the night, but the night had another author: headlights swing down the quay steps at the wrong moment, and every advantage you built dissolves into running footsteps and fog."
+      },
+      "r101": {
+        "success_text": "The fog decides, and tonight it decides for you: the car on the bridge moves on, the footsteps are a fisherman's, and MERIDIAN's satchel is in your hands before the canal exhales again.",
+        "failure_text": "The fog decides, and it decides against you: the men were already on the quay, patient as furniture, and you never even learned the name of the person who beat you."
+      },
+      "r110": {
+        "success_text": "The night bell rings once. The gate opens from the inside, VESPER's remarkable posture bends very slightly in your direction, and the weekend becomes, officially, a triumph.",
+        "failure_text": ""
+      }
+    }
+  },
+  "runtime_contract": {
+    "read_aloud": "Present node.read_aloud as the scene's opening; the engine selects variant/first-visit/revisit text.",
+    "mandatory_exposition": "Deliver in substance when present (the canal quay's convergence framing).",
+    "stakes_and_hook": "Voice each route through its hook and stakes rather than listing labels.",
+    "hidden_truth": "Narrator subtext only — never stated outright until the story reveals it.",
+    "route_resolutions": "Use the matching success_text/failure_text as the core narration of a walk outcome."
+  }
+}
