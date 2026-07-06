@@ -3307,6 +3307,7 @@
           "condition": "last_cinder_blessing"
         }
       ],
+      "one_time": true,
       "narrative": {
         "player_intent": "Receive the Last Cinder blessing",
         "dramatic_role": "Exchange two gold for a small Luck improvement and the Last Cinder blessing condition.",
@@ -3410,6 +3411,7 @@
           "amount": 1
         }
       ],
+      "one_time": true,
       "narrative": {
         "player_intent": "Purchase a standard licence",
         "dramatic_role": "Accept formal recognition at a material cost.",
