@@ -196,15 +196,37 @@ costs and stat changes are shown as plain mechanics. What a narrator would treat
 subtext stays hidden from the player: `narrative.hidden_truth` and a knowledge
 revelation's `meaning` are never rendered.
 
-It runs on `web/engine.mjs`, a dependency-free ES-module port of `src/engine` —
-synchronous and storage-free (the run document autosaves to `localStorage`, so a
-delve survives a reload) but mechanically identical: costs spent on the attempt,
-`test.stat` read rather than inferred, luck tests always costing 1 luck, the death
-invariant, clamping, `one_time` consumption, and the same four availability checks
-and content-safety projections (no `failure_to`, `failure_effects` or visibility
-details ever reach the page). `test/web-engine.test.js` keeps the port honest by
-walking scripted-dice playthroughs in lockstep against `src/engine` and requiring
-identical nodes, resolutions and state at every step.
+`web/mcpClient.mjs` talks to the exact same deployed endpoint
+(`https://func-rust-wind-hills-26487.azurewebsites.net/api/mcp`) an LLM client uses —
+`new_run`/`get_node`/`walk`/`get_log` over JSON-RPC 2.0, no local simulation. A delve
+played through the website and one narrated by an LLM are the same run engine, the
+same dice and the same Azure Blob-backed run state; both are just different clients
+of one server. The browser only keeps a lightweight session (`run_id`, `revision`,
+`status`, a cosmetic step journal) in `localStorage` between visits — the adventure
+state itself lives entirely server-side. Point it at a different deployment (e.g.
+`func start`'s `http://localhost:7071/api/mcp` during local development) with
+`?endpoint=...` in the page URL. Because `new_run` doesn't return `available_routes`
+(an LLM client is expected to follow it with `get_node`, per the tools' contract —
+see below), the website does that same extra round trip once, right after starting a
+run. A `revision_conflict` from `walk` (another client moved the run since the last
+view) triggers a silent `get_node` re-sync and lets the player choose again, rather
+than surfacing a raw error.
+
+Since the endpoint is called directly from browser JavaScript, `src/functions/mcp.js`
+answers CORS preflight (`OPTIONS`) and sends `Access-Control-Allow-Origin: *` on every
+response — this endpoint is already anonymous, key-free and has no per-caller secret
+in its responses, so an open CORS policy doesn't change its access model, only who
+can reach it from a browser tab.
+
+`web/engine.mjs` also still exists: a dependency-free ES-module port of `src/engine`,
+synchronous and storage-free, mechanically identical to the real engine (costs spent
+on the attempt, `test.stat` read rather than inferred, luck tests always costing 1
+luck, the death invariant, clamping, `one_time` consumption, the same four
+availability checks and content-safety projections). The website no longer calls it
+for gameplay — `web/mcpClient.mjs` is the live path — but `test/web-engine.test.js`
+keeps it honest by walking scripted-dice playthroughs in lockstep against
+`src/engine`, a regression guard on `src/engine` itself that's independent of which
+client is wired up to the website at any given time.
 
 ```bash
 npm run web    # serves the repo root; open http://localhost:8123/web/
@@ -212,7 +234,9 @@ npm run web    # serves the repo root; open http://localhost:8123/web/
 
 Any static host that serves the repository as-is (e.g. GitHub Pages) works too —
 the page fetches `../rust_wind_hills_adventure_knowledge_graph.json` relative to
-`/web/`, so no build step and no copying of the asset.
+`/web/`, so no build step and no copying of the asset. Every run started from the
+website lands in the same `adventure-runs` blob container as every other MCP
+client's runs — there's no separate "web" run store.
 
 ## Configuration
 
