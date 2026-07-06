@@ -435,53 +435,62 @@ function renderSheet(state) {
 
 // ---------------------------------------------------------------- flow ----
 
-let lastStepAt = 0;
+// True for the span of one in-flight walk() call. A double-click's second
+// click can still land on a live button — the round trip to the real server
+// finishes and re-renders fresh, enabled choices well before an OS-level
+// double-click's two events are both delivered — so a fixed time window
+// isn't the right guard: anchored to when the *previous* click started, it
+// would also swallow a legitimate next click made shortly after the new
+// choices appear (e.g. arrive somewhere and immediately choose to return).
+// An in-flight flag blocks exactly concurrent clicks, never a later one.
+let walking = false;
 
 async function choose(route) {
-  // New choices render as soon as the response lands, often under the
-  // pointer that just chose — swallow the second half of a double-click
-  // instead of walking (and billing the server) twice.
-  if (Date.now() - lastStepAt < 350) return;
-  lastStepAt = Date.now();
+  if (walking) return;
+  walking = true;
   document.querySelectorAll(".choices .choice").forEach((b) => (b.disabled = true));
 
-  let step;
   try {
-    step = await mcp.walk(session.run_id, route.id, session.revision);
-  } catch (e) {
-    if (e instanceof EngineError && e.code === "revision_conflict") {
-      // Someone (another tab, an LLM client on the same run) moved this run
-      // since our last view — re-sync from the server's truth and let the
-      // player choose again rather than surfacing a raw error.
-      try {
-        const view = await mcp.getNode(session.run_id);
-        session.revision = view.revision;
-        session.status = view.status;
-        saveSession();
-        renderChoices(view);
-        return;
-      } catch {
-        // fall through to the generic error card below
+    let step;
+    try {
+      step = await mcp.walk(session.run_id, route.id, session.revision);
+    } catch (e) {
+      if (e instanceof EngineError && e.code === "revision_conflict") {
+        // Someone (another tab, an LLM client on the same run) moved this
+        // run since our last view — re-sync from the server's truth and let
+        // the player choose again rather than surfacing a raw error.
+        try {
+          const view = await mcp.getNode(session.run_id);
+          session.revision = view.revision;
+          session.status = view.status;
+          saveSession();
+          renderChoices(view);
+          return;
+        } catch {
+          // fall through to the generic error card below
+        }
       }
+      document.querySelector(".choices")?.remove();
+      const card = errorCard(e instanceof EngineError ? e.message : "The adventure server didn't respond.");
+      storyAppend(card);
+      card.querySelector("#error-retry").addEventListener("click", () => {
+        card.remove();
+        choose(route);
+      });
+      return;
     }
-    document.querySelector(".choices")?.remove();
-    const card = errorCard(e instanceof EngineError ? e.message : "The adventure server didn't respond.");
-    storyAppend(card);
-    card.querySelector("#error-retry").addEventListener("click", () => {
-      card.remove();
-      choose(route);
-    });
-    return;
-  }
 
-  session.revision = step.revision_after;
-  session.status = step.status;
-  session.journal.push({ from: step.from, to: step.to, success: step.resolution?.success });
-  saveSession();
-  document.querySelector(".choices")?.remove();
-  storyAppend(stepCard(step, route), sceneCard(step.node, { arrivalEffects: step.arrival_effects_applied }));
-  renderSheet(step.state_after);
-  renderChoices(step);
+    session.revision = step.revision_after;
+    session.status = step.status;
+    session.journal.push({ from: step.from, to: step.to, success: step.resolution?.success });
+    saveSession();
+    document.querySelector(".choices")?.remove();
+    storyAppend(stepCard(step, route), sceneCard(step.node, { arrivalEffects: step.arrival_effects_applied }));
+    renderSheet(step.state_after);
+    renderChoices(step);
+  } finally {
+    walking = false;
+  }
 }
 
 async function beginNewRun() {
