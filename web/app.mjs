@@ -88,6 +88,25 @@ function itemName(id) {
   return adventure.itemsById.get(id)?.name ?? prettify(id);
 }
 
+// available_routes deliberately never reveals where a route leads before
+// it's taken (content-safety: no failure_to/visibility leaks) — so the only
+// way to know "this choice leads somewhere I've already been" is to
+// remember it from having taken that exact route before. Approximate but
+// honest: a route with a test could branch differently on a retry, but
+// "last time this led to X, and X is visited" is still a meaningful signal
+// for flavour destinations like the inn or the market that don't change.
+function knownDestination(routeId) {
+  for (let i = (session?.journal.length ?? 0) - 1; i >= 0; i -= 1) {
+    if (session.journal[i].route_id === routeId) return session.journal[i].to;
+  }
+  return null;
+}
+
+function isAlreadyVisited(nodeId) {
+  if (!session) return false;
+  return session.journal.some((step) => step.from === nodeId || step.to === nodeId);
+}
+
 // Player-facing scene card for a node. Narrator-only subtext in the data —
 // narrative.hidden_truth, a revelation's meaning — is deliberately never
 // shown; this page has no narrator to hand it to.
@@ -280,6 +299,10 @@ function renderChoices(view) {
   const box = el("div", { class: "choices" }, el("h3", { text: "What do you do?" }));
   for (const route of view.available_routes) {
     const badges = [];
+    const destination = knownDestination(route.id);
+    if (destination && isAlreadyVisited(destination)) {
+      badges.push(el("span", { class: "badge visited", text: "Been here before" }));
+    }
     for (const cost of route.costs ?? []) {
       badges.push(el("span", { class: "badge cost", text: `−${cost.amount} ${prettify(cost.resource)}` }));
     }
@@ -493,7 +516,7 @@ async function choose(route) {
 
     session.revision = step.revision_after;
     session.status = step.status;
-    session.journal.push({ from: step.from, to: step.to, success: step.resolution?.success });
+    session.journal.push({ route_id: step.route_id, from: step.from, to: step.to, success: step.resolution?.success });
     saveSession();
     document.querySelector(".choices")?.remove();
     storyAppend(stepCard(step, route), sceneCard(step.node, { arrivalEffects: step.arrival_effects_applied }));
@@ -556,7 +579,7 @@ async function resumeRun(saved) {
   if (session.journal.length === 0 && view.revision > 0) {
     try {
       const log = await mcp.getLog(session.run_id);
-      session.journal = log.log.map((step) => ({ from: step.from, to: step.to, success: step.resolution?.success }));
+      session.journal = log.log.map((step) => ({ route_id: step.route_id, from: step.from, to: step.to, success: step.resolution?.success }));
     } catch {
       // Cosmetic only — an empty journal is a fine fallback.
     }

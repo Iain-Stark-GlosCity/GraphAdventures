@@ -281,6 +281,7 @@ main#game {
 
 .badge.cost { border-color: var(--rust); color: #d59b83; }
 .badge.test { border-color: var(--accent-dim); color: var(--accent); }
+.badge.visited { border-style: dashed; color: var(--ink-dim); }
 
 .ending, .stuck { border-color: var(--accent-dim); text-align: center; padding: 1.6rem; }
 .ending h3, .stuck h3 { color: var(--accent); font-variant: small-caps; margin: 0 0 0.4rem; font-size: 1.3rem; }
