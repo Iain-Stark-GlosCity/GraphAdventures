@@ -328,6 +328,13 @@ function errorCard(message) {
 
 // --------------------------------------------------------------- sheet ----
 
+// Persists across re-renders (the sheet is rebuilt from scratch on every
+// step) so a manual expand/collapse sticks, and so resumeRun can force it
+// open once: on resume the story feed only shows the current scene, so the
+// step-by-step path travelled — proof the run remembers visiting the market,
+// getting a blessing, etc. — would otherwise be invisible behind a click.
+let journalOpen = false;
+
 function renderSheet(state) {
   const ps = adventure.doc.ruleset.player_state;
   const sheet = $("sheet");
@@ -424,6 +431,10 @@ function renderSheet(state) {
   }
 
   const journal = el("details", { class: "journal" }, el("summary", { text: `Journal (${session?.journal.length ?? 0} steps)` }));
+  journal.open = journalOpen;
+  journal.addEventListener("toggle", () => {
+    journalOpen = journal.open;
+  });
   const list = el("ol");
   for (const step of session?.journal ?? []) {
     const outcome = step.success === undefined ? "" : step.success ? " ✓" : " ✗";
@@ -514,6 +525,7 @@ async function beginNewRun() {
   }
   session = { run_id: started.run_id, revision: view.revision, status: view.status, journal: [] };
   saveSession();
+  journalOpen = false;
   showGame();
   $("story").replaceChildren();
   if (started.opening_context) {
@@ -557,6 +569,7 @@ async function resumeRun(saved) {
     }))
   );
   storyAppend(sceneCard(view.node));
+  journalOpen = steps > 0;
   renderSheet(view.state);
   renderChoices(view);
 }
