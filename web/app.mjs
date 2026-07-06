@@ -9,9 +9,11 @@
 import { indexAdventure, EngineError } from "./engine.mjs";
 import { createMcpClient } from "./mcpClient.mjs";
 
-const ASSET_URL = "../rust_wind_hills_adventure_knowledge_graph.json";
+// The same manifest the MCP server loads at startup: one list, every client.
+const MANIFEST_URL = "../adventures/manifest.json";
 
-let adventure;
+let adventuresList = []; // every hosted adventure, indexed
+let adventure; // the one currently selected/being played
 let mcp;
 let session = null; // { run_id, revision, status, journal: [{ from, to, success }] }
 
@@ -41,9 +43,10 @@ const prettify = (id) =>
 
 // Versioned key: the session shape (run_id + revision, not a full game
 // state) is specific to the remote-server client, so bump this if that
-// shape ever changes rather than trying to migrate an old save.
-function saveKey() {
-  return `rust-wind-hills:session:v1:${adventure.version}`;
+// shape ever changes rather than trying to migrate an old save. Keyed per
+// adventure, so each hosted adventure keeps its own resumable run.
+function saveKey(a = adventure) {
+  return `graph-adventures:session:v1:${a.id}:${a.version}`;
 }
 
 function saveSession() {
@@ -55,9 +58,9 @@ function saveSession() {
   }
 }
 
-function loadSavedSession() {
+function loadSavedSession(a = adventure) {
   try {
-    const raw = localStorage.getItem(saveKey());
+    const raw = localStorage.getItem(saveKey(a));
     return raw ? JSON.parse(raw) : null;
   } catch {
     return null;
@@ -287,9 +290,9 @@ function renderChoices(view) {
         el("h3", { text: "No way on" }),
         el("p", {
           text:
-            "Every path from here needs something you no longer have. The hills keep what the hills catch — this delve ends here.",
+            "Every path from here needs something you no longer have. This run ends here.",
         }),
-        el("button", { class: "primary-button", id: "stuck-restart", text: "Start a new delve" })
+        el("button", { class: "primary-button", id: "stuck-restart", text: "Start again" })
       )
     );
     $("stuck-restart").addEventListener("click", () => restart(false));
@@ -327,13 +330,13 @@ function renderChoices(view) {
 }
 
 function endingCard(view) {
-  const kind = view.node.id === "ending_dead" ? "You did not come back." : "The delve is over.";
+  const kind = view.node.id === "ending_dead" ? "You did not come back." : "The adventure is over.";
   const card = el(
     "div",
     { class: "choices card ending" },
     el("h3", { text: kind }),
     el("p", { text: view.node.title }),
-    el("button", { class: "primary-button", id: "ending-restart", text: "Start a new delve" })
+    el("button", { class: "primary-button", id: "ending-restart", text: "Start again" })
   );
   card.querySelector("#ending-restart").addEventListener("click", () => restart(false));
   return card;
@@ -361,7 +364,7 @@ let journalOpen = false;
 function renderSheet(state) {
   const ps = adventure.doc.ruleset.player_state;
   const sheet = $("sheet");
-  sheet.replaceChildren(el("h3", { text: "Your delver" }));
+  sheet.replaceChildren(el("h3", { text: "Your character" }));
 
   const stats = el("div", { class: "stat-block" });
   for (const [name, def] of Object.entries(ps.stats)) {
@@ -394,7 +397,7 @@ function renderSheet(state) {
       )
     );
   }
-  sheet.append(el("h4", { text: "Purse & supplies" }), resources);
+  sheet.append(el("h4", { text: "Resources" }), resources);
 
   sheet.append(el("h4", { text: "Pack" }));
   if (state.inventory.length === 0) {
@@ -588,7 +591,7 @@ async function resumeRun(saved) {
   const steps = session.journal.length;
   $("story").replaceChildren(
     el("div", { class: "scene card opening" }, el("p", {
-      text: `You pick your delve back up where you left it, ${steps} step${steps === 1 ? "" : "s"} in. The journal on your character sheet remembers the way you came.`,
+      text: `You pick the adventure back up where you left it, ${steps} step${steps === 1 ? "" : "s"} in. The journal on your character sheet remembers the way you came.`,
     }))
   );
   storyAppend(sceneCard(view.node));
@@ -599,7 +602,7 @@ async function resumeRun(saved) {
 
 function restart(confirmFirst = true) {
   if (confirmFirst && session?.status === "active" && session.journal.length > 0) {
-    if (!window.confirm("Abandon this delve and start over?")) return;
+    if (!window.confirm("Abandon this run and start over?")) return;
   }
   clearSavedSession();
   beginNewRun();
@@ -609,45 +612,104 @@ function showGame() {
   $("start-screen").hidden = true;
   $("game").hidden = false;
   $("restart-button").hidden = false;
+  $("switch-button").hidden = false;
   $("load-error").hidden = true;
 }
 
-function showStartScreen(saved) {
+// The picker: one card per hosted adventure, straight from each graph's own
+// metadata. Selecting a card reveals that adventure's intro and begin/
+// continue actions; the begin/continue listeners are attached once in boot
+// and act on whatever `adventure` currently is.
+function showStartScreen() {
+  session = null;
+  $("game").hidden = true;
+  $("restart-button").hidden = true;
+  $("switch-button").hidden = true;
+  $("adventure-title").textContent = "Graph Adventures";
+  $("adventure-subtitle").textContent = "One engine, many worlds";
+  document.title = "Graph Adventures";
+  $("intro-card").hidden = true;
+  $("start-screen").hidden = false;
+
+  const list = $("adventure-list");
+  list.replaceChildren();
+  for (const a of adventuresList) {
+    const saved = loadSavedSession(a);
+    const resumable = saved && saved.status === "active";
+    const card = el(
+      "button",
+      { class: "adventure-card", "data-adventure": a.id },
+      el("span", { class: "adventure-card-title", text: a.title }),
+      a.subtitle ? el("span", { class: "adventure-card-subtitle", text: a.subtitle }) : null,
+      el(
+        "span",
+        { class: "adventure-card-genres" },
+        (a.doc.graph.genre ?? []).map((g) => el("span", { class: "badge", text: g }))
+      ),
+      resumable ? el("span", { class: "badge visited", text: "Run in progress" }) : null
+    );
+    card.addEventListener("click", () => selectAdventure(a));
+    list.append(card);
+  }
+}
+
+function selectAdventure(a) {
+  adventure = a;
+  $("adventure-title").textContent = adventure.title;
+  $("adventure-subtitle").textContent = adventure.subtitle ?? "";
+  document.title = adventure.title;
   $("intro-text").textContent =
     adventure.doc.graph.opening_context?.player_facing_introduction ?? adventure.doc.graph.narrative_premise ?? "";
-  $("start-screen").hidden = false;
-  $("continue-button").hidden = !saved;
-  if (saved) {
-    $("begin-button").textContent = "Begin a fresh delve";
-    $("continue-button").addEventListener("click", () => resumeRun(saved));
-  }
-  $("begin-button").addEventListener("click", () => {
-    clearSavedSession();
-    beginNewRun();
-  });
+
+  const saved = loadSavedSession();
+  const resumable = saved && saved.status === "active" ? saved : null;
+  // beginNewRun disables these while a run is starting; a fresh selection
+  // must hand them back.
+  $("begin-button").disabled = false;
+  $("continue-button").disabled = false;
+  $("begin-button").textContent = resumable ? "Begin a fresh run" : "Begin";
+  $("continue-button").hidden = !resumable;
+  $("intro-card").hidden = false;
+  $("intro-card").scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 async function boot() {
   try {
-    const response = await fetch(ASSET_URL);
-    if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
-    adventure = indexAdventure(await response.json());
+    const manifestResponse = await fetch(MANIFEST_URL);
+    if (!manifestResponse.ok) {
+      throw new Error(`${manifestResponse.status} ${manifestResponse.statusText}`);
+    }
+    const manifest = await manifestResponse.json();
+    adventuresList = await Promise.all(
+      manifest.assets.map(async (rel) => {
+        const url = new URL(rel, new URL(MANIFEST_URL, location.href));
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`${url.pathname}: ${response.status} ${response.statusText}`);
+        return indexAdventure(await response.json());
+      })
+    );
   } catch (e) {
     $("loading").hidden = true;
     const err = $("load-error");
     err.hidden = false;
-    err.textContent = `Could not load the adventure asset (${e.message}). Serve this page from the repository — e.g. npm run web — so ${ASSET_URL} resolves.`;
+    err.textContent = `Could not load the adventure assets (${e.message}). Serve this page from the repository — e.g. npm run web — so ${MANIFEST_URL} resolves.`;
     return;
   }
   mcp = createMcpClient();
   $("loading").hidden = true;
-  $("adventure-title").textContent = adventure.title;
-  $("adventure-subtitle").textContent = adventure.subtitle ?? "";
-  document.title = adventure.title;
   $("restart-button").addEventListener("click", () => restart(true));
+  $("switch-button").addEventListener("click", () => showStartScreen());
+  $("begin-button").addEventListener("click", () => {
+    clearSavedSession();
+    beginNewRun();
+  });
+  $("continue-button").addEventListener("click", () => {
+    const saved = loadSavedSession();
+    if (saved && saved.status === "active") resumeRun(saved);
+    else beginNewRun();
+  });
 
-  const saved = loadSavedSession();
-  showStartScreen(saved && saved.status === "active" ? saved : null);
+  showStartScreen();
 }
 
 boot();

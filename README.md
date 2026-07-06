@@ -1,8 +1,46 @@
-# Rust Wind Hills — MCP Adventure Engine
+# Graph Adventures — MCP Adventure Engine
 
-An MCP server that runs `rust_wind_hills_adventure_knowledge_graph.json`, built to
-[`rust-wind-hills-mcp-spec.md`](rust-wind-hills-mcp-spec.md) (v4). Azure Functions v4,
-Node.js 24, Azure Blob Storage for run persistence.
+An adventure-agnostic MCP server that runs gamebook-style adventure knowledge graphs.
+The engine mechanics were built to
+[`rust-wind-hills-mcp-spec.md`](rust-wind-hills-mcp-spec.md) (v4) for a single dungeon
+crawl — and everything in the spec's rule DSL turned out to be genre-neutral, so the
+same graph layout and the same walkers now run four very different worlds. Azure
+Functions v4, Node.js 24, Azure Blob Storage for run persistence.
+
+## Hosted adventures
+
+Every asset in [`adventures/manifest.json`](adventures/manifest.json) is loaded, hashed
+and validated at startup; the MCP server, the CI content gates and the website all read
+this one list, so adding an adventure is: drop the JSON in `adventures/`, add it to the
+manifest.
+
+| adventure_id | Title | Genre |
+| --- | --- | --- |
+| `rust-wind-hills-dungeon` | The Dungeons Below the Rust Wind Hills | Classic fantasy dungeon crawl with a licensing-bureaucracy satire (the original; content revision 0.2.5) |
+| `vienna-clearing-house` | The Clearing House | Modern-day spy mystery: dead drops, a mole hunt and one exchange window in Vienna |
+| `hollow-market-tithe` | The Tithe of Hollow Market | Urban fantasy: an unseelie fae market under the city, favours for currency, dawn as the clock |
+| `dragons-ledger-audit` | The Dragon's Ledger | Comic high fantasy: a guild auditor reconciling a dragon's hoard, where the deadliest thing is the discrepancy |
+
+The point of the extra three is to demonstrate that the platform is adventure-agnostic:
+each one re-themes the *same* executable DSL rather than extending the engine. The spy
+mystery prices everything in `hours` and runs surveillance pressure as a `heat` stat;
+the fae market mints `favours` out of the player's own luck at a broker and rolls tests
+against a `glamour` stat; the audit makes `ink` the working resource (discoveries must
+be written up to count) and runs the dragon's temperament as a flag machine. All of it
+is conditions/effects/costs/tests exactly as the spec defines them.
+
+### The walker contract
+
+The engine is content-agnostic except for a small, deliberate core every adventure must
+satisfy (enforced by `test/multi-adventure.test.js`):
+
+- stats must include `skill`, `stamina` (min 0) and `luck` — 2d6 tests, combat rounds
+  and the luck-spend rule are wired to those names;
+- a terminal `ending_dead` node must exist — the death invariant routes any walk that
+  leaves stamina at 0 there, whatever the adventure calls dying (the audit's version is
+  "A Reasonable Incineration Event");
+- everything else — extra stats, every resource, all flags, items, encounters, endings,
+  the whole semantic layer — is the adventure's own business.
 
 **A single HTTP endpoint, `POST /api/mcp`, is the entire MCP server.** It's a plain,
 anonymous-auth Azure Function that speaks JSON-RPC 2.0 directly (`initialize`,
@@ -16,15 +54,18 @@ re-parse JSON out of a string to get structured output.
 ## Layout
 
 ```
-rust_wind_hills_adventure_knowledge_graph.json   static adventure asset (hashed byte-exact at startup)
+rust_wind_hills_adventure_knowledge_graph.json   the original adventure asset (hashed byte-exact at startup)
+adventures/
+  manifest.json      the one list of hosted assets, read by server, CI and website alike
+  *.json             the other adventure assets (spy mystery, fae market, dragon audit)
 src/
   engine/            pure game engine — no Azure dependencies
-    adventure.js       asset loading, sha256 hashing, indexing, startup validation
+    adventure.js       asset/manifest loading, sha256 hashing, indexing, startup validation
     conditions.js      condition DSL (11 operators + any-blocks)
     effects.js         effect DSL (9 operators), clamping, knowledge_grants conversion
     dice.js            2d6 via crypto.randomInt (injectable for tests)
     resolve.js         skill/luck test resolution and the combat round loop
-    engine.js          the four tools: new_run, get_node, walk, get_log
+    engine.js          the five tools: list_adventures, new_run, get_node, walk, get_log
   storage/
     blobRunStore.js    one blob per run (adventure-runs/run:{run_id}.json), ETag concurrency
     memoryRunStore.js  same contract in memory, for tests
@@ -58,8 +99,9 @@ for the exact JSON Schemas.
 
 | Tool | Arguments | Behaviour |
 | --- | --- | --- |
-| `new_run` | `adventure_id`, `label?` | Seeds state from the ruleset's `initial` values, applies the entry node's `knowledge_grants`, writes the run blob, returns the unguessable `run_id`. |
-| `get_node` | `run_id` | Strictly read-only. Current node, public state, and the routes that pass all four checks (visible, legal, affordable, not consumed). Serves completed runs with an empty route list so the ending can be narrated. |
+| `list_adventures` | — | Catalogue of every hosted adventure: `adventure_id`, title, genre, tone, premise, version, hash and size — enough to choose one (or offer the choice to a player) before `new_run`. |
+| `new_run` | `adventure_id`, `label?` | Dispatches on `adventure_id` (unknown ids get an error naming what *is* hosted), seeds state from that adventure's ruleset `initial` values, applies the entry node's `knowledge_grants`, writes the run blob, returns the unguessable `run_id`. |
+| `get_node` | `run_id` | Strictly read-only. Resolves the run's own adventure from the run document (runs of different adventures share one store without crossing), then returns the current node, public state, and the routes that pass all four checks (visible, legal, affordable, not consumed). Serves completed runs with an empty route list so the ending can be narrated. |
 | `walk` | `run_id`, `route_id`, `expected_revision` | Optimistically-concurrent step: costs spent on the attempt, test rolled, effects applied, stats clamped, death invariant enforced, step committed with `If-Match`. The response is the logged step plus `node` and `available_routes` for the destination, computed from state already in memory (no extra storage read) — the common "walk, then narrate" loop needs no follow-up `get_node` call. |
 | `get_log` | `run_id` | Full step log; exempt from the adventure-hash hard-stop (flagged `adventure_mismatch` instead). |
 
@@ -186,9 +228,12 @@ own reasoning, never for the player to see.
 
 ## Website
 
-`web/` is a static, build-free client that walks the adventure in the browser — the
-same graph, rules and dice, without the LLM narrator layer the MCP server is built
-for. Scenes are the content's own text verbatim: `read_aloud` (with the same
+`web/` is a static, build-free client that walks the adventures in the browser — the
+same graphs, rules and dice, without the LLM narrator layer the MCP server is built
+for. It reads `adventures/manifest.json` (the same list the server loads) and opens
+with a picker, one card per adventure; saved sessions are kept per adventure, so a
+half-finished delve, a half-worked Vienna weekend and a half-audited hoard can all be
+resumed independently. Scenes are the content's own text verbatim: `read_aloud` (with the same
 variant/first-visit/revisit selection the server does), `mandatory_exposition`,
 `rumour_delivery`, route `hook`/`stakes`, `route_resolution` on each step, and
 item/knowledge `player_text` at the moment of acquisition. Dice rolls, combat rounds,
@@ -243,7 +288,7 @@ client's runs — there's no separate "web" run store.
 | Setting | Purpose |
 | --- | --- |
 | `ADVENTURE_STORAGE_CONNECTION_STRING` | Blob storage connection string (falls back to `AzureWebJobsStorage`). Never hardcoded, never a tool parameter. |
-| `ADVENTURE_ASSET_PATH` | Optional override for the adventure JSON path. |
+| `ADVENTURE_ASSET_PATH` | Optional single-asset override: when set, the server hosts only that adventure JSON instead of everything in `adventures/manifest.json`. |
 | `WEBSITE_RUN_FROM_PACKAGE` | Set to `1` on the Function App (see deployment below) so the host mounts the deployed zip read-only instead of extracting it. |
 
 Runs live in one container, `adventure-runs`, one blob per run: `run:{run_id}.json`.
@@ -273,25 +318,37 @@ app — no partial-deploy window, no file locks.
 
 ```bash
 npm install
-npm test                     # engine + protocol test suite (no Azure needed)
-npm run validate             # audit the adventure asset
-npm run check:reachability   # every node reachable, no non-terminal dead ends
-npm run simulate             # 300 random playthroughs — soft locks, ending coverage
+npm test                     # engine + protocol + multi-adventure test suite (no Azure needed)
+npm run validate             # audit every adventure asset in the manifest
+npm run check:reachability   # every node reachable, no non-terminal dead ends — all adventures
+npm run simulate             # 300 random playthroughs per adventure — soft locks, ending coverage
 cp local.settings.sample.json local.settings.json
 npm start                    # func start — needs Azure Functions Core Tools + Azurite
 ```
 
-Once running, `POST http://localhost:7071/api/mcp` with a JSON-RPC body speaks MCP
-directly — e.g. `{"jsonrpc":"2.0","id":1,"method":"tools/list"}` returns all four tools.
-`GET http://localhost:7071/api/health` reports readiness.
+Each content script also takes an explicit asset path to audit just one adventure,
+e.g. `npm run validate -- adventures/dragons_ledger_audit_adventure_knowledge_graph.json`.
 
-The static asset is validated at application start (broken references, unsupported
+Once running, `POST http://localhost:7071/api/mcp` with a JSON-RPC body speaks MCP
+directly — e.g. `{"jsonrpc":"2.0","id":1,"method":"tools/list"}` returns all five tools.
+`GET http://localhost:7071/api/health` reports readiness and every hosted adventure.
+
+Every static asset is validated at application start (broken references, unsupported
 DSL operators) and the app refuses to boot on any error — games never fail
 mid-walk on bad content.
 
 ## Content notes
 
-The shipped graph is content revision 0.2.3. 0.2.0 was a purely additive narrative
+The three newer adventures (`vienna-clearing-house`, `hollow-market-tithe`,
+`dragons-ledger-audit`) ship at content revision 0.1.0 each: full `read_aloud`/
+`read_aloud_revisit` coverage, conditional `read_aloud_variants`, `stakes`/`hook` on
+every route, `opening_context`, `mandatory_exposition`, `rumour_delivery`, and a
+`semantic_layer` carrying `knowledge_revelations` and `route_resolutions` — the two
+blocks the engine actually consumes. All three pass the same CI gates as the original:
+structural reachability is total, and the randomised simulation reaches all five of each
+one's endings with no soft locks.
+
+The original Rust Wind Hills graph is content revision 0.2.5. 0.2.0 was a purely additive narrative
 enrichment over 0.1.1 — same 47 nodes, 108 routes, entry node and terminals; every
 condition, effect, test and cost byte-identical to 0.1.1 (verified diff, not just a
 version bump) — adding a `narrative`/`narrative_semantics` field to every node, route,

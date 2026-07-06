@@ -54,14 +54,14 @@ jobs:
           npm prune --omit=dev
           node scripts/verify-functions-entrypoint.js
 
-      # Ship only the runtime artifact: the engine source, the adventure asset
-      # it loads at startup, production node_modules, and the manifests the
+      # Ship only the runtime artifact: the engine source, the adventure assets
+      # and manifest it loads at startup, production node_modules, and the manifests the
       # host needs. 7-Zip is preinstalled on the runner and handles deep
       # node_modules paths better than Compress-Archive.
       - name: 'Package runtime artifact'
         shell: pwsh
         run: |
-          $items = @('src','rust_wind_hills_adventure_knowledge_graph.json','node_modules','host.json','package.json','package-lock.json','.funcignore') |
+          $items = @('src','adventures','rust_wind_hills_adventure_knowledge_graph.json','node_modules','host.json','package.json','package-lock.json','.funcignore') |
             Where-Object { Test-Path $_ }
           7z a -tzip app.zip @items | Out-Null
           if (-not (Test-Path 'app.zip')) { throw 'app.zip was not created' }

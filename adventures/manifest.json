@@ -1,0 +1,9 @@
+{
+  "description": "Every adventure asset this deployment hosts. Paths are relative to this file. The MCP server, the CI content gates and the website all read this same list, so adding an adventure is: drop the JSON in this directory, add it here.",
+  "assets": [
+    "../rust_wind_hills_adventure_knowledge_graph.json",
+    "vienna_clearing_house_adventure_knowledge_graph.json",
+    "hollow_market_tithe_adventure_knowledge_graph.json",
+    "dragons_ledger_audit_adventure_knowledge_graph.json"
+  ]
+}

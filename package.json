@@ -1,7 +1,7 @@
 {
-  "name": "rust-wind-hills-mcp",
-  "version": "0.1.0",
-  "description": "MCP engine (Azure Functions v4, Node.js) for the Rust Wind Hills adventure knowledge graph",
+  "name": "graph-adventures-mcp",
+  "version": "0.2.0",
+  "description": "Adventure-agnostic MCP engine (Azure Functions v4, Node.js) for gamebook-style adventure knowledge graphs — dungeon crawl, spy mystery, unseelie fae, dragon-hoard audit, all on one graph layout and one set of walkers",
   "main": "src/functions/*.js",
   "engines": {
     "node": ">=24"

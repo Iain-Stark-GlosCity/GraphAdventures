@@ -21,21 +21,22 @@
 //
 // Usage:
 //   node scripts/simulate-playthroughs.js [assetPath] [runCount]
+//
+// Without an assetPath it simulates every adventure in
+// adventures/manifest.json, runCount runs each.
 
 const path = require("node:path");
-const { loadAdventure } = require("../src/engine/adventure");
+const { loadAdventure, loadAdventures } = require("../src/engine/adventure");
 const { createEngine } = require("../src/engine/engine");
 const { MemoryRunStore } = require("../src/storage/memoryRunStore");
 
-const assetPath =
-  process.argv[2] ??
-  path.join(__dirname, "..", "rust_wind_hills_adventure_knowledge_graph.json");
+const adventuresToRun = process.argv[2]
+  ? [loadAdventure(process.argv[2])]
+  : loadAdventures(path.join(__dirname, "..", "adventures", "manifest.json"));
 const runCount = Number(process.argv[3] ?? 300);
 const STEP_BUDGET = 400;
 
-const adventure = loadAdventure(assetPath);
-
-async function playOne() {
+async function playOne(adventure) {
   const engine = createEngine({ adventure, store: new MemoryRunStore() });
   const { run_id } = await engine.newRun(adventure.id);
   for (let steps = 0; steps < STEP_BUDGET; steps++) {
@@ -49,11 +50,11 @@ async function playOne() {
   return { outcome: "STEP_BUDGET_EXCEEDED", steps: STEP_BUDGET };
 }
 
-(async () => {
+async function simulateAdventure(adventure) {
   const outcomes = new Map();
   let totalSteps = 0;
   for (let i = 0; i < runCount; i++) {
-    const { outcome, steps } = await playOne();
+    const { outcome, steps } = await playOne(adventure);
     totalSteps += steps;
     outcomes.set(outcome, (outcomes.get(outcome) ?? 0) + 1);
   }
@@ -81,6 +82,13 @@ async function playOne() {
   console.log();
   for (const [outcome, count] of [...outcomes.entries()].sort((a, b) => b[1] - a[1])) {
     console.log(`  ${outcome}: ${count}`);
+  }
+}
+
+(async () => {
+  for (const adventure of adventuresToRun) {
+    await simulateAdventure(adventure);
+    console.log();
   }
 })().catch((e) => {
   console.error(e);

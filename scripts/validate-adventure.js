@@ -6,14 +6,21 @@
 // validation failure. This is deliberately a script, not an MCP tool.
 
 const path = require("node:path");
-const { loadAdventure } = require("../src/engine/adventure");
+const { loadAdventure, loadAdventures } = require("../src/engine/adventure");
 
-const assetPath =
-  process.argv[2] ??
-  path.join(__dirname, "..", "rust_wind_hills_adventure_knowledge_graph.json");
-
+// With an argument: audit that one asset. Without: audit every adventure in
+// adventures/manifest.json, same set the Functions app loads at startup.
+let adventures;
 try {
-  const adventure = loadAdventure(assetPath);
+  adventures = process.argv[2]
+    ? [loadAdventure(process.argv[2])]
+    : loadAdventures(path.join(__dirname, "..", "adventures", "manifest.json"));
+} catch (e) {
+  console.error(e.message);
+  process.exit(1);
+}
+
+for (const adventure of adventures) {
   console.log(`OK: ${adventure.id} v${adventure.version}`);
   console.log(`  hash:       ${adventure.hash}`);
   console.log(`  nodes:      ${adventure.nodesById.size}`);
@@ -21,7 +28,4 @@ try {
   console.log(`  encounters: ${adventure.encountersById.size}`);
   console.log(`  entry:      ${adventure.entryNode}`);
   console.log(`  terminals:  ${[...adventure.terminalNodes].join(", ")}`);
-} catch (e) {
-  console.error(e.message);
-  process.exit(1);
 }
