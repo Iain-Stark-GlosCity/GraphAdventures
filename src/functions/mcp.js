@@ -60,7 +60,11 @@ const SERVER_INFO = {
       "actually revealed it. Then offer the available routes as in-world choices: use each " +
       "route's label for the concrete selectable action, but voice the offer through its hook " +
       "and stakes so the player feels the cost, risk or opportunity rather than reading it off " +
-      "a list.",
+      "a list. When blocked_routes is present, weave those in too as visible-but-out-of-reach " +
+      "opportunities: a 'blocked' entry's reason names exactly what's missing, so let the " +
+      "player see the locked door and the shape of its key; a 'foreshadowed' entry's hint is " +
+      "all that may be revealed — imply that more is possible here without saying what. Never " +
+      "offer a blocked route as a takeable choice.",
 
     "Narrating a walk result: use route_resolution, when present, as the outcome's core " +
       "narration — it's written for exactly this moment (success or failure, whichever " +

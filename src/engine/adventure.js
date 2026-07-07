@@ -148,6 +148,14 @@ function validateAdventure(adventure) {
     for (const cost of route.costs ?? []) {
       if (!resources.has(cost.resource)) err(where, `unknown cost resource ${cost.resource}`);
     }
+    if ("disclosure" in route) {
+      if (!["blocked", "foreshadowed"].includes(route.disclosure)) {
+        err(where, `unsupported disclosure ${JSON.stringify(route.disclosure)}`);
+      }
+      if (route.disclosure === "foreshadowed" && typeof route.foreshadow !== "string") {
+        err(where, "disclosure \"foreshadowed\" requires a foreshadow text on the route");
+      }
+    }
     const test = route.test;
     if (test) {
       if (!TEST_TYPES.has(test.type)) err(where, `unsupported test type ${test.type}`);
@@ -163,6 +171,72 @@ function validateAdventure(adventure) {
       }
       checkEffects(test.failure_effects, `${where}.failure_effects`);
       if ("effects" in test) err(where, "test.effects is not supported; use failure_effects");
+    }
+  }
+
+  // Ending assertions: an ending's narration often asserts state ("she
+  // goes home with her name"), and nothing used to check that the terminal
+  // state actually agrees. validation.ending_assertions[node_id] lists
+  // flag/value pairs the ending's prose relies on; every routed way into
+  // that ending must guarantee each one — by setting the flag itself, by
+  // requiring it as a condition, or by requiring an item whose every
+  // granting route sets the flag alongside it (the witness trace:
+  // requiring sisters_true_name proves name_recovered when every route
+  // that grants the item also sets the flag). This is a one-level static
+  // check: it can't see a later route un-setting the flag, so keep
+  // asserted flags monotonic. Don't assert on ending_dead — the stamina
+  // death invariant routes there from anywhere, bypassing this analysis.
+  const setsFlag = (effects, flag, value) =>
+    (effects ?? []).some((e) => e.op === "set_flag" && e.flag === flag && e.value === value);
+  const requiresFlag = (conds, flag, value) =>
+    (conds ?? []).some((c) => c.op === "flag_is" && c.flag === flag && c.value === value);
+  const itemGuaranteesFlag = (item, flag, value) => {
+    if ((ps.collections.inventory.initial ?? []).includes(item)) return false;
+    const grantingLists = [];
+    for (const r of doc.routes) {
+      if ((r.effects ?? []).some((e) => e.op === "add_item" && e.item === item)) {
+        grantingLists.push(r.effects);
+      }
+      if ((r.test?.failure_effects ?? []).some((e) => e.op === "add_item" && e.item === item)) {
+        grantingLists.push(r.test.failure_effects);
+      }
+    }
+    return grantingLists.length > 0 && grantingLists.every((list) => setsFlag(list, flag, value));
+  };
+  for (const [endingId, asserts] of Object.entries(doc.validation?.ending_assertions ?? {})) {
+    const where = `validation.ending_assertions.${endingId}`;
+    if (!adventure.nodesById.has(endingId)) {
+      err(where, `unknown node ${endingId}`);
+      continue;
+    }
+    if (endingId === "ending_dead") {
+      err(where, "assertions on ending_dead are unsound (the death invariant bypasses routes)");
+      continue;
+    }
+    for (const assertion of asserts) {
+      checkFlagValue(assertion.flag, assertion.value, where);
+      for (const r of doc.routes) {
+        const arrivals = [];
+        if (r.to === endingId) arrivals.push(r.effects);
+        if (r.test?.failure_to === endingId) arrivals.push(r.test.failure_effects);
+        // Visibility conditions gate walk just as hard as legality
+        // conditions, so either list can guarantee an assertion.
+        const gates = [...(r.conditions ?? []), ...(r.visibility?.conditions ?? [])];
+        for (const effects of arrivals) {
+          const guaranteed =
+            setsFlag(effects, assertion.flag, assertion.value) ||
+            requiresFlag(gates, assertion.flag, assertion.value) ||
+            gates.some(
+              (c) => c.op === "has_item" && itemGuaranteesFlag(c.item, assertion.flag, assertion.value)
+            );
+          if (!guaranteed) {
+            err(
+              `route ${r.id}`,
+              `reaches ${endingId} without guaranteeing ${assertion.flag} = ${JSON.stringify(assertion.value)} (${where})`
+            );
+          }
+        }
+      }
     }
   }
 

@@ -118,6 +118,17 @@ Spec-mandated behaviours worth knowing when calling:
   `{ "code": "route_unavailable", ... }` so guessed secret routes leak nothing.
 - `route.kind: "secret"` is descriptive only; a route is hidden solely by a
   `visibility` block whose conditions fail.
+- A route may declare `disclosure: "blocked"` or `"foreshadowed"` to stay *perceptible*
+  while its conditions or costs fail: `get_node`/`walk` then include it in
+  `blocked_routes` (omitted when empty) with either the exact unmet requirements
+  (`reason`) or only the route's authored `foreshadow` hint. Blocked entries carry no
+  route id and are not walkable; visibility-gated routes are never disclosed.
+- Each adventure may declare `validation.ending_assertions` — flag/value pairs an
+  ending's narration relies on ("she goes home with her name" ⇒
+  `name_recovered = true`). Startup validation (and `scripts/validate-adventure.js`)
+  fails unless every routed way into that ending guarantees each assertion, by
+  setting the flag, requiring it, or requiring an item whose every granting route
+  sets it.
 - `test.stat` is read, never inferred from `test.type` (r063 is typed `skill` but
   tests luck). Luck tests cost 1 luck whatever the outcome.
 - A conflicting blob write discards the whole resolution — no uncommitted rolls are

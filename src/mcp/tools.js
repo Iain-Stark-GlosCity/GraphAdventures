@@ -45,7 +45,7 @@ function buildTools(adventures) {
     {
       name: "get_node",
       description:
-        "Read-only view of a run: current node, player state and the routes available right now. Works on completed runs too (with no routes) so the ending can be narrated.",
+        "Read-only view of a run: current node, player state and the routes available right now. blocked_routes, when present, lists gated choices the player is allowed to perceive but cannot take yet, with the unmet requirement (reason) or a vague hint. Works on completed runs too (with no routes) so the ending can be narrated.",
       inputSchema: {
         type: "object",
         properties: {

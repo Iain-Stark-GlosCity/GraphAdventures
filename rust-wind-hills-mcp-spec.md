@@ -129,6 +129,23 @@ Evaluates every outgoing route through four checks, returns only what passes all
 
 Never expose `failure_to`, `failure_effects`, or `visibility` details for filtered-out routes.
 
+**Blocked-route disclosure.** A route may opt out of total secrecy by declaring
+`disclosure: "blocked"` or `disclosure: "foreshadowed"` (with a `foreshadow` text). When such a
+route passes the `visible` and `not_consumed` checks but fails `legal` or `affordable`, `get_node`
+and `walk` include it in a `blocked_routes` array (omitted when empty) alongside
+`available_routes`:
+
+- `"blocked"` → `{ "label", "disclosure": "blocked", "reason" }` where `reason` names the exact
+  unmet conditions and unaffordable costs (e.g. `"requires knowing: The Dusk Wagons; requires
+  1 ink (you have 0)"`).
+- `"foreshadowed"` → `{ "label", "disclosure": "foreshadowed", "hint" }` where `hint` is the
+  route's authored `foreshadow` text and nothing else — no requirement detail.
+
+Blocked entries carry no route `id` and are not walkable; walking a gated route still fails with
+the generic `route_unavailable`. Routes without `disclosure` behave exactly as before (fully
+hidden while gated), and `visibility` blocks remain the true-secret tier — a route hidden by
+`visibility` is never disclosed regardless of its `disclosure` field.
+
 ```json
 {
   "run_id": "abc123",

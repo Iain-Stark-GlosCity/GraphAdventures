@@ -1,7 +1,7 @@
 {
   "schema": {
     "name": "adventure-knowledge-graph",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "description": "A stateful, directed knowledge graph for an urban-fantasy night under the city: the Unseelie Court's Hollow Market, where the currencies are silver, favours and candle-marks, and the prize is a stolen true name. Same executable rule DSL as every adventure on this platform."
   },
   "graph": {
@@ -53,8 +53,8 @@
         "knowledge": { "type": "set", "initial": [] }
       },
       "flags": {
-        "oath_status": { "type": "enum", "values": ["unsworn", "sworn", "twisted"], "initial": "unsworn" },
-        "court_standing": { "type": "enum", "values": ["unnoticed", "marked", "favoured", "hunted"], "initial": "unnoticed" },
+        "oath_status": { "type": "enum", "values": ["unsworn", "sworn", "twisted", "bound"], "initial": "unsworn" },
+        "court_standing": { "type": "enum", "values": ["unnoticed", "marked", "favoured", "hunted", "claimed"], "initial": "unnoticed" },
         "name_located": { "type": "boolean", "initial": false },
         "name_recovered": { "type": "boolean", "initial": false }
       }
@@ -878,6 +878,7 @@
       "conditions": [{ "op": "has_item", "item": "thorn_key" }],
       "effects": [
         { "op": "add_item", "item": "sisters_true_name" },
+        { "op": "set_flag", "flag": "name_located", "value": true },
         { "op": "set_flag", "flag": "name_recovered", "value": true },
         { "op": "set_flag", "flag": "court_standing", "value": "marked" }
       ],
@@ -899,6 +900,7 @@
       },
       "effects": [
         { "op": "add_item", "item": "sisters_true_name" },
+        { "op": "set_flag", "flag": "name_located", "value": true },
         { "op": "set_flag", "flag": "name_recovered", "value": true },
         { "op": "set_flag", "flag": "court_standing", "value": "marked" }
       ],
@@ -917,6 +919,7 @@
       "effects": [
         { "op": "remove_item", "item": "cold_iron_nail" },
         { "op": "add_item", "item": "sisters_true_name" },
+        { "op": "set_flag", "flag": "name_located", "value": true },
         { "op": "set_flag", "flag": "name_recovered", "value": true },
         { "op": "set_flag", "flag": "court_standing", "value": "hunted" }
       ],
@@ -964,7 +967,12 @@
       "label": "Swear seven years of service for her name",
       "kind": "bargain",
       "conditions": [{ "op": "knows", "fact": "queens_price" }],
-      "effects": [],
+      "effects": [
+        { "op": "set_flag", "flag": "name_located", "value": true },
+        { "op": "set_flag", "flag": "name_recovered", "value": true },
+        { "op": "set_flag", "flag": "oath_status", "value": "sworn" },
+        { "op": "set_flag", "flag": "court_standing", "value": "favoured" }
+      ],
       "stakes": "Seven years in thorn armour, priced against a lifetime of her being herself.",
       "hook": "The Queen's terms, spoken once, hang in the air like frost: service, sworn and articled.",
       "narrative": { "player_intent": "Buy the name with servitude.", "dramatic_role": "The bittersweet royal bargain." }
@@ -976,7 +984,12 @@
       "label": "Offer yourself in your sister's place",
       "kind": "bargain",
       "conditions": [{ "op": "knows", "fact": "queens_price" }],
-      "effects": [],
+      "effects": [
+        { "op": "set_flag", "flag": "name_located", "value": true },
+        { "op": "set_flag", "flag": "name_recovered", "value": true },
+        { "op": "set_flag", "flag": "oath_status", "value": "bound" },
+        { "op": "set_flag", "flag": "court_standing", "value": "claimed" }
+      ],
       "stakes": "The whole of you, for the whole of her: the Court's oldest trade, and the one the table was set for.",
       "hook": "For the first time all night, the courtiers stop wagering.",
       "narrative": { "player_intent": "Take her place.", "dramatic_role": "The sacrificial royal bargain; the hidden truth surfaces." }
@@ -1004,6 +1017,8 @@
       "to": "ending_name_reclaimed",
       "label": "Lay the whole truth of the tithe before the Court",
       "kind": "bargain",
+      "disclosure": "foreshadowed",
+      "foreshadow": "The Queen prides herself on honesty. A petitioner who arrived knowing the whole shape of the debt — and holding what was seized — might hold her to it.",
       "conditions": [
         { "op": "knows", "fact": "family_tithe" },
         { "op": "has_item", "item": "sisters_true_name" },
@@ -1020,6 +1035,8 @@
       "to": "understair_gaol",
       "label": "Walk the water's lie with frost-taught eyes",
       "kind": "shortcut",
+      "disclosure": "foreshadowed",
+      "foreshadow": "The far bank is plainly walkable — for someone who knows where the water is lying, and where it would lead them.",
       "conditions": [{ "op": "knows", "fact": "teind_ledger_entry" }],
       "test": {
         "type": "skill",
@@ -1039,6 +1056,7 @@
       "to": "mirror_canal",
       "label": "Break the jar of first frost over your eyes",
       "kind": "consumable",
+      "disclosure": "blocked",
       "one_time": true,
       "conditions": [{ "op": "has_item", "item": "jar_of_first_frost" }],
       "effects": [
@@ -1154,8 +1172,22 @@
   "validation": {
     "notes": "Counts are maintained by scripts/validate-adventure.js and the CI reachability gate; see README.",
     "node_count": 16,
-    "route_count": 38,
-    "known_soft_locks": []
+    "route_count": 45,
+    "known_soft_locks": [],
+    "ending_assertions": {
+      "ending_name_reclaimed": [
+        { "flag": "name_located", "value": true },
+        { "flag": "name_recovered", "value": true }
+      ],
+      "ending_bound_knight": [
+        { "flag": "name_recovered", "value": true },
+        { "flag": "oath_status", "value": "sworn" }
+      ],
+      "ending_changeling_swap": [
+        { "flag": "name_recovered", "value": true },
+        { "flag": "court_standing", "value": "claimed" }
+      ]
+    }
   },
   "semantic_layer": {
     "version": "0.1.0",

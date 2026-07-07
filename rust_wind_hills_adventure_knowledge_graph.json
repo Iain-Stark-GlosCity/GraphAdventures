@@ -1,7 +1,7 @@
 {
   "schema": {
     "name": "adventure-knowledge-graph",
-    "version": "0.2.5",
+    "version": "0.2.6",
     "description": "A stateful, directed knowledge graph for a classic gamebook-style dungeon adventure. The graph separates executable traversal rules from a narrative-semantic layer containing world truths, rumours, characters, factions, motifs, dramatic threads, knowledge definitions and node-level story affordances."
   },
   "graph": {
@@ -35,11 +35,11 @@
       "The graph contains loops, shortcuts, optional encounters, delayed consequences and several endings."
     ],
     "content_revision": {
-      "version": "0.2.5",
-      "summary": "Improves end-to-end narrative delivery: rumours are spoken rather than merely flagged, knowledge gains carry explicit revelations, route outcomes have separate narrative resolutions, selected nodes react to prior state, and the final succession premise is made unavoidable.",
-      "compatibility": "Node and route IDs, topology, costs, tests, conditions and core effects are preserved. One idempotent knowledge effect is added to r008 so the Crown rumour is recorded when heard.",
+      "version": "0.2.6",
+      "summary": "Playtest-driven state fixes: the counterfeit permit purchase (r018) is gated on permit_status so it cannot be repeated, the pit beast (r074) and the Guardian of the Ninth Lock (r090-r092) can each only be dealt with once, new unopposed transit routes (r109, r110) keep the forge and the abyssal stair reachable after those encounters are settled, and the vault antechamber gains a guaranteed retreat (r111) plus disclosure on its three gated doors so it can no longer soft-lock a delver who arrived without the right keys.",
+      "compatibility": "Existing node and route IDs, topology, costs and tests are preserved. r018, r074, r090, r091 and r092 gain gating conditions; r074 sets the new pit_beast_dead flag; r080-r082 gain disclosure; routes r109, r110 and r111 are added.",
       "node_count_changed": false,
-      "route_count_changed": false,
+      "route_count_changed": true,
       "major_additions": [
         "Explicit Bent Nail rumour delivery",
         "Player-facing revelation text for all knowledge facts",
@@ -141,6 +141,10 @@
           "initial": false
         },
         "rat_king_dead": {
+          "type": "boolean",
+          "initial": false
+        },
+        "pit_beast_dead": {
           "type": "boolean",
           "initial": false
         },
@@ -3578,6 +3582,13 @@
       "to": "barrowgate_square",
       "label": "Purchase a counterfeit permit",
       "kind": "choice",
+      "conditions": [
+        {
+          "op": "flag_is",
+          "flag": "permit_status",
+          "value": "none"
+        }
+      ],
       "costs": [
         {
           "resource": "gold",
@@ -6254,12 +6265,24 @@
       "to": "black_wind_forge",
       "label": "Defeat the beast",
       "kind": "choice",
+      "conditions": [
+        {
+          "op": "flag_is",
+          "flag": "pit_beast_dead",
+          "value": false
+        }
+      ],
       "test": {
         "type": "combat",
         "encounter_id": "beast_of_the_pits",
         "failure_to": "ending_dead"
       },
       "effects": [
+        {
+          "op": "set_flag",
+          "flag": "pit_beast_dead",
+          "value": true
+        },
         {
           "op": "modify_stat",
           "stat": "reputation",
@@ -6555,6 +6578,7 @@
       "to": "hall_whispered_debts",
       "label": "Present the Brass Seal",
       "kind": "choice",
+      "disclosure": "blocked",
       "conditions": [
         {
           "op": "has_item",
@@ -6595,6 +6619,7 @@
       "to": "ossuary_market",
       "label": "Unlock the moon-door",
       "kind": "choice",
+      "disclosure": "blocked",
       "conditions": [
         {
           "op": "has_item",
@@ -6635,6 +6660,8 @@
       "to": "guardian_ninth_lock",
       "label": "Invoke the hidden authority clause",
       "kind": "choice",
+      "disclosure": "foreshadowed",
+      "foreshadow": "A third door bears no lock at all — only a recess shaped for candle-light, and an inscription too formal to be read by anyone who hasn't handled the dungeon's paperwork.",
       "conditions": [
         {
           "op": "has_item",
@@ -7096,6 +7123,11 @@
       ],
       "conditions": [
         {
+          "op": "flag_is",
+          "flag": "ninth_lock_open",
+          "value": false
+        },
+        {
           "op": "missing_item",
           "item": "torchbearer_contract"
         }
@@ -7147,6 +7179,11 @@
       "label": "Release the Guardian lawfully",
       "kind": "choice",
       "conditions": [
+        {
+          "op": "flag_is",
+          "flag": "ninth_lock_open",
+          "value": false
+        },
         {
           "op": "knows",
           "fact": "lawful_release_phrase"
@@ -7227,6 +7264,11 @@
       "label": "Compel the Guardian with its true name",
       "kind": "choice",
       "conditions": [
+        {
+          "op": "flag_is",
+          "flag": "ninth_lock_open",
+          "value": false
+        },
         {
           "op": "knows",
           "fact": "guardian_true_name"
@@ -8312,6 +8354,139 @@
         }
       },
       "resolution_ref": "route_resolutions.r108"
+    },
+    {
+      "id": "r109",
+      "from": "beast_pits",
+      "to": "black_wind_forge",
+      "label": "Cross the emptied pits to the forge",
+      "kind": "choice",
+      "conditions": [
+        {
+          "op": "flag_is",
+          "flag": "pit_beast_dead",
+          "value": true
+        }
+      ],
+      "effects": [],
+      "narrative": {
+        "player_intent": "Cross the emptied pits to the forge",
+        "dramatic_role": "Altered revisit passage: the arena is a consequence now, not a challenge.",
+        "continuity_refs": [
+          "beast_of_the_pits",
+          "pit_beast_dead"
+        ],
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "transition_text": "The sand still holds the shape of the fight. Nothing in the pits objects to your crossing them.",
+        "themes_activated": [
+          "consequence",
+          "aftermath"
+        ],
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Pass unopposed through the arena you already settled.",
+      "hook": "The royal collar lies in the sand, older than everything except the silence.",
+      "engine_action": {
+        "action_type": "move_and_apply_effects",
+        "route_id": "r109",
+        "source_node": "beast_pits",
+        "target_node": "black_wind_forge",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [],
+          "test": null
+        }
+      }
+    },
+    {
+      "id": "r110",
+      "from": "guardian_ninth_lock",
+      "to": "abyssal_stair",
+      "label": "Descend through the opened Ninth Lock",
+      "kind": "choice",
+      "conditions": [
+        {
+          "op": "flag_is",
+          "flag": "ninth_lock_open",
+          "value": true
+        }
+      ],
+      "effects": [],
+      "narrative": {
+        "player_intent": "Descend through the opened Ninth Lock",
+        "dramatic_role": "Altered revisit passage: the Lock stands open and the Guardian's watch is over, however it ended.",
+        "continuity_refs": [
+          "guardian_ninth_lock",
+          "ninth_lock_open"
+        ],
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "transition_text": "The Ninth Lock stands as you left it: open, and unguarded by anything except what you remember doing here.",
+        "themes_activated": [
+          "consequence",
+          "passage"
+        ],
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Pass freely where the Lock once barred the way.",
+      "hook": "Bronze doors do not close themselves; nine centuries of duty do not resume.",
+      "engine_action": {
+        "action_type": "move_and_apply_effects",
+        "route_id": "r110",
+        "source_node": "guardian_ninth_lock",
+        "target_node": "abyssal_stair",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [],
+          "test": null
+        }
+      }
+    },
+    {
+      "id": "r111",
+      "from": "vault_antechamber",
+      "to": "black_wind_forge",
+      "label": "Retreat along the service gallery to the forge",
+      "kind": "choice",
+      "effects": [],
+      "narrative": {
+        "player_intent": "Retreat along the service gallery to the forge",
+        "dramatic_role": "Guaranteed exit: the antechamber tests what you carry, but it is not a trap.",
+        "continuity_refs": [
+          "black_wind_forge"
+        ],
+        "narration_guidance": "Mention at least one relevant prior state, item, fact or consequence when available; do not narrate the route as disconnected movement.",
+        "transition_text": "The service gallery smells of coal and old bellows-wind long before the forge's glow finds you.",
+        "themes_activated": [
+          "retreat",
+          "passage"
+        ],
+        "content_role": {
+          "label": "Short selectable action.",
+          "stakes": "Player-facing indication of cost, risk, opportunity or consequence.",
+          "hook": "Short flavour line for the narrator or expanded choice display."
+        }
+      },
+      "stakes": "Leave the antechamber's three doors unopened and return the way the dungeon's own servants once walked.",
+      "hook": "Whoever stocked the vault needed a way to arrive with full hands. The gallery is where they did it.",
+      "engine_action": {
+        "action_type": "move_and_apply_effects",
+        "route_id": "r111",
+        "source_node": "vault_antechamber",
+        "target_node": "black_wind_forge",
+        "deterministic_inputs": {
+          "costs": [],
+          "effects": [],
+          "test": null
+        }
+      }
     }
   ],
   "relations": [
@@ -8774,12 +8949,12 @@
   ],
   "validation": {
     "node_count": 47,
-    "route_count": 108,
+    "route_count": 111,
     "relation_count": 82,
     "reachable_node_count": 47,
     "narrative_coverage": {
       "nodes_with_narrative": 47,
-      "routes_with_narrative": 108,
+      "routes_with_narrative": 111,
       "items_with_narrative_semantics": 12,
       "encounters_with_narrative_semantics": 7,
       "regions_with_narrative": 6
@@ -8801,10 +8976,10 @@
       "expected_nodes": 47
     },
     "route_content_coverage": {
-      "routes_with_labels": 108,
-      "routes_with_stakes": 108,
-      "routes_with_hooks": 108,
-      "expected_routes": 108
+      "routes_with_labels": 111,
+      "routes_with_stakes": 111,
+      "routes_with_hooks": 111,
+      "expected_routes": 111
     },
     "sensory_emotional_coverage": {
       "nodes_with_refined_read_aloud": 47,
