@@ -1,7 +1,7 @@
 {
   "schema": {
     "name": "adventure-knowledge-graph",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "description": "A stateful, directed knowledge graph for a comic high-fantasy audit: a junior adjuster of the Guild of Weights & Reckoning is sent up the mountain to reconcile a dragon's hoard, and discovers that the deadliest thing in the cave is the discrepancy. Same executable rule DSL as every adventure on this platform."
   },
   "graph": {
@@ -15,9 +15,15 @@
       "ending_clean_audit",
       "ending_cooked_books",
       "ending_dragons_clerk",
+      "ending_new_treaty",
       "ending_guild_disgrace",
       "ending_dead"
     ],
+    "content_revision": {
+      "version": "0.2.0",
+      "summary": "Expansion: the kobold wages office, the Forms Repository and its audit golem (Form Nine in triplicate now certifies the weighbridge), the glass gallery's first-coin memory, the hatchling shrine, the Chief Reckoner's fast rider, the kobold hot springs, and a sixth ending — the Compact of Weights.",
+      "compatibility": "All 0.1.0 node and route ids, costs, tests and effects are unchanged except d060's conditions, which widen to an any-block (freight pattern OR Form Nine); everything else is additive."
+    },
     "design_notes": [
       "Ink is a resource because every meaningful discovery must be written up to count; running dry mid-audit is a real tactical problem.",
       "The dragon's mood is a flag machine: routes read it, gifts move it, and the finale prices it.",
@@ -175,6 +181,34 @@
       }
     },
     {
+      "id": "form_nine_triplicate",
+      "name": "Form Nine, in Triplicate",
+      "type": "credential",
+      "description": "The mountain's own authority to weigh: cream, canary and flimsy pink, each sheet stamped by the Forms Repository's guardian. The kobolds regard a completed Form Nine with the reverence other cultures reserve for relics, because on this mountain it is one.",
+      "traits": ["credential", "triplicate", "locally_sacred"],
+      "narrative_semantics": {
+        "origin": "Drafted under the treaty's Schedule F by a committee of kobolds and one extremely patient dragon, and guarded ever since by something built to take forms seriously.",
+        "symbolic_role": "Authority as artefact: on Mount Reckoning, the paperwork is the power.",
+        "world_revelation": "Maurice's whole skim survived by controlling who could weigh what. A true Form Nine breaks his monopoly with three sheets of paper.",
+        "linked_threads": ["thread_audit_craft"],
+        "linked_motifs": ["motif_seals_and_scales"]
+      }
+    },
+    {
+      "id": "reckoners_letter",
+      "name": "The Chief Reckoner's Cipher Letter",
+      "type": "evidence",
+      "description": "A letter in the Chief Reckoner's own hand, enciphered in a Guild code retired forty years ago — which is itself the confession, since only two living officers ever held it. Deciphered, it instructs the fast rider to report your findings to him before the Guild.",
+      "traits": ["evidence", "enciphered", "career_ending_for_somebody"],
+      "narrative_semantics": {
+        "origin": "Written the night your name went on the dispatch board, and entrusted to the fastest horse the Guild's petty cash could quietly hire.",
+        "symbolic_role": "The commission's other half: proof that 'full and true' was aimed, not offered.",
+        "world_revelation": "The Chief Reckoner knew about the debts, the skim and the mountain — and chose a junior adjuster as his instrument of confession.",
+        "linked_threads": ["thread_guild_treaty"],
+        "linked_motifs": ["motif_paper_lies"]
+      }
+    },
+    {
       "id": "weighbridge_certificate",
       "name": "Certified Weighbridge Discrepancy",
       "type": "evidence",
@@ -204,6 +238,22 @@
         "voice": "Anxious officialese delivered at speed: 'Form nine! FORM NINE! You cannot weigh that without a form nine!'",
         "non_combat_leverage": ["correct paperwork", "the guild seal", "any hint that Maurice's protection is ending"],
         "aftermath": "Cowed or befriended, the kobolds stop being obstacles and start being witnesses; they know everything and wrote most of it down."
+      }
+    },
+    {
+      "id": "audit_golem",
+      "name": "The Compliance Golem",
+      "kind": "guardian_construct",
+      "skill": 7,
+      "stamina": 12,
+      "special": "A granite clerk built by the treaty committee to guard the Forms Repository. It cannot be bribed, flattered or tired, and it grades penmanship. Violence is merely the appeals process.",
+      "narrative_semantics": {
+        "desire": "Correctly completed forms. It was made for exactly one joy and pursues it with geological sincerity.",
+        "fear": "Ambiguity. A form that is neither valid nor invalid causes it to grind, quietly, for days.",
+        "misconception": "It believes every applicant wants their form to be correct as much as it does. It has been disappointed for four centuries and has not once updated its opinion of applicants.",
+        "voice": "Slow, sedimentary officialese: 'FIELD SEVEN. IS BLANK. THE GOLEM. IS PATIENT.'",
+        "non_combat_leverage": ["flawless triplicate", "block capitals", "genuine respect for Field Seven"],
+        "aftermath": "Defeated or satisfied, it stamps the forms all the same — the golem holds no grudges, only standards."
       }
     },
     {
@@ -440,6 +490,125 @@
         "hidden_truth": "The Chief Reckoner has a fast rider posted at the mountain's foot, paid to read your face before you reach the hall.",
         "sensory_details": ["shrine bells again, warmer now", "valley air losing its sulphur", "the satchel strap's honest weight"],
         "emotional_undertone": "The long exhale before the signature."
+      }
+    },
+    {
+      "id": "wages_office",
+      "type": "location",
+      "region": "hoard_mountain",
+      "title": "The Wages Office",
+      "summary": "Where the mountain pays its kobolds: a cage of pigeonholes, a pension ledger older than most kingdoms, and payroll data that never lies for anyone.",
+      "tags": ["institution", "investigation"],
+      "read_aloud": "The wages office is a cage of brass pigeonholes, one per kobold, going back — the dates carved over each column say — eight generations. Pay is issued in shaved coin, pensions in hoard-adjacent privileges, and grievances on a form whose queue is currently forty years long. The wages clerk, a kobold so old her tabard has gone the colour of weak tea, regards your guild seal with the first genuine delight it has received on this mountain. 'An ADJUSTER,' she breathes. 'Sit. Sit! Nobody ever audits PAYROLL. And payroll, young one — ' she taps the ledger like a drum, ' — payroll is where everything true ends up eventually.'",
+      "read_aloud_revisit": "The pigeonholes, the tea-coloured tabard, the forty-year grievance queue. The wages clerk brightens as you enter: the only officer on the mountain genuinely pleased that you exist.",
+      "narrative": {
+        "local_history": "The office predates Maurice by four centuries; the wages clerk has outlasted every comptroller and rates them, privately, by how they treat the pension column.",
+        "present_tension": "Payroll is the one ledger Maurice never controlled, because it bored him — the single unwatched window into the mountain's true rhythms.",
+        "hidden_truth": "The clerk has noticed the dusk-shift overtime pattern for years. Nobody ever asked her. Nobody ever asks payroll anything.",
+        "sensory_details": ["shaved coins in paper twists", "pigeonhole brass worn to gold at the edges", "the grievance queue's forty-year patience, filed by claw"],
+        "emotional_undertone": "The unglamorous ledger where the truth clocks in."
+      }
+    },
+    {
+      "id": "forms_repository",
+      "type": "challenge",
+      "region": "hoard_mountain",
+      "title": "The Forms Repository",
+      "summary": "The treaty's stationery vault, guarded by a granite clerk that grades penmanship. Within: Form Nine, the mountain's own authority to weigh.",
+      "tags": ["challenge", "bureaucracy"],
+      "read_aloud": "The repository is a vault of pigeonholed vellum behind a portcullis of, somehow, filing-cabinet drawers — and in front of it stands the guardian. Granite, three metres of it, carved into the shape of a clerk: sleeve garters and all, chiselled by someone with either no sense of humour or a magnificent one. Eyes like inkwells grind open as you approach. 'STATE. YOUR FORM,' it says, in a voice of settling sediment. On the lectern before it, blank and beautiful: Form Nine — Authority to Weigh, in triplicate, with a pen on a granite chain and, engraved below, the repository's single commandment: FIELD SEVEN IS NOT OPTIONAL.",
+      "read_aloud_revisit": "The granite clerk's inkwell eyes track you across the vault floor. 'THE GOLEM,' it announces, with what might be recognition, 'REMEMBERS YOUR PENMANSHIP.' It does not say this warmly. It does not say anything warmly. It is granite.",
+      "narrative": {
+        "local_history": "The treaty committee built the golem because dragons and kobolds agreed on exactly one thing: neither trusted the other with the blank forms.",
+        "present_tension": "Maurice's monopoly on the counter-stamp only matters while nobody else holds an authority to weigh. The paper in front of you is a siege weapon.",
+        "hidden_truth": "Maurice has applied for a Form Nine himself, twice, to legitimise retroactively. The golem failed him both times. Field Seven.",
+        "sensory_details": ["granite knuckles the size of ledgers", "vellum dust hanging like weather", "the pen's chain, polished by four centuries of trembling applicants"],
+        "emotional_undertone": "Bureaucracy as boss fight."
+      }
+    },
+    {
+      "id": "glass_gallery",
+      "type": "location",
+      "region": "hoard_mountain",
+      "title": "The Glass Gallery",
+      "summary": "An annex of the hoard where the dragon keeps memory itself: shelves of glass that hold moments the way inkwells hold names.",
+      "tags": ["uncanny", "heart"],
+      "read_aloud": "Off the hoard's third dune, behind a curtain of chain that parts like water, lies a smaller collection: shelves of glass — spheres, panes, one entire glass door — each holding light that moves. The kobolds call it the glass gallery and clean it in silence, by rota, as an honour. In the nearest sphere, if you lean close, a moment plays: a young dragon, barely bigger than a barge, turning her first coin over and over in the dark and deciding — you can see the decision land — to keep it. The gallery hums, very faintly, like a struck glass remembering its note.",
+      "read_aloud_revisit": "The chain curtain parts like water; the gallery hums its remembered note. The first-coin sphere plays on, patient as all archives: the young dragon deciding, forever, to keep.",
+      "narrative": {
+        "local_history": "Dragons cannot keep memory in their heads past their fourth century — too much of it — so the great ones commission glass. Vasterixis blew these herself, in her middle fires.",
+        "present_tension": "The gallery is the hoard's true heart, and the manifest lists it, with cosmic wrongness, as 'glassware, misc.'",
+        "hidden_truth": "The gallery's last sphere is empty and stoppered. It is reserved for her final memory, whatever that turns out to be, and she has not decided whether anyone may clean it.",
+        "sensory_details": ["light moving inside still glass", "the chain curtain's water-ripple", "a hum like a wet finger circling a rim"],
+        "emotional_undertone": "A biography's appendix, more precious than the book."
+      }
+    },
+    {
+      "id": "hatchling_gallery",
+      "type": "location",
+      "region": "hoard_mountain",
+      "title": "The Hatchling Gallery",
+      "summary": "The played-out mine seam where Vasterixis hatched, kept swept and lit by the kobolds as an unofficial shrine — and an unofficial archive of why the hoard matters.",
+      "tags": ["shrine", "revelation"],
+      "knowledge_grants": ["dragon_grief"],
+      "read_aloud": "Below the sulphur archive, down a stair the manifests call 'disused', the mountain keeps its oldest room: a played-out seam, scraped clean centuries ago, with a hollow in the floor the size of a rowing boat. The kobolds sweep it daily and light one lamp, unbudgeted, unexplained. This is where she hatched — before the treaty, before the Guild, before the hoard was anything but this same emptiness. Scratched into the hollow's rim, in a claw too big for any kobold and younger than any dragon you can now imagine, a single row of tally marks: one. The first thing she ever counted was herself, alone. You stand in the lamp-lit quiet and understand the hoard entire: every coin since has been an answer to this room.",
+      "read_aloud_revisit": "The lamp is lit; the hollow is swept; the single tally mark waits at the rim. The room says what it said before, and will keep saying it as long as the kobolds keep the lamp: one, alone — never again.",
+      "narrative": {
+        "local_history": "No form authorises the shrine's lamp oil. The wages clerk buries it in 'sundries' and has done for two hundred years, and would like to see anyone try something about it.",
+        "present_tension": "You now know what the shortfall actually steals from her. It is not gold.",
+        "hidden_truth": "Vasterixis knows the kobolds keep the lamp. She has never acknowledged it, because acknowledging it would oblige her to decide whether she can bear to stop them.",
+        "sensory_details": ["one unbudgeted lamp", "the hollow's rim worn smooth", "a single ancient tally mark: one"],
+        "emotional_undertone": "The empty room the whole treasure answers."
+      }
+    },
+    {
+      "id": "hot_springs",
+      "type": "refuge",
+      "region": "hoard_mountain",
+      "title": "The Kobold Hot Springs",
+      "summary": "Where the mountain's staff actually relax: sulphurous, scalding, gloriously unofficial, and the best gossip venue above the archive.",
+      "tags": ["rest", "social"],
+      "read_aloud": "Behind the gatehouse, down steps worn into a toboggan-run by generations of off-shift kobolds, the mountain's flue-heat meets a spring and makes the only perk on Mount Reckoning that never appears in any ledger: the baths. Steam, sulphur, and forty kobolds at their ease — tabards on pegs, grievances dissolving, someone selling toasted cheese at a margin the Guild would blush at. A bath attendant hands you a towel the size of a bedsheet and names the price of admission with the gravity of a customs officer: two gold, no forms, no receipts. 'What happens in the water,' she adds, by way of constitution, 'stays in the steam.'",
+      "read_aloud_revisit": "Steam, sulphur, toasted cheese. The attendant recognises you and the towel arrives pre-folded: on Mount Reckoning, this is what tenure feels like.",
+      "narrative": {
+        "local_history": "The baths predate the treaty and every comptroller has tried to bring them on-ledger; every comptroller has failed, because the wages clerk controls the towel budget and holds it hostage.",
+        "present_tension": "Off-duty kobolds talk. Not to auditors — to each other, loudly, near auditors.",
+        "hidden_truth": "Maurice has never once entered the baths. Cockatrices hate steam, and the staff know it, which is half of why the baths are where they say what they think of him.",
+        "sensory_details": ["sulphur steam in slow coils", "toasted cheese at usurious margins", "forty grievances dissolving audibly"],
+        "emotional_undertone": "The mountain, off the record."
+      }
+    },
+    {
+      "id": "rider_camp",
+      "type": "encounter",
+      "region": "guild_lowlands",
+      "title": "The Fast Rider's Camp",
+      "summary": "A single tent, a fast horse, and the Chief Reckoner's private courier — posted at the mountain's foot to read your face before the Guild does.",
+      "tags": ["intrigue", "evidence"],
+      "read_aloud": "Half a mile off the descent road, tucked behind a shoulder of scree where only someone counting sightlines would look, a small camp: one tent, one fire kept smokeless, and one horse of a quality no honest courier rides. The rider himself is young, Guild-inked, and visibly rehearsing nonchalance as you approach. Whatever he was posted here to do, it was not to be found doing it. On his saddle, the dispatch satchel bears the Chief Reckoner's personal cipher-seal — a code, you happen to know, retired forty years ago. Retired codes have exactly one use: letters that must never be officially read.",
+      "read_aloud_revisit": "The smokeless fire, the too-good horse, the young rider now entirely out of nonchalance. Whatever passes between you here, both of you will spend years deciding whether to report it.",
+      "narrative": {
+        "local_history": "The Guild has posted quiet riders at client boundaries for centuries; the practice appears in no manual and every memoir.",
+        "present_tension": "He was told to read your face and ride. He was not told what to do if you walked over and read his.",
+        "hidden_truth": "The rider is the Chief Reckoner's grand-nephew — chosen not for speed but because he can be disowned as family rather than fired as staff.",
+        "sensory_details": ["a fire built by someone taught to hide fires", "the horse's breeding, wasted on errands", "a cipher-seal forty years out of the registers"],
+        "emotional_undertone": "The commission's hidden second envelope."
+      }
+    },
+    {
+      "id": "ending_new_treaty",
+      "type": "ending",
+      "region": "hoard_mountain",
+      "title": "The Compact of Weights",
+      "summary": "You lay both ledgers open — the mountain's and the Guild's — and broker the treaty neither side knew it wanted. The audit becomes diplomacy; the auditor becomes history.",
+      "tags": ["ending", "triumph", "statesmanship"],
+      "read_aloud": "You do the thing no adjuster has ever done: you present the client with her own creditor's books. The shortfall, the skim, and where every grain of it went — the Guild's buried treaty debts, serviced for sixty years with her own gold by a comptroller too loyal to two masters to betray either honestly. The mountain is silent while Vasterixis reads. Then, instead of fury, the Enumerate does arithmetic — you watch four centuries of compound grievance resolve into a single elegant net position — and says: 'Then let us draft.' The Compact of Weights takes nine days. The kobolds cater it. Maurice, summoned to account, is sentenced by the dragon to the worst fate she can devise for him: he is made honest — comptroller still, but audited annually, forever, by you. The Guild's debts are consolidated, the service fee is netted off, and Schedule C is expanded by one sentence, drafted jointly and initialled by claw and pen: 'What is counted with care is thereby also kept.' The Dispatch Hall hangs a copy where the motto can read it. You go up the mountain every spring now. The client insists. So, privately, do you.",
+      "narrative": {
+        "local_history": "Treaty scholars will argue for a century over whether the Compact was an audit finding or a peace treaty; the correct answer, as the wages clerk says, is that on this mountain there was never a difference.",
+        "present_tension": "Resolved — netted, consolidated and initialled in triplicate.",
+        "hidden_truth": "The Chief Reckoner read the Compact twice, resigned anyway, and left a one-line note in your pigeonhole: 'Full and true. Thank you.' The old cipher-seal was pressed under the signature, retired at last.",
+        "sensory_details": ["nine days of drafting, catered by kobolds", "claw and pen initialling the same margin", "a copy hung where the motto can read it"],
+        "emotional_undertone": "The rarest audit outcome: everybody counted, and it came out whole."
       }
     },
     {
@@ -725,6 +894,175 @@
       "narrative": { "player_intent": "Head for the filing.", "dramatic_role": "Hub spoke to the endgame." }
     },
     {
+      "id": "d110",
+      "from": "counting_caverns",
+      "to": "wages_office",
+      "label": "Call on the wages office",
+      "kind": "open",
+      "effects": [],
+      "stakes": "Nobody ever audits payroll — which is exactly why payroll knows everything.",
+      "hook": "Eight generations of pigeonholes, and a clerk who has outlasted every comptroller.",
+      "narrative": { "player_intent": "Audit the one ledger Maurice never controlled.", "dramatic_role": "Hub spoke to the payroll road." }
+    },
+    {
+      "id": "d111",
+      "from": "wages_office",
+      "to": "wages_office",
+      "label": "Audit the overtime column with the wages clerk",
+      "kind": "investigation",
+      "one_time": true,
+      "costs": [{ "resource": "ink", "amount": 1 }],
+      "test": {
+        "type": "skill",
+        "stat": "credibility",
+        "modifier": 3,
+        "failure_to": "counting_caverns",
+        "failure_effects": [{ "op": "set_flag", "flag": "comptroller_suspects", "value": true }]
+      },
+      "effects": [{ "op": "add_knowledge", "fact": "freight_pattern" }],
+      "stakes": "One ink and the clerk's goodwill: the dusk-shift overtime column has been spelling out the skim's schedule for a decade, waiting for literally anyone to ask.",
+      "hook": "'Payroll, young one, is where everything true ends up eventually.' She taps the ledger like a drum.",
+      "narrative": { "player_intent": "Read the skim out of the overtime column.", "dramatic_role": "Second road to the freight pattern — through the mountain's most neglected officer." }
+    },
+    {
+      "id": "d112",
+      "from": "wages_office",
+      "to": "counting_caverns",
+      "label": "Thank the clerk and withdraw",
+      "kind": "open",
+      "effects": [],
+      "stakes": "The pigeonholes keep; the grievance queue advances not at all.",
+      "hook": "'Come back,' says the clerk, meaning it. 'Nobody ever comes back.'",
+      "narrative": { "player_intent": "Return to the hub.", "dramatic_role": "Free exit." }
+    },
+    {
+      "id": "d120",
+      "from": "counting_caverns",
+      "to": "forms_repository",
+      "label": "Descend to the Forms Repository",
+      "kind": "open",
+      "effects": [],
+      "stakes": "The mountain's blank authority, behind granite that grades penmanship.",
+      "hook": "Somewhere below, a voice like settling sediment is saying 'FIELD SEVEN. IS BLANK.' to somebody.",
+      "narrative": { "player_intent": "Seek an authority to weigh.", "dramatic_role": "Hub spoke to the golem and Form Nine." }
+    },
+    {
+      "id": "d121",
+      "from": "forms_repository",
+      "to": "forms_repository",
+      "label": "Complete Form Nine in flawless triplicate",
+      "kind": "challenge",
+      "one_time": true,
+      "costs": [{ "resource": "ink", "amount": 1 }],
+      "test": {
+        "type": "skill",
+        "stat": "skill",
+        "modifier": 1,
+        "failure_to": "forms_repository",
+        "failure_effects": [{ "op": "modify_resource", "resource": "ink", "amount": -1 }]
+      },
+      "effects": [{ "op": "add_item", "item": "form_nine_triplicate" }],
+      "stakes": "Cream, canary and flimsy pink against four centuries of standards: pass, and the mountain's own authority to weigh is yours; fail, and the golem returns your work annotated, which costs more ink and more pride.",
+      "hook": "FIELD SEVEN IS NOT OPTIONAL, says the engraving. Field Seven, you note with rising respect, is 'purpose of weighing, stated honestly'.",
+      "narrative": { "player_intent": "Defeat the bureaucracy on its own terms.", "dramatic_role": "The satirical set-piece: penmanship as combat." }
+    },
+    {
+      "id": "d122",
+      "from": "forms_repository",
+      "to": "forms_repository",
+      "label": "Appeal the golem's standards, physically",
+      "kind": "combat",
+      "one_time": true,
+      "test": {
+        "type": "combat",
+        "encounter_id": "audit_golem",
+        "failure_to": "ending_dead"
+      },
+      "effects": [{ "op": "add_item", "item": "form_nine_triplicate" }],
+      "stakes": "Violence is merely the appeals process, and the appeals process is three metres of granite. Win, and it stamps your forms anyway — the golem holds no grudges, only standards.",
+      "hook": "'THE GOLEM,' it announces, raising fists like ledger-ends, 'ACCEPTS. YOUR APPEAL.'",
+      "narrative": { "player_intent": "Take Form Nine by force of appeal.", "dramatic_role": "The loud road through the repository; same paper, more bruises." }
+    },
+    {
+      "id": "d123",
+      "from": "forms_repository",
+      "to": "counting_caverns",
+      "label": "Withdraw from the vault, forms unfiled",
+      "kind": "open",
+      "effects": [],
+      "stakes": "The blank triplicate waits; the golem's patience is geological.",
+      "hook": "'THE GOLEM,' says the golem, to your departing back, 'IS PATIENT.'",
+      "narrative": { "player_intent": "Retreat from the repository.", "dramatic_role": "Free exit." }
+    },
+    {
+      "id": "d130",
+      "from": "counting_caverns",
+      "to": "glass_gallery",
+      "label": "Part the chain curtain into the glass gallery",
+      "kind": "open",
+      "effects": [],
+      "stakes": "The hoard's true heart, filed under 'glassware, misc.'",
+      "hook": "The kobolds clean it in silence, by rota, as an honour. They let you pass the same way.",
+      "narrative": { "player_intent": "See what the manifest undersells.", "dramatic_role": "Hub spoke to the heart branch." }
+    },
+    {
+      "id": "d131",
+      "from": "glass_gallery",
+      "to": "glass_gallery",
+      "label": "Lean close and witness the first-coin memory",
+      "kind": "revelation",
+      "one_time": true,
+      "effects": [{ "op": "add_knowledge", "fact": "first_coin_memory" }],
+      "stakes": "A moment blown into glass in her middle fires: watch it to the end, and you will hold the one story the client most needs told back to her.",
+      "hook": "A young dragon, barely bigger than a barge, turns her first coin over in the dark — and decides, visibly, to keep.",
+      "narrative": { "player_intent": "Learn the hoard's founding story.", "dramatic_role": "The second heart-key: an alternative to the spectacles for reaching the dragon." }
+    },
+    {
+      "id": "d132",
+      "from": "glass_gallery",
+      "to": "counting_caverns",
+      "label": "Let the chain curtain fall behind you",
+      "kind": "open",
+      "effects": [],
+      "stakes": "The gallery hums on, remembering its note.",
+      "hook": "The last sphere is empty and stoppered. You do not ask the kobolds what it is for. Their faces have already told you.",
+      "narrative": { "player_intent": "Return to the hub.", "dramatic_role": "Free exit." }
+    },
+    {
+      "id": "d150",
+      "from": "kobold_gatehouse",
+      "to": "hot_springs",
+      "label": "Follow the off-shift kobolds down to the baths",
+      "kind": "open",
+      "effects": [],
+      "stakes": "The only perk on Mount Reckoning that appears in no ledger.",
+      "hook": "The steps are worn into a toboggan-run. Some institutions advertise themselves.",
+      "narrative": { "player_intent": "Find the mountain off the record.", "dramatic_role": "Gatehouse spoke to the rest-and-rumour refuge." }
+    },
+    {
+      "id": "d151",
+      "from": "hot_springs",
+      "to": "hot_springs",
+      "label": "Pay two gold, take the towel, boil the week away",
+      "kind": "rest",
+      "costs": [{ "resource": "gold", "amount": 2 }],
+      "effects": [{ "op": "modify_stat", "stat": "stamina", "amount": 6 }],
+      "stakes": "Two gold, no forms, no receipts: the deepest rest on the mountain, at the one venue where the staff say what they actually think.",
+      "hook": "'What happens in the water,' says the attendant, by way of constitution, 'stays in the steam.'",
+      "narrative": { "player_intent": "Recover properly.", "dramatic_role": "The premium rest loop, paid in coin instead of rations." }
+    },
+    {
+      "id": "d152",
+      "from": "hot_springs",
+      "to": "kobold_gatehouse",
+      "label": "Climb back up to the gatehouse, pink and boiled",
+      "kind": "open",
+      "effects": [],
+      "stakes": "Back on the record.",
+      "hook": "The sulphur follows you up the steps like a reference.",
+      "narrative": { "player_intent": "Return to the gatehouse.", "dramatic_role": "Free exit." }
+    },
+    {
       "id": "d040",
       "from": "hoard_vault",
       "to": "hoard_vault",
@@ -822,6 +1160,28 @@
       "narrative": { "player_intent": "Understand the client.", "dramatic_role": "The empathy unlock: opens the keeper ending and softens the dais." }
     },
     {
+      "id": "d140",
+      "from": "sulfur_archive",
+      "to": "hatchling_gallery",
+      "label": "Take the stair the manifests call 'disused'",
+      "kind": "open",
+      "effects": [],
+      "stakes": "The mountain's oldest room, swept daily by nobody's orders.",
+      "hook": "A lamp burns below that no budget line explains.",
+      "narrative": { "player_intent": "Follow the unexplained lamp.", "dramatic_role": "Archive spoke to the shrine — arriving grants the deepest truth about the client." }
+    },
+    {
+      "id": "d141",
+      "from": "hatchling_gallery",
+      "to": "sulfur_archive",
+      "label": "Climb back up, leaving the lamp lit",
+      "kind": "open",
+      "effects": [],
+      "stakes": "The room keeps saying what it says: one, alone — never again.",
+      "hook": "You straighten the lamp's wick before you go. It seemed the thing to do. It was.",
+      "narrative": { "player_intent": "Return to the archive.", "dramatic_role": "Free exit." }
+    },
+    {
       "id": "d052",
       "from": "sulfur_archive",
       "to": "counting_caverns",
@@ -839,7 +1199,14 @@
       "label": "Certify the counter-weights against the master set",
       "kind": "investigation",
       "one_time": true,
-      "conditions": [{ "op": "knows", "fact": "freight_pattern" }],
+      "conditions": [
+        {
+          "any": [
+            { "op": "knows", "fact": "freight_pattern" },
+            { "op": "has_item", "item": "form_nine_triplicate" }
+          ]
+        }
+      ],
       "costs": [{ "resource": "ink", "amount": 1 }],
       "effects": [
         { "op": "add_item", "item": "weighbridge_certificate" },
@@ -1039,6 +1406,38 @@
       "narrative": { "player_intent": "Accept the dragon's service.", "dramatic_role": "The transformation ending: empathy plus the gift opens a door no finding could." }
     },
     {
+      "id": "d095",
+      "from": "dragon_dais",
+      "to": "dragon_dais",
+      "label": "Tell her the story of her first coin, grain-perfect",
+      "kind": "gift",
+      "one_time": true,
+      "conditions": [{ "op": "knows", "fact": "first_coin_memory" }],
+      "effects": [
+        { "op": "set_flag", "flag": "dragon_mood", "value": "pleased" },
+        { "op": "modify_stat", "stat": "credibility", "amount": 1 }
+      ],
+      "stakes": "You watched the glass; now you tell it back — the barge-sized hatchling, the coin turned over in the dark, the decision to keep. No gift of gold could match giving a dragon back her own beginning.",
+      "hook": "Halfway through, her open eye closes. Dragons do not close both eyes for anyone. She is listening the way the glass listens.",
+      "narrative": { "player_intent": "Move the client with her own story.", "dramatic_role": "The glass gallery's payoff: a second road to the dragon's warmth, for delvers who never found the spectacles." }
+    },
+    {
+      "id": "d096",
+      "from": "dragon_dais",
+      "to": "ending_new_treaty",
+      "label": "Lay both ledgers open and propose the Compact of Weights",
+      "kind": "climax",
+      "conditions": [
+        { "op": "knows", "fact": "guild_debts" },
+        { "op": "knows", "fact": "dragon_grief" },
+        { "op": "knows", "fact": "hoard_shortfall" }
+      ],
+      "effects": [{ "op": "set_flag", "flag": "audit_status", "value": "filed_true" }],
+      "stakes": "The number, the crime, the creditor and the grief, presented together as what they actually are: one account, four centuries overdue for reconciliation. Propose the netting, and either she draughts with you or the mountain gets a new memorial line.",
+      "hook": "'Then let us draft,' says the Enumerate — three words no adjuster has heard from a client in the Guild's whole history.",
+      "narrative": { "player_intent": "Turn the audit into a treaty.", "dramatic_role": "The statesman's ending: every investigative thread, netted to zero." }
+    },
+    {
       "id": "d094",
       "from": "dragon_dais",
       "to": "counting_caverns",
@@ -1074,6 +1473,50 @@
       "narrative": { "player_intent": "Give up and go home.", "dramatic_role": "The empty-handed terminus." }
     },
     {
+      "id": "d160",
+      "from": "descent_road",
+      "to": "rider_camp",
+      "label": "Leave the road toward the smokeless fire",
+      "kind": "intrigue",
+      "effects": [],
+      "stakes": "Somebody has been posted to read your face before the Guild does. Go and read his first.",
+      "hook": "Only a fire built by someone taught to hide fires draws the eye of someone taught to find them.",
+      "narrative": { "player_intent": "Investigate the watcher on the road.", "dramatic_role": "Opens the commission's hidden second envelope." }
+    },
+    {
+      "id": "d161",
+      "from": "rider_camp",
+      "to": "descent_road",
+      "label": "Talk the young rider out of his satchel",
+      "kind": "confrontation",
+      "one_time": true,
+      "test": {
+        "type": "skill",
+        "stat": "credibility",
+        "modifier": 2,
+        "failure_to": "descent_road",
+        "failure_effects": [{ "op": "modify_stat", "stat": "credibility", "amount": -1 }]
+      },
+      "effects": [
+        { "op": "add_item", "item": "reckoners_letter" },
+        { "op": "add_knowledge", "fact": "reckoner_knew" }
+      ],
+      "stakes": "He is family, not staff, and terrified of both facts: press with the writ's authority and he hands over the letter — press wrong, and he rides, and the Guild hears a version of you that gallops.",
+      "hook": "The cipher-seal on his satchel was retired forty years ago. Retired codes have exactly one use.",
+      "narrative": { "player_intent": "Intercept the Chief Reckoner's private channel.", "dramatic_role": "The evidence that reframes the whole commission — 'full and true' was aimed, not offered." }
+    },
+    {
+      "id": "d162",
+      "from": "rider_camp",
+      "to": "descent_road",
+      "label": "Note the camp, touch nothing, walk on",
+      "kind": "open",
+      "effects": [],
+      "stakes": "The watcher stays watched, and unaware of it — an asset banked for another day.",
+      "hook": "You memorise the horse's brand and the seal's shape. An auditor's eyes are also evidence.",
+      "narrative": { "player_intent": "Withdraw without contact.", "dramatic_role": "Free exit." }
+    },
+    {
       "id": "d102",
       "from": "descent_road",
       "to": "counting_caverns",
@@ -1088,8 +1531,8 @@
   "relations": [],
   "validation": {
     "notes": "Counts are maintained by scripts/validate-adventure.js and the CI reachability gate; see README.",
-    "node_count": 15,
-    "route_count": 33,
+    "node_count": 23,
+    "route_count": 60,
     "known_soft_locks": []
   },
   "semantic_layer": {
@@ -1130,6 +1573,16 @@
         "title": "Where the Gold Went",
         "player_text": "Maurice, composure cracking at last, itemises his defence: every skimmed grain went to service the Guild's own concealed treaty debts. He has spent sixty years paying his employer's creditor with her own gold to keep the mountain's peace — and the Guild's senior partners have spent sixty years not asking why the ledgers balanced.",
         "meaning": "The fraud is a circle with the Guild inside it; a truly 'full and true' filing must name both ends, which is exactly what the Chief Reckoner armed you to do."
+      },
+      "first_coin_memory": {
+        "title": "The First Coin",
+        "player_text": "Blown into glass in her middle fires: a hatchling barely bigger than a barge, alone in a scraped-out seam, turning a single coin over and over in the dark — and deciding, visibly, to keep it. The hoard began as an answer to an empty room.",
+        "meaning": "The one story the client most needs told back to her. Reciting it grain-perfect at the dais moves the dragon as surely as returning her spectacles."
+      },
+      "reckoner_knew": {
+        "title": "Full and True, Aimed",
+        "player_text": "The fast rider's letter, deciphered: the Chief Reckoner knew — about the debts, the skim, the whole rotten circle — and chose you, junior and unblameable, as the instrument of a confession he could not make himself. 'Full and true' was never a commission. It was a trigger, and you were the finger placed on it.",
+        "meaning": "Reframes the entire assignment: the player was not sent to find the truth but to force it into the open. It sharpens every filing decision at the descent, and the clean audit's aftermath lands differently once you know he wanted to be caught."
       },
       "dragon_grief": {
         "title": "Schedule C: On the Nature of the Asset",
@@ -1180,6 +1633,34 @@
       },
       "d091": {
         "success_text": "You lay it all before her: the number, the hollow weights, the certificate, the name. The mountain is silent while she reads — twice, spectacled or not, because she is the Enumerate — and when she finishes, her fury arrives with the precision of an audit: measured, total, and aimed entirely, magnificently, at the guilty.",
+        "failure_text": ""
+      },
+      "d111": {
+        "success_text": "The wages clerk has been waiting decades for this conversation and conducts it like a duet: you read the overtime column, she reads your face, and between you the dusk-shift pattern stands up out of the figures like a signature. 'Payroll,' she says, closing the ledger with immense satisfaction, 'always knows.'",
+        "failure_text": "You lean on the ledger a shade too officially, and the clerk's delight curdles into eight generations of institutional caution. 'Perhaps,' she says, suddenly very busy with pigeonholes, 'the young adjuster has other appointments.' Behind you, a pneumatic tube wheezes twice."
+      },
+      "d121": {
+        "success_text": "Cream, canary, flimsy pink: your hand has never been steadier, and Field Seven — purpose of weighing, stated honestly — receives the most honest sentence you have ever written on a form. The golem reads all three sheets at tectonic speed, and then, with a sound like a landslide approving, stamps them. 'THE GOLEM,' it announces, 'IS SATISFIED.' You suspect you have just achieved something rarer than the audit itself.",
+        "failure_text": "The golem's inkwell eyes traverse your triplicate and stop, with geological finality, at Field Seven. 'STATED. HONESTLY,' it grinds, sliding the sheets back annotated in granite dust. The corrections cost you ink and something adjacent to pride."
+      },
+      "d122": {
+        "success_text": "Fighting a compliance golem is like boxing a filing cabinet the size of a chapel, and yet — appeal by appeal, blow by blow — you establish precedent. The golem finally sits back on its plinth with a grinding that might be respect, stamps your forms unasked, and files the bout under EXCEPTIONS, GRANTED. It holds no grudges. Only standards.",
+        "failure_text": ""
+      },
+      "d131": {
+        "success_text": "You watch the moment to its end: the coin turned over, the decision landing, the dark made bearable by one kept thing. When you straighten up, a kobold cleaner is beside you, cloth in hand, unashamedly weeping. 'Everyone does,' she says, and polishes where your breath fogged the sphere.",
+        "failure_text": ""
+      },
+      "d161": {
+        "success_text": "You produce the writ — 'full and true reconciliation', three ribbons — and watch the words do to the rider what they were always meant to do to somebody. He hands over the satchel like a man setting down something heavy, and says, very quietly, 'He wanted it found. You do understand that? He always wanted it found.'",
+        "failure_text": "You press one degree too hard, and the rider remembers he owns the fastest horse on the mountain. By the time the dust settles he is a diminishing figure on the lowland road, carrying a description of you that gallops — and improves — with every mile."
+      },
+      "d095": {
+        "success_text": "You tell it grain-perfect: the seam, the dark, the coin turned over, the decision to keep. Halfway through, her open eye closes — dragons close both eyes for no one — and when you finish, the silence has a different temperature. 'You have seen my glass,' she says at last. 'And you carried it carefully.' On this mountain, there is no higher audit finding.",
+        "failure_text": ""
+      },
+      "d096": {
+        "success_text": "'Then let us draft.' Three words, and the audit becomes a treaty conference. The kobolds cater. The wages clerk cries at the signing. And Schedule C gains its second sentence, initialled by claw and pen: what is counted with care is thereby also kept.",
         "failure_text": ""
       }
     }

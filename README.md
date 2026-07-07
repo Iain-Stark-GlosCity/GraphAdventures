@@ -340,13 +340,18 @@ mid-walk on bad content.
 ## Content notes
 
 The three newer adventures (`vienna-clearing-house`, `hollow-market-tithe`,
-`dragons-ledger-audit`) ship at content revision 0.1.0 each: full `read_aloud`/
+`dragons-ledger-audit`) ship at content revision 0.2.0 each: full `read_aloud`/
 `read_aloud_revisit` coverage, conditional `read_aloud_variants`, `stakes`/`hook` on
 every route, `opening_context`, `mandatory_exposition`, `rumour_delivery`, and a
 `semantic_layer` carrying `knowledge_revelations` and `route_resolutions` — the two
-blocks the engine actually consumes. All three pass the same CI gates as the original:
-structural reachability is total, and the randomised simulation reaches all five of each
-one's endings with no soft locks.
+blocks the engine actually consumes. Each carries six endings, including a hidden
+"mastery" ending gated behind its deepest chain of preparation (turning double agent
+in Vienna; settling the fae account 7,777 in full; brokering the Compact of Weights
+with the dragon). All three pass the same CI gates as the original: structural
+reachability is total and the randomised simulation finds no soft locks. The two
+deepest endings are deliberately beyond a random walker's reach in a typical sample —
+they require assembled knowledge and currency a uniform-random player rarely stacks,
+which is by design.
 
 The original Rust Wind Hills graph is content revision 0.2.5. 0.2.0 was a purely additive narrative
 enrichment over 0.1.1 — same 47 nodes, 108 routes, entry node and terminals; every

@@ -1,7 +1,7 @@
 {
   "schema": {
     "name": "adventure-knowledge-graph",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "description": "A stateful, directed knowledge graph for an urban-fantasy night under the city: the Unseelie Court's Hollow Market, where the currencies are silver, favours and candle-marks, and the prize is a stolen true name. Same executable rule DSL as every adventure on this platform."
   },
   "graph": {
@@ -15,9 +15,15 @@
       "ending_name_reclaimed",
       "ending_bound_knight",
       "ending_changeling_swap",
+      "ending_debt_dissolved",
       "ending_dawnlocked",
       "ending_dead"
     ],
+    "content_revision": {
+      "version": "0.2.0",
+      "summary": "Expansion: the Bone Orchard (her ribbon can dowse the gaol), the goblin pawnshop (selling the ribbon is a real devil's bargain), the Listening Gallery, the Salt Circle Chapel (an exit the hunted can still take), redcap bailiffs for iron-users, and the truest ending — settling account 7,777 in full.",
+      "compatibility": "All 0.1.0 node and route ids, costs, tests and effects are unchanged; everything new is additive, plus one new flag (tithe_settled)."
+    },
     "design_notes": [
       "Favours are the fae economy: earned by selling pieces of yourself at the Broker of Hours, spent at the Pale Auction.",
       "Candle-marks are the dawn clock; when they run out, only the free choices remain — and one of them is staying forever.",
@@ -56,7 +62,8 @@
         "oath_status": { "type": "enum", "values": ["unsworn", "sworn", "twisted"], "initial": "unsworn" },
         "court_standing": { "type": "enum", "values": ["unnoticed", "marked", "favoured", "hunted"], "initial": "unnoticed" },
         "name_located": { "type": "boolean", "initial": false },
-        "name_recovered": { "type": "boolean", "initial": false }
+        "name_recovered": { "type": "boolean", "initial": false },
+        "tithe_settled": { "type": "boolean", "initial": false }
       }
     },
     "condition_dsl": {
@@ -187,6 +194,20 @@
       }
     },
     {
+      "id": "salt_of_threshold",
+      "name": "Salt of the Threshold",
+      "type": "talisman",
+      "description": "A pocketful of coarse salt scraped from the doorstep of a chapel the Market swallowed whole and never digested. Cast in a circle, it makes a piece of mortal ground the Court cannot see into — or out of.",
+      "traits": ["mortal_goods", "consumable", "ward"],
+      "narrative_semantics": {
+        "origin": "Laid down by the chapel's last verger on his final morning, in the sincere belief that somebody would one day need it more than he did. He was right by about a century.",
+        "symbolic_role": "The old woman's windowsills, writ large: ordinary faith as fortification.",
+        "world_revelation": "Iron offends the Court; salt simply excludes it. One is a weapon, the other a boundary — and the Court respects boundaries far more than weapons.",
+        "linked_threads": ["thread_iron_and_law"],
+        "linked_motifs": ["motif_cold_iron"]
+      }
+    },
+    {
       "id": "sisters_true_name",
       "name": "Your Sister's True Name",
       "type": "prize",
@@ -216,6 +237,22 @@
         "voice": "It does not speak. Its growl has clauses.",
         "non_combat_leverage": ["silver paid promptly", "oaths sworn properly", "genuine respect for procedure"],
         "aftermath": "Fought or paid, the Tollhound remembers you exactly and forever, without resentment or mercy."
+      }
+    },
+    {
+      "id": "redcap_bailiffs",
+      "name": "The Redcap Bailiffs",
+      "kind": "enforcer_gang",
+      "skill": 7,
+      "stamina": 8,
+      "special": "Three of them, hats wet and freshly so, carrying writs of distraint written on skin nobody asks about. They collect from the hunted, on commission, and consider themselves the Market's most honest tradesmen.",
+      "narrative_semantics": {
+        "desire": "Commission. The redcaps invented the concept and have never forgiven the world for adopting it without royalties.",
+        "fear": "Salt, dawn, and audits — in ascending order.",
+        "misconception": "They believe the Court values them. The Court values what they collect, which they have never once noticed is a different thing.",
+        "voice": "Cheerful, clattering menace: 'Nothing personal, duckie, it's a levy. Everything's a levy if you hold it right.'",
+        "non_combat_leverage": ["silver paid on the spot", "genuine paperwork", "pointing out an arithmetic error in the writ, which shames them professionally"],
+        "aftermath": "Beaten, they respect it and adjust the commission; paid, they tip their dreadful hats and move down the ledger to the next name."
       }
     },
     {
@@ -463,6 +500,90 @@
       }
     },
     {
+      "id": "bone_orchard",
+      "type": "location",
+      "region": "court_deep",
+      "title": "The Bone Orchard",
+      "summary": "The Court's strangest garden: pale trees grown from planted names, one for every soul in the teind ledger, tended by nobody and thriving anyway.",
+      "tags": ["uncanny", "investigation"],
+      "read_aloud": "Beyond the market's last stalls, a garden grows where no garden should: rows of slim pale trees, bark like knuckles, leaves that turn toward you as you pass the way sunflowers follow a sun. Small plaques of thorn-writing stand at each trunk. This is where the Court plants what it seizes — every taken name put down like a cutting, to grow into something the Court can harvest later. The rows are long. Centuries long. Near the newest end, one small stake stands over turned earth where nothing has been planted yet: a bed prepared, recently, and waiting.",
+      "read_aloud_revisit": "The pale rows turn their leaves to follow you down the newest rank. The prepared bed is still empty. The orchard, patient as compound interest, is confident it will not stay that way.",
+      "narrative": {
+        "local_history": "The orchard predates the Market; some say the first tree is what the Court grew from, and the Court has never denied it loudly enough.",
+        "present_tension": "The empty bed at the newest end was dug the night your sister's name was taken. It is exactly the right size.",
+        "hidden_truth": "The trees dream. On still nights the orchard murmurs in hundreds of voices, each saying its own lost name, over and over, so as not to forget.",
+        "sensory_details": ["leaves turning with a sound like paper sighing", "bark warm where bark should be cold", "thorn-writing plaques rearranging when read twice"],
+        "emotional_undertone": "A graveyard that insists it is a nursery."
+      }
+    },
+    {
+      "id": "goblin_pawnshop",
+      "type": "market",
+      "region": "hollow_market",
+      "title": "Wretch & Daughters, Pawnbrokers",
+      "summary": "The Market's bottom rung: a goblin pawnshop that will buy anything a mortal is foolish enough to part with, and sell a few things wiser folk shouldn't want.",
+      "tags": ["commerce", "temptation"],
+      "read_aloud": "Three golden balls hang over a shopfront that was never built, only accreted. Inside, Wretch — or possibly a Daughter; the distinction is guarded — presides over shelves of the pawned and the unredeemed: wedding rings singing faintly, a jar of somebody's nerve, a war medal that flinches. Yellow eyes find the ribbon at your wrist immediately, the way a jeweller finds the one real stone in a tray of paste. 'Now that,' says Wretch, with terrible gentleness, 'that we could do something with. Loved things fetch so well. It's the wear on them, duckie. Can't counterfeit wear.'",
+      "read_aloud_revisit": "The golden balls creak overhead. Wretch's yellow eyes go to your wrist first — checking, always, whether the ribbon is still yours — before pretending they didn't.",
+      "narrative": {
+        "local_history": "Wretch & Daughters has stood since before the Market had a door; the Court tolerates it because every economy needs a bottom and the shop keeps it swept.",
+        "present_tension": "Everything here was somebody's dearest once. The shop's patience is the Market's whole philosophy, condensed.",
+        "hidden_truth": "Wretch has refused to buy exactly three things in eight centuries. All three times, it was because the seller would have been destroyed by the sale — and Wretch, alone in the Market, occasionally declines a profit.",
+        "sensory_details": ["wedding rings humming in their tray like wasps", "dust that settles respectfully", "a ticket spike of unredeemed hopes"],
+        "emotional_undertone": "Temptation with a bell over the door."
+      }
+    },
+    {
+      "id": "listening_gallery",
+      "type": "location",
+      "region": "court_deep",
+      "title": "The Listening Gallery",
+      "summary": "A whispering gallery curved above the Thorn Court, where sound pools like water and courtiers' secrets drip from the ceiling for anyone patient enough to stand beneath.",
+      "tags": ["stealth", "intelligence"],
+      "read_aloud": "A servants' stair, unguarded because no fae would stoop to it, corkscrews up into a curved gallery above the Court of Wents. The architecture here is an accident the Court has never corrected — or a trap it has never needed to spring. Sound pools along the vaulted curve: below, the courtiers' murmur rises, separates, and arrives at your ear in single perfect threads. Wagers. Grievances. The Queen's moods, catalogued by connoisseurs. Stand still enough, long enough, and the Deep Court will tell you everything it knows about itself, one whisper at a time.",
+      "read_aloud_revisit": "The gallery's curve gathers the Court's murmur and hands it up to you in threads, as before. The courtiers below have new wagers; the architecture keeps taking their money.",
+      "narrative": {
+        "local_history": "A mortal mason built the gallery, and built the flaw in deliberately — his little revenge for a fee the Court paid in glamour that faded by morning.",
+        "present_tension": "Every whisper you harvest is one a courtier believes died in the air. Fae notice, eventually, when their secrets walk.",
+        "hidden_truth": "The Queen knows about the gallery. She has used it herself, to learn what her own Court says when it believes she cannot hear.",
+        "sensory_details": ["whispers arriving in single threads", "stone worn smooth where listeners have leaned for centuries", "blossom drifting up past the balustrade, wrong way as ever"],
+        "emotional_undertone": "Eavesdropping as archaeology."
+      }
+    },
+    {
+      "id": "salt_circle_chapel",
+      "type": "refuge",
+      "region": "court_deep",
+      "title": "The Swallowed Chapel",
+      "summary": "A small mortal chapel the Market engulfed a century ago and has never digested: consecrated ground, cold and quiet, with salt still on its threshold.",
+      "tags": ["refuge", "mortal_ground"],
+      "read_aloud": "Past the footbridge's dry channel, wedged into the Market's fabric like a stone in a throat, stands a chapel. Whole. Intact. Salt-white. The Market grew around it a century ago and then stopped, the way a tide stops at a line someone drew with conviction. Inside: six pews, a cold altar, a verger's cupboard, and silence of a different make from the Court's — silence that isn't listening. Along the threshold, laid down by a departing hand and never scattered, runs a line of coarse grey salt.",
+      "read_aloud_revisit": "The chapel receives you again with its unlistening quiet. The salt line at the threshold is unbroken — has been unbroken for a hundred years — and the Market still will not step over it.",
+      "narrative": {
+        "local_history": "The Market swallowed the street above in 1911; the chapel came down whole, verger and all. He held services for an empty room every Sunday for a decade, and the Court — punctilious about other people's rituals — never once interrupted.",
+        "present_tension": "The salt is finite and the night is not; what you scrape from this threshold, the threshold loses.",
+        "hidden_truth": "The verger's last entry in the register reads: 'Attendance: none visible. Salt renewed. Somebody will need it more than I do.' He was right by about a century.",
+        "sensory_details": ["cold stone that smells of candle-snuff and rain that fell a century ago", "salt crystals grey with old faith", "six pews facing an altar with no east to face"],
+        "emotional_undertone": "A held line, still holding."
+      }
+    },
+    {
+      "id": "ending_debt_dissolved",
+      "type": "ending",
+      "region": "threshold",
+      "title": "Account Closed",
+      "summary": "You settle account 7,777 in full — the tithe, the name, the promise, all of it — and walk out owing the Court nothing at all. Nobody has ever done that before.",
+      "tags": ["ending", "triumph"],
+      "read_aloud": "The Broker's nib stops scratching. Every scale on the stall settles level at once — brass, bone and gold — and in the silence that follows, something happens that has never happened in the Hollow Market's long memory: an account closes. Not settled by service. Not swapped, not twisted, not deferred at interest. Paid. The receipt the Broker writes takes a long time, because the form has never been used. When you carry her name up the Dawn Stairs, the Market lines the way — stallholders, courtiers, the Tollhound sitting at attention — not to stop you, but to watch, because none of them has ever seen a mortal leave with everything and owe nothing. At the kitchen table, in the grey morning, your sister comes back into her own eyes — and this time there is no sloe berry on the windowsill, no receipt with a postscript. Nothing outstanding. The old woman downstairs reads it in your face at once and laughs until she has to sit down on the stairs. 'Paid in full,' she keeps saying, wiping her eyes. 'Seven hundred years of that Market. Paid in full.'",
+      "narrative": {
+        "local_history": "The Broker frames its copy of the receipt and hangs it behind the stall. Custom doubles: everyone wants to see the form.",
+        "present_tension": "None. That is the whole miracle of it.",
+        "hidden_truth": "The Queen of Wents heard the account close from her thorn hall and smiled — a real one. A Court that is truly a creditor is bound by payment as surely as debtors are bound by debt, and something in her found the symmetry beautiful.",
+        "sensory_details": ["every scale level at once", "an unused form, carefully filled", "the old woman laughing on the stairs"],
+        "emotional_undertone": "Freedom with no thorn left in it anywhere."
+      }
+    },
+    {
       "id": "ending_name_reclaimed",
       "type": "ending",
       "region": "threshold",
@@ -700,6 +821,173 @@
       "narrative": { "player_intent": "Consider leaving.", "dramatic_role": "Hub spoke to the endgame threshold." }
     },
     {
+      "id": "h110",
+      "from": "hollow_market_gallery",
+      "to": "bone_orchard",
+      "label": "Follow the paper-sigh of leaves to the Bone Orchard",
+      "kind": "open",
+      "effects": [],
+      "stakes": "The Court's garden of seized names: what you learn there, you will not unlearn.",
+      "hook": "Past the last stalls, pale trees turn their leaves to watch you come.",
+      "narrative": { "player_intent": "Investigate where names go.", "dramatic_role": "Hub spoke to the orchard and the ribbon's power." }
+    },
+    {
+      "id": "h111",
+      "from": "bone_orchard",
+      "to": "bone_orchard",
+      "label": "Hold her ribbon out among the nameless trees",
+      "kind": "sympathy",
+      "one_time": true,
+      "conditions": [{ "op": "has_item", "item": "sisters_ribbon" }],
+      "effects": [
+        { "op": "add_knowledge", "fact": "teind_ledger_entry" },
+        { "op": "set_flag", "flag": "name_located", "value": true }
+      ],
+      "stakes": "Sympathy is a real force under the city: what belongs to a person can find that person — and the ribbon has seven years of belonging in it.",
+      "hook": "The ribbon lifts against no wind, taut as a compass needle, pointing through the rows toward a staircase that climbs into stone.",
+      "narrative": { "player_intent": "Let love do the dowsing.", "dramatic_role": "A third road to the gaol's location — carried in the player's pocket from the very first scene." }
+    },
+    {
+      "id": "h112",
+      "from": "bone_orchard",
+      "to": "bone_orchard",
+      "label": "Taste the orchard's pale fruit",
+      "kind": "temptation",
+      "one_time": true,
+      "test": {
+        "type": "luck",
+        "stat": "luck",
+        "modifier": 0,
+        "failure_to": "bone_orchard",
+        "failure_effects": [{ "op": "add_condition", "condition": "fae_touched" }]
+      },
+      "effects": [{ "op": "modify_stat", "stat": "glamour", "amount": 1 }],
+      "stakes": "Everyone knows the rule about fae food. The fruit knows you know, and smells like every birthday you were ever promised.",
+      "hook": "One small pale fruit, low on the nearest branch, exactly ripe. It has been exactly ripe for four hundred years.",
+      "narrative": { "player_intent": "Break the oldest rule for power.", "dramatic_role": "The classic transgression: sight either way, and on a bad night the Market gets into your blood." }
+    },
+    {
+      "id": "h113",
+      "from": "bone_orchard",
+      "to": "hollow_market_gallery",
+      "label": "Leave the orchard to its murmuring",
+      "kind": "open",
+      "effects": [],
+      "stakes": "The rows keep growing behind you, patient as accounts.",
+      "hook": "Somewhere in the oldest rank, a tree says a name in your grandmother's voice. You do not stop to check.",
+      "narrative": { "player_intent": "Withdraw.", "dramatic_role": "Free exit." }
+    },
+    {
+      "id": "h120",
+      "from": "hollow_market_gallery",
+      "to": "goblin_pawnshop",
+      "label": "Duck under the three golden balls of Wretch & Daughters",
+      "kind": "open",
+      "effects": [],
+      "stakes": "The Market's bottom rung: everything here was somebody's dearest, and the shop is patient.",
+      "hook": "Yellow eyes find the ribbon at your wrist before the bell stops ringing.",
+      "narrative": { "player_intent": "Browse the pawnbroker.", "dramatic_role": "Hub spoke to the temptation economy." }
+    },
+    {
+      "id": "h121",
+      "from": "goblin_pawnshop",
+      "to": "goblin_pawnshop",
+      "label": "Pawn your sister's ribbon — four favours",
+      "kind": "devil_bargain",
+      "one_time": true,
+      "conditions": [{ "op": "has_item", "item": "sisters_ribbon" }],
+      "effects": [
+        { "op": "remove_item", "item": "sisters_ribbon" },
+        { "op": "modify_resource", "resource": "favours", "amount": 4 }
+      ],
+      "stakes": "Four favours, honestly paid, for the one thing in your pockets that remembers her — and with it goes the orchard's dowsing and something you will not name until it's gone.",
+      "hook": "'Loved things fetch so well,' says Wretch, gently, already reaching for a ticket. 'It's the wear on them, duckie. Can't counterfeit wear.'",
+      "narrative": { "player_intent": "Sell the keepsake for currency.", "dramatic_role": "A real devil's bargain: the price is a path, and the shop never lies about it." }
+    },
+    {
+      "id": "h122",
+      "from": "goblin_pawnshop",
+      "to": "goblin_pawnshop",
+      "label": "Buy a stranger's unredeemed luck — six silver",
+      "kind": "commerce",
+      "one_time": true,
+      "costs": [{ "resource": "silver", "amount": 6 }],
+      "effects": [{ "op": "modify_stat", "stat": "luck", "amount": 2 }],
+      "stakes": "Somebody pawned their luck here and never came back for it. Six silver, and their good nights become yours.",
+      "hook": "It comes in a twist of newspaper, warm as a coin held too long, and settles into you like a borrowed coat that fits.",
+      "narrative": { "player_intent": "Refill luck from the shelf of the unredeemed.", "dramatic_role": "Economy valve with a ghost attached." }
+    },
+    {
+      "id": "h123",
+      "from": "goblin_pawnshop",
+      "to": "hollow_market_gallery",
+      "label": "Back out under the bell",
+      "kind": "open",
+      "effects": [],
+      "stakes": "Whatever you kept, you keep; the shop's patience is unoffended.",
+      "hook": "'Mind how you go,' says Wretch, to your wrist rather than to you.",
+      "narrative": { "player_intent": "Return to the hub.", "dramatic_role": "Free exit." }
+    },
+    {
+      "id": "h130",
+      "from": "hollow_market_gallery",
+      "to": "listening_gallery",
+      "label": "Take the servants' stair above the Thorn Court",
+      "kind": "stealth",
+      "costs": [{ "resource": "candle_marks", "amount": 1 }],
+      "effects": [],
+      "stakes": "A candle-mark spent climbing to where the Court's secrets pool like rainwater.",
+      "hook": "No fae would stoop to a servants' stair. That is what makes it yours.",
+      "narrative": { "player_intent": "Spy on the Court.", "dramatic_role": "Hub spoke to the intelligence gallery." }
+    },
+    {
+      "id": "h131",
+      "from": "listening_gallery",
+      "to": "listening_gallery",
+      "label": "Stand beneath the curve and harvest the whispers",
+      "kind": "stealth",
+      "one_time": true,
+      "test": {
+        "type": "skill",
+        "stat": "skill",
+        "modifier": 1,
+        "failure_to": "hollow_market_gallery",
+        "failure_effects": [{ "op": "set_flag", "flag": "court_standing", "value": "marked" }]
+      },
+      "effects": [{ "op": "add_knowledge", "fact": "queens_price" }],
+      "stakes": "Stillness against acoustics: hold quiet long enough and the Court recites the Queen's price for you, unpetitioned — but one scuff of boot on stone, and every face below turns up at once.",
+      "hook": "A courtier below, voice arriving in a single thread: '…the usual terms, of course. Seven years' service, or the old trade. She never varies. She is famous for it.'",
+      "narrative": { "player_intent": "Learn the Queen's price without paying an audience.", "dramatic_role": "Intelligence road to the royal bargains — knowledge without exposure, at the risk of exposure." }
+    },
+    {
+      "id": "h132",
+      "from": "listening_gallery",
+      "to": "hollow_market_gallery",
+      "label": "Withdraw down the servants' stair",
+      "kind": "open",
+      "effects": [],
+      "stakes": "The gallery keeps pooling secrets for the next patient listener.",
+      "hook": "Below, the courtiers wager on. The architecture keeps taking their money.",
+      "narrative": { "player_intent": "Return to the hub.", "dramatic_role": "Free exit." }
+    },
+    {
+      "id": "h150",
+      "from": "hollow_market_gallery",
+      "to": "hollow_market_gallery",
+      "label": "Turn and face the wet-hatted collectors",
+      "kind": "combat",
+      "visibility": { "conditions": [{ "op": "flag_is", "flag": "court_standing", "value": "hunted" }] },
+      "test": {
+        "type": "combat",
+        "encounter_id": "redcap_bailiffs",
+        "failure_to": "ending_dead"
+      },
+      "effects": [{ "op": "modify_resource", "resource": "silver", "amount": 2 }],
+      "stakes": "The Court's commission men have your name on a writ of skin. Beat them and the Market watches you shake them down for expenses — respect, in the local dialect.",
+      "hook": "'Nothing personal, duckie. It's a levy. Everything's a levy if you hold it right.'",
+      "narrative": { "player_intent": "Fight off the Court's collectors.", "dramatic_role": "The hunted state gets teeth — and beating the bailiffs pays." }
+    },
+    {
       "id": "h030",
       "from": "pale_auction",
       "to": "pale_auction",
@@ -816,6 +1104,20 @@
       "stakes": "The rates never move. That is what makes them the rates.",
       "hook": "The scales settle back, disappointed, patient.",
       "narrative": { "player_intent": "Return to the hub.", "dramatic_role": "Free exit." }
+    },
+    {
+      "id": "h044",
+      "from": "broker_of_hours",
+      "to": "broker_of_hours",
+      "label": "Settle account 7,777 in full — seven favours",
+      "kind": "settlement",
+      "one_time": true,
+      "conditions": [{ "op": "knows", "fact": "family_tithe" }],
+      "costs": [{ "resource": "favours", "amount": 7 }],
+      "effects": [{ "op": "set_flag", "flag": "tithe_settled", "value": true }],
+      "stakes": "Seven favours — a fortune in pieces of people — against seven hundred years of your family's ledger. Nobody has ever paid an account off. The Broker isn't sure the form exists.",
+      "hook": "'In full?' The Broker's visor lifts all the way for the first time tonight. 'Duckie. Nobody pays in full. That is the entire business model.'",
+      "narrative": { "player_intent": "Buy your whole family out of the Court's ledger.", "dramatic_role": "The expansion's crown: converts the economy grind into the truest ending's key." }
     },
     {
       "id": "h050",
@@ -1015,6 +1317,19 @@
       "narrative": { "player_intent": "Win release by out-lawyering the Court.", "dramatic_role": "The hidden fourth road: knowledge plus the name equals the triumph, ratified in open court." }
     },
     {
+      "id": "h076",
+      "from": "thorn_court",
+      "to": "thorn_court",
+      "label": "Address the Court as one of its own",
+      "kind": "audience",
+      "one_time": true,
+      "visibility": { "conditions": [{ "op": "has_condition", "condition": "fae_touched" }] },
+      "effects": [{ "op": "modify_resource", "resource": "favours", "amount": 2 }],
+      "stakes": "The orchard's fruit is in your blood now, and the courtiers can smell it: speak as kin, and courtesy obliges them to answer in favours.",
+      "hook": "A courtier in dove-grey inclines her head a degree further than she would for a mortal. 'Cousin,' she says, testing the word, and finding to her surprise that it holds.",
+      "narrative": { "player_intent": "Spend the transgression as standing.", "dramatic_role": "The fae_touched condition's silver lining: what the fruit cost, the Court partly repays." }
+    },
+    {
       "id": "h080",
       "from": "mirror_canal",
       "to": "understair_gaol",
@@ -1095,6 +1410,40 @@
       "narrative": { "player_intent": "Head for the exit.", "dramatic_role": "Refuge to endgame." }
     },
     {
+      "id": "h140",
+      "from": "iron_footbridge",
+      "to": "salt_circle_chapel",
+      "label": "Follow the dry channel to the swallowed chapel",
+      "kind": "open",
+      "effects": [],
+      "stakes": "Consecrated ground, whole and cold, wedged in the Market's throat.",
+      "hook": "The Market grew around it and then stopped, like a tide at a line drawn with conviction.",
+      "narrative": { "player_intent": "Find the mortal ground beyond the bridge.", "dramatic_role": "Refuge spoke to the ward and the salt." }
+    },
+    {
+      "id": "h141",
+      "from": "salt_circle_chapel",
+      "to": "salt_circle_chapel",
+      "label": "Scrape the threshold salt into your pocket",
+      "kind": "acquisition",
+      "one_time": true,
+      "effects": [{ "op": "add_item", "item": "salt_of_threshold" }],
+      "stakes": "What you take, the threshold loses: a century-old line, thinned by exactly one handful, for one circle you may badly need.",
+      "hook": "The verger's register, open on the cupboard shelf: 'Salt renewed. Somebody will need it more than I do.'",
+      "narrative": { "player_intent": "Arm yourself with a boundary.", "dramatic_role": "The ward that lets even the hunted walk out under the Court's nose." }
+    },
+    {
+      "id": "h142",
+      "from": "salt_circle_chapel",
+      "to": "iron_footbridge",
+      "label": "Leave the chapel to its unlistening quiet",
+      "kind": "open",
+      "effects": [],
+      "stakes": "The salt line holds behind you, one handful thinner.",
+      "hook": "Six pews face an altar with no east. The quiet does not follow you out; it has a parish.",
+      "narrative": { "player_intent": "Return to the bridge.", "dramatic_role": "Free exit." }
+    },
+    {
       "id": "h100",
       "from": "dawn_stairs",
       "to": "ending_name_reclaimed",
@@ -1128,6 +1477,38 @@
       "narrative": { "player_intent": "Cut a way out.", "dramatic_role": "The transgression road's final bill: beat the unbeaten or die at the threshold." }
     },
     {
+      "id": "h104",
+      "from": "dawn_stairs",
+      "to": "ending_debt_dissolved",
+      "label": "Climb into the morning owing the Court nothing at all",
+      "kind": "climax",
+      "conditions": [
+        { "op": "has_item", "item": "sisters_true_name" },
+        { "op": "flag_is", "flag": "tithe_settled", "value": true },
+        { "op": "flag_not", "flag": "court_standing", "value": "hunted" }
+      ],
+      "effects": [],
+      "stakes": "Her name in your coat and a receipt marked PAID IN FULL in the Broker's ledger: the stairs have never lifted anyone this light.",
+      "hook": "The slate's second rule — WHAT YOU OWE, KEEPS YOU — has, for the first time in the Market's memory, nothing left to hold.",
+      "narrative": { "player_intent": "Leave owing nothing.", "dramatic_role": "The truest ending: name recovered and account closed, witnessed by the whole Market." }
+    },
+    {
+      "id": "h105",
+      "from": "dawn_stairs",
+      "to": "ending_name_reclaimed",
+      "label": "Cast the salt in a circle and walk out of the Court's sight",
+      "kind": "ward",
+      "visibility": { "conditions": [{ "op": "flag_is", "flag": "court_standing", "value": "hunted" }] },
+      "conditions": [
+        { "op": "has_item", "item": "sisters_true_name" },
+        { "op": "has_item", "item": "salt_of_threshold" }
+      ],
+      "effects": [{ "op": "remove_item", "item": "salt_of_threshold" }],
+      "stakes": "The Knight bars the stair for the hunted — but a salt circle is mortal ground, and mortal ground moves with the mortal who casts it. The Court cannot see in; the Court cannot follow.",
+      "hook": "You draw the verger's century of faith around you in one grey line, and the Knight of Thorns lowers its February sword to something no blade has an argument against.",
+      "narrative": { "player_intent": "Escape the hunt without a duel.", "dramatic_role": "The chapel's payoff: the transgression road's toll, paid in salt instead of blood." }
+    },
+    {
       "id": "h102",
       "from": "dawn_stairs",
       "to": "ending_dawnlocked",
@@ -1153,8 +1534,8 @@
   "relations": [],
   "validation": {
     "notes": "Counts are maintained by scripts/validate-adventure.js and the CI reachability gate; see README.",
-    "node_count": 16,
-    "route_count": 38,
+    "node_count": 21,
+    "route_count": 64,
     "known_soft_locks": []
   },
   "semantic_layer": {
@@ -1213,6 +1594,38 @@
       },
       "h100": {
         "success_text": "No hand is raised against you. Stall by stall the Market watches you climb, and the bells ring you out — unstruck, unbidden, and not entirely unkind. What you carry, you keep. The Court's own law lifts you the last step into morning.",
+        "failure_text": ""
+      },
+      "h111": {
+        "success_text": "The ribbon lifts against no wind at all, taut as a compass needle with seven years of belonging in it, and points — steadily, unmistakably — through the pale rows toward the staircase that climbs into stone. Love, it turns out, keeps better records than the Court.",
+        "failure_text": ""
+      },
+      "h112": {
+        "success_text": "The fruit tastes of every birthday you were ever promised, and your eyes come away changed: the Market's seams and stitches stand out like wet paint. You got away with it. Probably. The aftertaste is still deciding.",
+        "failure_text": "The fruit tastes of every birthday you were ever promised — and then of sloe, and then of winter. Something of the orchard is in your blood now, cool and curious, and the pale trees turn their leaves toward you as toward a cousin."
+      },
+      "h121": {
+        "success_text": "Wretch writes the ticket slowly, giving you the whole length of the nib's scratch to change your mind. You don't. Four favours, honestly counted, and the ribbon goes under the counter with a tenderness that is somehow the worst part. The shop bell rings as you leave, one beat late, like something clearing its throat.",
+        "failure_text": ""
+      },
+      "h131": {
+        "success_text": "You become furniture; the gallery does the rest. Wagers, grievances, and then — a single perfect thread — the Queen's terms recited by a connoisseur: seven years' service, or the old trade. She never varies. You descend the servants' stair holding the Court's crown jewel of gossip, unpaid for.",
+        "failure_text": "A boot-scuff, one, on smooth stone — and the murmur below stops like a cut string. Forty beautiful faces turn upward as one. You are down the servants' stair before the first courtier reaches the balustrade, but the Court has your silhouette now, filed where it files things it intends to price."
+      },
+      "h150": {
+        "success_text": "Redcaps fight like an audit conducted with teeth, but they respect nothing so much as arithmetic that goes against them. The third one down surrenders the writ, recalculates their commission at zero, and — professional to the last — reimburses your expenses. The Market pretends not to watch and misses nothing.",
+        "failure_text": ""
+      },
+      "h044": {
+        "success_text": "Seven favours cross the counter, and the Broker counts them four times — not from doubt, from ceremony. Then it opens a drawer that has plainly not been opened in centuries and takes out a form the colour of old cream. 'Account seven-seven-seven-seven,' it says, nib poised, voice not quite steady. 'Settled. In full.' Every scale on the stall comes level at once, and somewhere far off, in a hall of woven blackthorn, something very old feels a page turn.",
+        "failure_text": ""
+      },
+      "h105": {
+        "success_text": "The salt goes down in one unbroken line, grey with a century of kept faith, and the world inside it becomes — simply, entirely — mortal ground. The Knight of Thorns lowers its February sword and inclines its helm: not defeat, but jurisdiction. You walk up the Dawn Stairs inside your own small parish, and the Court watches you go the way winter watches a walled garden.",
+        "failure_text": ""
+      },
+      "h104": {
+        "success_text": "The stairs have never lifted anyone so light. Her name hums against your heart, the receipt sits folded like a psalm in your pocket, and the whole Hollow Market lines the way out — not to stop you; to see it. Paid in full. The morning takes you like a tide taking a swimmer home.",
         "failure_text": ""
       }
     }

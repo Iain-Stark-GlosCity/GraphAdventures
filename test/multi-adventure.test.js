@@ -57,7 +57,7 @@ test("list_adventures catalogues every hosted adventure with its graph metadata"
   assert.ok(Array.isArray(vienna.genre) && vienna.genre.includes("espionage"));
   assert.ok(vienna.narrative_premise.length > 0);
   assert.equal(vienna.node_count, byId.get("vienna-clearing-house").nodesById.size);
-  assert.equal(vienna.ending_count, 5);
+  assert.equal(vienna.ending_count, 6);
 });
 
 test("new_run dispatches by adventure_id and seeds each adventure's own ruleset", async () => {

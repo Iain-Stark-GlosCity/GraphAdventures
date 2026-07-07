@@ -1,7 +1,7 @@
 {
   "schema": {
     "name": "adventure-knowledge-graph",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "description": "A stateful, directed knowledge graph for a modern-day espionage mystery. Same executable traversal rules as every adventure on this platform (conditions, effects, costs, tests), themed entirely through content: tradecraft instead of torches, heat instead of curses."
   },
   "graph": {
@@ -16,8 +16,14 @@
       "ending_mole_wins",
       "ending_burned",
       "ending_walk_away",
+      "ending_double_agent",
       "ending_dead"
     ],
+    "content_revision": {
+      "version": "0.2.0",
+      "summary": "Expansion: the Prater wheel meeting, the Sacher press bar, Kessler's apartment, the canal sewers, the Stephansdom dead-letter channel (a spooked asset can now be won back), Brandt's boxing gym (preparation defuses the climax ambush), and a sixth ending — going over.",
+      "compatibility": "All 0.1.0 node and route ids, costs, tests and effects are unchanged; everything new is additive."
+    },
     "design_notes": [
       "Time is the true currency: most productive moves cost hours, and the clock never refunds.",
       "Heat is a stat, not a resource, so routes can gate on it rising and falling.",
@@ -155,6 +161,20 @@
         "origin": "Kept, with fatal vanity, in the station annexe's registry cage — because Kessler audits the registry himself.",
         "symbolic_role": "The traitor's love of order becomes the rope that hangs him.",
         "world_revelation": "The mole is not an ideologue; he is an accountant of himself.",
+        "linked_threads": ["thread_mole_hunt"],
+        "linked_motifs": ["motif_paper_lies"]
+      }
+    },
+    {
+      "id": "burn_list",
+      "name": "The Burn List",
+      "type": "evidence",
+      "description": "Four typed pages from Kessler's home safe: agent cryptonyms, sale dates, and prices in a neat second column. Three of the names have lines through them. You knew one of the three.",
+      "traits": ["evidence", "incriminating", "heavy_to_carry_in_every_sense"],
+      "narrative_semantics": {
+        "origin": "Kept at home, not at the station — the one inventory Kessler could never let his own registry see.",
+        "symbolic_role": "Betrayal, itemised and invoiced: the trade's ugliest genre of literature.",
+        "world_revelation": "The mole's business was never ideology or even money alone. It was inventory management.",
         "linked_threads": ["thread_mole_hunt"],
         "linked_motifs": ["motif_paper_lies"]
       }
@@ -449,6 +469,136 @@
       }
     },
     {
+      "id": "prater_wheel",
+      "type": "encounter",
+      "region": "vienna_surface",
+      "title": "The Riesenrad, One Full Turn",
+      "summary": "An emergency meeting with VESPER in a gondola of the giant wheel: fifteen minutes where nobody can follow, overhear, or leave.",
+      "tags": ["contact", "revelation"],
+      "read_aloud": "The chalk mark on the Prater lamppost was VESPER's, and the instruction it encodes is the oldest in the Vienna book: the wheel, next gondola, come up alone. The Riesenrad hoists you both over the city in a red wooden cabin the size of a garden shed, and for one full revolution the two of you are the least surveilled people in Austria. VESPER does not waste the altitude. 'I pulled the assignment file,' she says, watching the city tilt. 'Three freelancers were shortlisted for this job. Two names were struck out by the deputy head of station personally. Yours he circled.' The gondola creaks past the top of the arc. 'Ask yourself why a careful man would choose his own investigator. Then stop being the answer he chose.'",
+      "read_aloud_revisit": "The wheel turns without you; the chalk mark is gone from the lamppost. Whatever VESPER had to say up there, she has said it, and the gondolas carry only tourists and their vertigo.",
+      "narrative": {
+        "local_history": "Half the trade's Vienna legends involve this wheel; the gondola operators are tipped by four services to notice nothing, and they are the best-paid oblivious men in Europe.",
+        "present_tension": "VESPER is spending her own cover to warn you, which means she rates the danger higher than her career.",
+        "hidden_truth": "She has also, without telling you, moved her own family to Linz for the week.",
+        "sensory_details": ["red cabin paint blistered by a century of summers", "the city rotating like a slow dial", "VESPER's knuckles, white on the rail, voice level"],
+        "emotional_undertone": "A warning delivered at the one altitude where it is safe to mean it."
+      }
+    },
+    {
+      "id": "hotel_sacher_bar",
+      "type": "market",
+      "region": "vienna_surface",
+      "title": "The Sacher Bar, After Eleven",
+      "summary": "Where Vienna's press corps drinks off the record: expensive, indiscreet, and the best open-source intelligence in the city.",
+      "tags": ["social", "commerce"],
+      "read_aloud": "The Sacher's bar runs on velvet, brass and the profound indiscretion of people who are professionally discreet until the third drink. The press corps holds the corner table like a position: agency stringers, a state-radio veteran, a woman from a Swiss daily who is nobody's idea of only a journalist. Torte crumbs, ashtrays, shorthand. As you order, the corner table pauses — new face, quick audit, resume — and you understand that everything anyone says in this room is for sale, mostly for another round.",
+      "read_aloud_revisit": "The corner table has reshuffled but not changed: the stringers, the veteran, the Swiss woman who clocks you with a half-nod this time. Your stock here has opened; the exchange rate is still drinks.",
+      "rumour_delivery": [
+        {
+          "speaker": "The state-radio veteran, on his third",
+          "text": "Kessler? Charming man. Tells a marvellous story about Belgrade. Told it to me twice — once in '19, once last spring — and do you know, the second time there was a detail in it that was still classified the first time.",
+          "truth_status": "true_and_load_bearing"
+        },
+        {
+          "speaker": "The Swiss woman, not drinking",
+          "text": "The Clearing House settles more than money. Ask which officer signs the liaison reports on the Grey Hats. Then ask who liaises with him.",
+          "truth_status": "true"
+        }
+      ],
+      "narrative": {
+        "local_history": "Treaties have been leaked, denied and re-leaked at this bar; the concierge keeps a book on which correspondents are funded by whom and has never once been wrong.",
+        "present_tension": "The press corps is circling the same smell you are — a scandal at the Clearing House — without knowing it has a name.",
+        "hidden_truth": "The Swiss woman made you as a professional before you reached the bar. Her half-nod is one service's way of wishing another luck.",
+        "sensory_details": ["brass rail polished by a century of elbows", "torte crumbs and cigarette ash in the same saucer", "shorthand notebooks going into breast pockets as you pass"],
+        "emotional_undertone": "Secrets held at exactly arm's length, price tags showing."
+      }
+    },
+    {
+      "id": "kessler_apartment",
+      "type": "challenge",
+      "region": "vienna_surface",
+      "title": "Kessler's Apartment, Fourth Floor",
+      "summary": "The mole's private address in the diplomatic quarter: parquet, order, and a home safe that his vanity believes is a secret.",
+      "tags": ["heist", "evidence", "high_risk"],
+      "read_aloud": "Kessler lives the way he files: fourth floor of a Biedermeier block, brass nameplate polished, doormat exactly parallel to the threshold. Tonight the windows are dark — the opera has him until eleven. Inside, the flat is a museum of a man who admires himself: the chess table mid-game against nobody, the decanters ranked by seniority, the photographs in which he is always half a step nearer the ambassador than protocol allows. And behind the Klimt reproduction — because it is always behind the reproduction — a home safe, older than his caution and vainer than his tradecraft.",
+      "read_aloud_revisit": "The dark windows, the parallel doormat, the nameplate's shine. The flat waits like a held breath; whether it remembers your last visit depends entirely on how good you were.",
+      "narrative": {
+        "local_history": "The block has housed exactly this kind of tenant for two hundred years; the concierge's discretion is architectural, load-bearing, and pensioned by three governments.",
+        "present_tension": "Everything in this flat is inventoried in its owner's head. Anything moved a centimetre is a message you will have sent him.",
+        "hidden_truth": "The chess position on the table is from his last game with the ambassador. Kessler is playing both sides of it, and both sides are losing.",
+        "sensory_details": ["parquet that announces weight like a duty officer", "decanter stoppers catching streetlight", "the safe dial's oiled, confident click"],
+        "emotional_undertone": "Standing inside the enemy's self-regard."
+      }
+    },
+    {
+      "id": "canal_sewers",
+      "type": "transition",
+      "region": "vienna_night",
+      "title": "Under the City",
+      "summary": "The old brick sewers below the Ring: cathedral-vaulted, echoing, and the fastest way in Vienna to stop being followed.",
+      "tags": ["escape", "hidden"],
+      "read_aloud": "Below the Ring, Vienna keeps its other architecture: brick vaults a cathedral would envy, black water running with a sound like a held note, iron ladders sweating rust. Your torch beam swings across a century of initials scratched by men who needed, urgently, not to be upstairs. Every footstep echoes four times; so would a pursuer's, which is the entire point. Somewhere overhead, muffled to a rumour, the city goes on believing it knows where everyone is.",
+      "read_aloud_revisit": "The vaults again, the held note of black water, the sweating ladders. The sewers receive you like a professional courtesy: no questions, four echoes, and the city's ignorance overhead.",
+      "narrative": {
+        "local_history": "Smugglers chalked these routes before any service did; the chalk marks are still maintained, by consensus, by whoever needs them next.",
+        "present_tension": "Nobody follows you down here without you knowing — and nobody hears you if they do.",
+        "hidden_truth": "One of the scratched initials, near the Karlsplatz junction, matches the dead officer whose pencilled tram routes are on your safehouse map.",
+        "sensory_details": ["water-echo like a tuning fork", "rust flaking under wet gloves", "old chalk arrows, refreshed by unknown hands"],
+        "emotional_undertone": "Sanctuary with a smell."
+      }
+    },
+    {
+      "id": "stephansdom_confessional",
+      "type": "location",
+      "region": "vienna_surface",
+      "title": "Stephansdom, the Third Confessional",
+      "summary": "MERIDIAN's fallback channel: a dead-letter box in the cathedral's least-used confessional, for apologies and second chances.",
+      "tags": ["tradecraft", "redemption"],
+      "read_aloud": "The cathedral swallows the city's noise at the door and issues candle-hush in exchange. In the north aisle, past the tour groups, the third confessional stands permanently unmanned — a fact known to the sacristan, the diocese, and exactly two intelligence assets, one of whom is you. Behind the grille's loose fretwork is a gap the size of a folded note. MERIDIAN set this channel up as a last resort, back when they still believed they would never need it. If the bridge between you has burned, this is where a new one gets its first plank.",
+      "read_aloud_revisit": "Candle-hush, the north aisle, the unmanned box. The gap behind the fretwork keeps whatever faith the two of you have left; the cathedral, professionally, keeps everything else.",
+      "narrative": {
+        "local_history": "Confessionals have carried the city's parallel mail for centuries; the Church has never approved and never once interfered.",
+        "present_tension": "A note here takes a day to be read — a day the clock does not give back.",
+        "hidden_truth": "MERIDIAN checks the box every morning mass, not out of hope, but because stopping would mean deciding it is over.",
+        "sensory_details": ["beeswax and stone-cold air", "the fretwork's soft give under two fingers", "a tour guide's whisper ricocheting off six centuries"],
+        "emotional_undertone": "An apology posted into the dark, hoping."
+      }
+    },
+    {
+      "id": "brandts_gym",
+      "type": "location",
+      "region": "vienna_surface",
+      "title": "Boxklub Donau, Back Hall",
+      "summary": "The boxing gym where Brandt trains at the same hour every day: know a professional's routine, and you own his blind spots.",
+      "tags": ["recon", "preparation"],
+      "read_aloud": "Boxklub Donau smells of liniment, canvas and fifty years of Tuesday nights. In the back hall, under a single caged bulb, Kessler's insurance policy is doing his rounds on the heavy bag — Brandt, ex-service, methodical as a metronome, rehearsing violence the way clerks rehearse signatures. He trains alone, same hour, same sequence, towel folded on the same bench. A man this disciplined is a man you can set your watch by. Or a trap by.",
+      "read_aloud_revisit": "Liniment, canvas, the caged bulb. Brandt's sequence on the bag is the one you memorised, beat for beat — a metronome that has no idea it is being read.",
+      "narrative": {
+        "local_history": "The club has trained policemen, criminals and the men in between since the first republic; the house rule is that nobody's day job enters the ring.",
+        "present_tension": "Brandt would recognise a watcher. He will not recognise a man skipping rope badly in the corner, because bad skipping is invisible.",
+        "hidden_truth": "Brandt has noticed you. He has filed you as harmless, which is the single largest professional error of his career.",
+        "sensory_details": ["the bag's four-beat rhythm", "rope-slap and rosin dust", "a towel folded with military corners"],
+        "emotional_undertone": "Studying the storm while it practises."
+      }
+    },
+    {
+      "id": "ending_double_agent",
+      "type": "ending",
+      "region": "vienna_night",
+      "title": "The Price Was Right",
+      "summary": "You sell the exchange to Kessler and go over to the winning side, which is how it will feel for several years.",
+      "tags": ["ending", "corruption"],
+      "read_aloud": "It takes one phone call from a bridge above the fog, and it is remarkable how steady your voice is. Kessler does not gloat; professionals never do at the moment of purchase. The money arrives the way such money always arrives — cleanly, offshore, and slightly more of it than agreed, which is his way of buying the next thing early. MERIDIAN is taken on the quay, looking in the wrong direction because you told them which direction was safe. In the years that follow you are well paid, well protected and well thought of by people whose good opinion functions like a tomb. Sometimes, in cafés with marble tables, you catch yourself sitting with your back to the wall, watching the door — and you understand, at last, the look on every defector's face you ever handled. Vienna does not hurry. Neither does what you have coming.",
+      "narrative": {
+        "local_history": "Every service's files hold a few of these conversions; they are studied not for how they were turned, but for how cheaply.",
+        "present_tension": "Deferred, at the trade's standard compound rate.",
+        "hidden_truth": "VESPER worked out what happened within the month. She filed nothing. She is simply waiting, and she has your patience and twice your reasons.",
+        "sensory_details": ["a phone warm against the ear, fog below", "money that never feels like an amount", "marble tables, and the door, always the door"],
+        "emotional_undertone": "Victory with the texture of a confession awaiting its date."
+      }
+    },
+    {
       "id": "ending_extraction",
       "type": "ending",
       "region": "vienna_night",
@@ -691,6 +841,306 @@
       "stakes": "The street has been wrong all evening. The knock is polite, and there are several of them.",
       "hook": "The florist's van was never selling flowers.",
       "narrative": { "player_intent": "Face the consequences of running hot.", "dramatic_role": "Heat's endgame: the surveillance state cashes in." }
+    },
+    {
+      "id": "r120",
+      "from": "safehouse_margareten",
+      "to": "prater_wheel",
+      "label": "Answer VESPER's chalk mark — the Prater, next gondola",
+      "kind": "contact",
+      "costs": [{ "resource": "hours", "amount": 1 }],
+      "effects": [],
+      "stakes": "An hour of the clock for fifteen minutes at the one altitude in Vienna where the truth is safe to say.",
+      "hook": "The chalk mark appeared on the lamppost overnight. VESPER doesn't do overnight for good news.",
+      "narrative": { "player_intent": "Meet the handler urgently.", "dramatic_role": "Opens the warning that reframes the whole assignment." }
+    },
+    {
+      "id": "r121",
+      "from": "prater_wheel",
+      "to": "safehouse_margareten",
+      "label": "Ride the full turn and hear her out",
+      "kind": "revelation",
+      "one_time": true,
+      "effects": [{ "op": "add_knowledge", "fact": "vesper_warning" }],
+      "stakes": "What she tells you up there cannot be untold — and changes whose game you think you're playing.",
+      "hook": "'Two names were struck out by the deputy head of station personally. Yours he circled.'",
+      "narrative": { "player_intent": "Learn why you were chosen.", "dramatic_role": "The hidden truth surfaces early, for those who climb for it." }
+    },
+    {
+      "id": "r122",
+      "from": "prater_wheel",
+      "to": "safehouse_margareten",
+      "label": "Leave the Prater by the crowd gate",
+      "kind": "open",
+      "effects": [],
+      "stakes": "Back to ground level, where everything is once again someone's business.",
+      "hook": "The wheel keeps turning behind you, patient as procedure.",
+      "narrative": { "player_intent": "Return to base.", "dramatic_role": "Free exit." }
+    },
+    {
+      "id": "r130",
+      "from": "safehouse_margareten",
+      "to": "hotel_sacher_bar",
+      "label": "Work the Sacher bar after eleven",
+      "kind": "social",
+      "costs": [
+        { "resource": "euros", "amount": 15 },
+        { "resource": "hours", "amount": 1 }
+      ],
+      "effects": [],
+      "stakes": "Fifteen euros of cover charge and an hour among people paid to notice things and dying to repeat them.",
+      "hook": "The press corps knows everything about this city except which of its stories matter.",
+      "narrative": { "player_intent": "Mine the press corps.", "dramatic_role": "Opens the open-source road to the mole." }
+    },
+    {
+      "id": "r131",
+      "from": "hotel_sacher_bar",
+      "to": "hotel_sacher_bar",
+      "label": "Stand the corner table a round and listen",
+      "kind": "social",
+      "one_time": true,
+      "costs": [{ "resource": "euros", "amount": 20 }],
+      "effects": [{ "op": "add_knowledge", "fact": "sacher_gossip" }],
+      "stakes": "Twenty euros buys the Belgrade anecdote with its timeline attached — a story that convicts its teller, if you know how to serve it back.",
+      "hook": "'The second time he told it, there was a detail in it that was still classified the first time.'",
+      "narrative": { "player_intent": "Buy the press corps' best story.", "dramatic_role": "The gossip that turns the opera from a duel into an execution." }
+    },
+    {
+      "id": "r132",
+      "from": "hotel_sacher_bar",
+      "to": "hotel_sacher_bar",
+      "label": "Play cards with the night porter",
+      "kind": "gamble",
+      "costs": [{ "resource": "euros", "amount": 10 }],
+      "test": {
+        "type": "luck",
+        "stat": "luck",
+        "modifier": 0,
+        "failure_to": "hotel_sacher_bar",
+        "failure_effects": []
+      },
+      "effects": [{ "op": "modify_resource", "resource": "euros", "amount": 30 }],
+      "stakes": "Ten euros on the table against the house's thirty: the porter cheats, but politely, and only against people who cheat first.",
+      "hook": "The porter has played this game since the occupation. So, in a sense, have you.",
+      "narrative": { "player_intent": "Refill the float.", "dramatic_role": "A luck-priced economy valve for players running dry." }
+    },
+    {
+      "id": "r133",
+      "from": "hotel_sacher_bar",
+      "to": "safehouse_margareten",
+      "label": "Settle up and slip out through the kitchen",
+      "kind": "open",
+      "effects": [],
+      "stakes": "The corner table resumes without you; your absence will be noticed, priced, and forgotten by the next round.",
+      "hook": "The Swiss woman's half-nod follows you out. Professional to professional.",
+      "narrative": { "player_intent": "Return to base.", "dramatic_role": "Free exit." }
+    },
+    {
+      "id": "r134",
+      "from": "hotel_sacher_bar",
+      "to": "opera_interval",
+      "label": "Share a cab to the opera with the critics",
+      "kind": "social",
+      "costs": [
+        { "resource": "euros", "amount": 30 },
+        { "resource": "hours", "amount": 1 }
+      ],
+      "effects": [],
+      "stakes": "Arrive at the interval inside a flock of press passes — the best camouflage money can rent.",
+      "hook": "Critics enter everywhere first and are suspected of nothing except their reviews.",
+      "narrative": { "player_intent": "Reach Kessler under press cover.", "dramatic_role": "Social route into the opera branch." }
+    },
+    {
+      "id": "r140",
+      "from": "safehouse_margareten",
+      "to": "kessler_apartment",
+      "label": "Visit the fourth floor while the opera has him",
+      "kind": "heist",
+      "visibility": {
+        "conditions": [
+          {
+            "any": [
+              { "op": "knows", "fact": "sacher_gossip" },
+              { "op": "knows", "fact": "mole_is_kessler" },
+              { "op": "knows", "fact": "vesper_warning" }
+            ]
+          }
+        ]
+      },
+      "costs": [{ "resource": "hours", "amount": 1 }],
+      "effects": [],
+      "stakes": "The mole's own parquet, his own safe, his own inventory of everything — including, if you're clumsy, you.",
+      "hook": "Tosca runs three hours with intervals. The fourth floor runs dark for all of them.",
+      "narrative": { "player_intent": "Take the war to the mole's home.", "dramatic_role": "The boldest evidence road, unlocked by any thread of suspicion." }
+    },
+    {
+      "id": "r141",
+      "from": "kessler_apartment",
+      "to": "safehouse_margareten",
+      "label": "Open the safe with the bypass kit, touch nothing else",
+      "kind": "heist",
+      "one_time": true,
+      "conditions": [{ "op": "has_item", "item": "bypass_kit" }],
+      "effects": [
+        { "op": "add_item", "item": "burn_list" },
+        { "op": "set_flag", "flag": "mole_identified", "value": true },
+        { "op": "add_knowledge", "fact": "mole_is_kessler" }
+      ],
+      "stakes": "The samples defeat the safe's vanity in four minutes flat — and what's inside is worse than anything you guessed.",
+      "hook": "Behind the Klimt reproduction. It is always behind the reproduction.",
+      "narrative": { "player_intent": "Crack the home safe cleanly.", "dramatic_role": "The equipment payoff, second venue: the burn list." }
+    },
+    {
+      "id": "r142",
+      "from": "kessler_apartment",
+      "to": "safehouse_margareten",
+      "label": "Work the safe by ear and nerve alone",
+      "kind": "risk",
+      "one_time": true,
+      "visibility": { "conditions": [{ "op": "missing_item", "item": "bypass_kit" }] },
+      "test": {
+        "type": "skill",
+        "stat": "skill",
+        "modifier": -1,
+        "failure_to": "tram_line_d",
+        "failure_effects": [
+          { "op": "modify_stat", "stat": "heat", "amount": 2 },
+          { "op": "set_flag", "flag": "station_alerted", "value": true }
+        ]
+      },
+      "effects": [
+        { "op": "add_item", "item": "burn_list" },
+        { "op": "set_flag", "flag": "mole_identified", "value": true },
+        { "op": "add_knowledge", "fact": "mole_is_kessler" }
+      ],
+      "stakes": "An old dial against bare fingertips: fail, and the flat's owner will read the scratches like a signed confession — with your description attached.",
+      "hook": "The parquet announces your weight to the neighbours with every shift of balance.",
+      "narrative": { "player_intent": "Attempt the safe without tools.", "dramatic_role": "The desperate version; failure arms the endgame against you." }
+    },
+    {
+      "id": "r143",
+      "from": "kessler_apartment",
+      "to": "safehouse_margareten",
+      "label": "Leave the flat exactly as you found it",
+      "kind": "open",
+      "effects": [],
+      "stakes": "Nothing gained; nothing, crucially, moved a centimetre.",
+      "hook": "You give the chess table a last look. Both sides are losing.",
+      "narrative": { "player_intent": "Abort the burglary.", "dramatic_role": "Free exit." }
+    },
+    {
+      "id": "r150",
+      "from": "canal_sewers",
+      "to": "safehouse_margareten",
+      "label": "Surface three districts away and walk home clean",
+      "kind": "open",
+      "effects": [{ "op": "modify_stat", "stat": "heat", "amount": -1 }],
+      "stakes": "You come up where nobody was watching, smelling faintly of the nineteenth century.",
+      "hook": "The manhole cover settles behind you like a kept secret.",
+      "narrative": { "player_intent": "Complete the escape.", "dramatic_role": "Free exit with a cooling bonus." }
+    },
+    {
+      "id": "r152",
+      "from": "canal_sewers",
+      "to": "embassy_gate",
+      "label": "Follow the old chalk arrows toward the embassy quarter",
+      "kind": "tradecraft",
+      "costs": [{ "resource": "hours", "amount": 1 }],
+      "effects": [],
+      "stakes": "An hour underground buys an approach to the gate that no camera on the street will ever have seen.",
+      "hook": "Somebody has kept these arrows fresh for fifty years. Tonight they work for you.",
+      "narrative": { "player_intent": "Approach the endgame unseen.", "dramatic_role": "The hidden road to the gate." }
+    },
+    {
+      "id": "r160",
+      "from": "safehouse_margareten",
+      "to": "stephansdom_confessional",
+      "label": "Go to the cathedral — the fallback channel",
+      "kind": "tradecraft",
+      "visibility": { "conditions": [{ "op": "flag_is", "flag": "meridian_trust", "value": "spooked" }] },
+      "costs": [{ "resource": "hours", "amount": 1 }],
+      "effects": [],
+      "stakes": "The bridge is burned; this is where a new one gets its first plank.",
+      "hook": "The third confessional, north aisle. MERIDIAN set it up back when they believed they'd never need it.",
+      "narrative": { "player_intent": "Repair the broken contact.", "dramatic_role": "The redemption channel: only visible once you've spooked the asset." }
+    },
+    {
+      "id": "r161",
+      "from": "stephansdom_confessional",
+      "to": "safehouse_margareten",
+      "label": "Post an apology into the fretwork, in the old code",
+      "kind": "tradecraft",
+      "costs": [{ "resource": "hours", "amount": 2 }],
+      "effects": [{ "op": "set_flag", "flag": "meridian_trust", "value": "wary" }],
+      "stakes": "Two hours composing five sentences: enough humility to reopen the door, enough competence to be worth reopening it for.",
+      "hook": "You write it four times. The fourth draft admits fault. That one goes in the gap.",
+      "narrative": { "player_intent": "Win back a spooked asset.", "dramatic_role": "Converts spooked to wary — the run is no longer unwinnable." }
+    },
+    {
+      "id": "r162",
+      "from": "stephansdom_confessional",
+      "to": "safehouse_margareten",
+      "label": "Light a candle and leave the box empty",
+      "kind": "open",
+      "effects": [],
+      "stakes": "Some notes can't be written yet. The cathedral doesn't judge; it just keeps the hush ready.",
+      "hook": "One candle, one euro in the tin, no message. Even tradecraft has days like this.",
+      "narrative": { "player_intent": "Withdraw without acting.", "dramatic_role": "Free exit." }
+    },
+    {
+      "id": "r170",
+      "from": "safehouse_margareten",
+      "to": "brandts_gym",
+      "label": "Follow Kessler's bodyguard to his gym",
+      "kind": "recon",
+      "costs": [{ "resource": "hours", "amount": 1 }],
+      "effects": [],
+      "stakes": "Know the insurance policy before you trigger the claim.",
+      "hook": "Every careful man has one appointment he keeps no matter what. Brandt's is a heavy bag in the second district.",
+      "narrative": { "player_intent": "Study the enforcer.", "dramatic_role": "Opens the preparation branch that defuses the climax ambush." }
+    },
+    {
+      "id": "r171",
+      "from": "brandts_gym",
+      "to": "safehouse_margareten",
+      "label": "Skip rope badly in the corner and memorise his sequence",
+      "kind": "recon",
+      "one_time": true,
+      "costs": [{ "resource": "hours", "amount": 1 }],
+      "effects": [{ "op": "add_knowledge", "fact": "brandt_routine" }],
+      "stakes": "An hour of looking harmless buys you the metronome's blind ten minutes — the gap a whole exchange can walk through.",
+      "hook": "Nobody suspects a man skipping rope badly. Bad skipping is invisible.",
+      "narrative": { "player_intent": "Learn Brandt's routine.", "dramatic_role": "Preparation converts the endgame ambush into a solved problem." }
+    },
+    {
+      "id": "r172",
+      "from": "brandts_gym",
+      "to": "safehouse_margareten",
+      "label": "Get in the ring with him — house rules",
+      "kind": "combat",
+      "test": {
+        "type": "combat",
+        "encounter_id": "kessler_enforcer",
+        "failure_to": "ending_dead"
+      },
+      "effects": [
+        { "op": "add_knowledge", "fact": "brandt_routine" },
+        { "op": "modify_stat", "stat": "heat", "amount": 1 }
+      ],
+      "stakes": "Spar with a professional at his own altar: survive it, and you'll know his tells better than his own trainer — but the club will talk, and the talk travels one desk too far.",
+      "hook": "'Three rounds,' says Brandt, courteous as a scheduling matter. 'House rules. Nobody's day job enters the ring.'",
+      "narrative": { "player_intent": "Learn the enforcer the hard way.", "dramatic_role": "The loud version of preparation: same knowledge, real risk, real noise." }
+    },
+    {
+      "id": "r173",
+      "from": "brandts_gym",
+      "to": "safehouse_margareten",
+      "label": "Leave the club without catching his eye",
+      "kind": "open",
+      "effects": [],
+      "stakes": "The metronome keeps its beat; you keep your anonymity.",
+      "hook": "Liniment follows you out into the cold like a rumour.",
+      "narrative": { "player_intent": "Withdraw.", "dramatic_role": "Free exit." }
     },
     {
       "id": "r020",
@@ -1091,6 +1541,24 @@
       "narrative": { "player_intent": "Exploit counter-surveillance knowledge.", "dramatic_role": "The stylish payoff for the watcher_faces fact." }
     },
     {
+      "id": "r083",
+      "from": "tram_line_d",
+      "to": "canal_sewers",
+      "label": "Drop through the works grating into the dark",
+      "kind": "escape",
+      "test": {
+        "type": "skill",
+        "stat": "skill",
+        "modifier": 0,
+        "failure_to": "tram_line_d",
+        "failure_effects": [{ "op": "modify_stat", "stat": "stamina", "amount": -2 }]
+      },
+      "effects": [{ "op": "modify_stat", "stat": "heat", "amount": -2 }],
+      "stakes": "The oldest exit in Vienna: below. Miss your footing on the wet iron and the tram gets you back, bruised and no less followed.",
+      "hook": "The works grating by the Karlsplatz stop has been 'due for repair' since the occupation. Some repairs are load-bearing.",
+      "narrative": { "player_intent": "Vanish downward.", "dramatic_role": "The cinematic escape: trades a test for the biggest heat drop in the game." }
+    },
+    {
       "id": "r090",
       "from": "opera_interval",
       "to": "safehouse_margareten",
@@ -1124,6 +1592,21 @@
       "stakes": "The interval ends, the fencing match adjourns, no points scored either way.",
       "hook": "Tosca resumes. Somebody on stage is also being betrayed by a policeman.",
       "narrative": { "player_intent": "Withdraw from the social engagement.", "dramatic_role": "Free exit." }
+    },
+    {
+      "id": "r095",
+      "from": "opera_interval",
+      "to": "safehouse_margareten",
+      "label": "Serve Kessler his own Belgrade anecdote, dates attached",
+      "kind": "social",
+      "visibility": { "conditions": [{ "op": "knows", "fact": "sacher_gossip" }] },
+      "effects": [
+        { "op": "set_flag", "flag": "mole_identified", "value": true },
+        { "op": "add_knowledge", "fact": "mole_is_kessler" }
+      ],
+      "stakes": "No test needed when the press corps has already done the arithmetic: you quote the story back with its classification dates, and watch certainty land behind his eyes like a verdict.",
+      "hook": "'Marvellous story,' you say. 'Especially the detail that was still classified the first time you told it.' His glass stops halfway.",
+      "narrative": { "player_intent": "Convict the mole with his own vanity.", "dramatic_role": "The gossip chain's payoff: the fencing match, won before it starts." }
     },
     {
       "id": "r100",
@@ -1165,6 +1648,56 @@
       "stakes": "You never learned who is hunting this exchange, so the fog decides for everyone.",
       "hook": "Somewhere above, a car slows without stopping. You proceed anyway.",
       "narrative": { "player_intent": "Execute the exchange without identifying the mole.", "dramatic_role": "The unprepared climax: courage taxed by ignorance." }
+    },
+    {
+      "id": "r104",
+      "from": "danube_canal_exchange",
+      "to": "embassy_gate",
+      "label": "Brandt steps out of the fog — go through him",
+      "kind": "combat",
+      "visibility": { "conditions": [{ "op": "flag_is", "flag": "station_alerted", "value": true }] },
+      "test": {
+        "type": "combat",
+        "encounter_id": "kessler_enforcer",
+        "failure_to": "ending_dead"
+      },
+      "effects": [
+        { "op": "add_item", "item": "cipher_notebook" },
+        { "op": "set_flag", "flag": "evidence_secured", "value": true }
+      ],
+      "stakes": "The station knows, so Kessler knows, so Brandt is on the quay: the exchange happens over his objection or not at all.",
+      "hook": "He steps out of the fog with the regretful courtesy of a man serving a writ. 'Nothing personal,' he says, and means it, which helps neither of you.",
+      "narrative": { "player_intent": "Fight the ambush through.", "dramatic_role": "The alerted endgame's hard road: the insurance policy, cashed by hand." }
+    },
+    {
+      "id": "r105",
+      "from": "danube_canal_exchange",
+      "to": "embassy_gate",
+      "label": "Run the exchange through Brandt's blind ten minutes",
+      "kind": "tradecraft",
+      "conditions": [
+        { "op": "knows", "fact": "brandt_routine" },
+        { "op": "flag_is", "flag": "station_alerted", "value": true }
+      ],
+      "effects": [
+        { "op": "add_item", "item": "cipher_notebook" },
+        { "op": "set_flag", "flag": "evidence_secured", "value": true }
+      ],
+      "stakes": "You set your watch by him at the gym; now you spend his metronome against him. No dice, no blood — just an exchange conducted entirely inside a gap he doesn't know he has.",
+      "hook": "Somewhere in the fog, Brandt patrols his sequence, beat for beat, guarding ten minutes that no longer exist.",
+      "narrative": { "player_intent": "Beat the ambush with preparation.", "dramatic_role": "The gym recon's payoff: violence, scheduled around." }
+    },
+    {
+      "id": "r106",
+      "from": "danube_canal_exchange",
+      "to": "ending_double_agent",
+      "label": "Step back from the quay and make a different phone call",
+      "kind": "betrayal",
+      "visibility": { "conditions": [{ "op": "flag_is", "flag": "mole_identified", "value": true }] },
+      "effects": [{ "op": "modify_resource", "resource": "euros", "amount": 500 }],
+      "stakes": "You know exactly who buys, exactly what this is worth, and exactly one number to call. The fog will keep the secret. You will not get to.",
+      "hook": "The burner has one number in it. It was never MERIDIAN's.",
+      "narrative": { "player_intent": "Sell the exchange to the mole.", "dramatic_role": "The corruption ending: knowing the buyer cuts both ways." }
     },
     {
       "id": "r103",
@@ -1216,8 +1749,8 @@
   "relations": [],
   "validation": {
     "notes": "Counts are maintained by scripts/validate-adventure.js and the CI reachability gate; see README.",
-    "node_count": 17,
-    "route_count": 41,
+    "node_count": 24,
+    "route_count": 72,
     "known_soft_locks": []
   },
   "semantic_layer": {
@@ -1248,6 +1781,21 @@
         "title": "The Window",
         "player_text": "Sunday, 23:40, the canal quay below the bridge: eleven minutes when the patrol boat is at the lock and the bridge camera faces upstream. MERIDIAN will be there once, and once only.",
         "meaning": "The climax is now reachable; time pressure becomes geometry."
+      },
+      "vesper_warning": {
+        "title": "Yours He Circled",
+        "player_text": "VESPER pulled the assignment file: three freelancers were shortlisted for this job, and the deputy head of station struck out two names personally. Yours he circled. A careful man chose his own investigator — which means the investigation was designed to be survivable by exactly one person: him.",
+        "meaning": "The hidden truth, surfaced early: the player was selected by the mole. Every subsequent scene with Kessler reads as a man auditing his own alibi."
+      },
+      "sacher_gossip": {
+        "title": "The Belgrade Anecdote",
+        "player_text": "The press corps' favourite Kessler story, with its timeline attached: he told the same Belgrade anecdote in '19 and again last spring — and the second telling included a detail that was still classified the first time. Somewhere in between, he gained access he never reported.",
+        "meaning": "A conviction wrapped in a dinner-party story: quoting it back at the opera identifies the mole without a test, because his own face does the confessing."
+      },
+      "brandt_routine": {
+        "title": "The Metronome's Blind Ten Minutes",
+        "player_text": "Brandt trains, patrols and lives by an exact sequence — and every exact sequence has a gap. His runs ten minutes, at a predictable offset, during which the quay he guards belongs to whoever counted.",
+        "meaning": "Preparation converts the alerted endgame's ambush from a combat into a scheduling exercise."
       },
       "mole_is_kessler": {
         "title": "The Tidy Drawer",
@@ -1310,6 +1858,38 @@
       },
       "r110": {
         "success_text": "The night bell rings once. The gate opens from the inside, VESPER's remarkable posture bends very slightly in your direction, and the weekend becomes, officially, a triumph.",
+        "failure_text": ""
+      },
+      "r083": {
+        "success_text": "You take the grating like a man who has rehearsed it, because by now you have. The dark swallows you, the tram sighs on overhead with your tail still aboard, and Vienna's other architecture closes over the whole question of where you went.",
+        "failure_text": "Wet iron, hurried hands: the grating wins the first round and hands you back to the carriage lights with your dignity barked and your tail still patient. The tram, at least, pretends not to have noticed."
+      },
+      "r132": {
+        "success_text": "The porter deals like a diplomat and loses like one too — graciously, and only what protocol requires. You leave thirty euros heavier, and he marks you down, approvingly, as somebody who cheats second.",
+        "failure_text": "The porter's third ace arrives with the serenity of long practice. Ten euros lighter, you concede to a professional — and note, for the file, that the Sacher's real security was never at the door."
+      },
+      "r142": {
+        "success_text": "You work the dial by fingertip and prayer, and the safe's vanity betrays it: built to impress, not to resist. The Klimt swings back into place over four typed pages that are going to end a career — and not, now, yours.",
+        "failure_text": "The dial defeats you and the parquet files its report: a neighbour's light, a phone lifted somewhere below, and you are out the service stairs with scratched brass behind you and the whole night suddenly interested in your description."
+      },
+      "r172": {
+        "success_text": "Three rounds with a professional is an education delivered at speed. You lose the first, read the second, and take the third — and Brandt, towelling off, gives you the nod that in his world is a signed reference. You now know his tells better than his trainer does. The club will talk; the talk will travel. Some purchases are loud.",
+        "failure_text": ""
+      },
+      "r104": {
+        "success_text": "It is brief, professional and entirely without malice, which makes it worse. Brandt fights like a man honouring a contract — thoroughly, to the letter — and when he finally goes down on the wet stone he pays out like one too: 'The quay is yours,' he says, and means that as well. MERIDIAN's satchel is in your hands before the fog closes.",
+        "failure_text": ""
+      },
+      "r095": {
+        "success_text": "You serve the anecdote back with its dates showing, and Kessler's glass stops halfway to his mouth. The charm never flickers — he is far too good — but behind his eyes something does the arithmetic and arrives at you. He knows you know. It changes nothing about his manner and everything about your weekend.",
+        "failure_text": ""
+      },
+      "r106": {
+        "success_text": "The call takes ninety seconds and the fog takes the rest. Money will move cleanly, offshore, slightly over the agreed figure. On the quay below, a clerk who kept a promise for eight months waits, looking in the direction you told them was safe.",
+        "failure_text": ""
+      },
+      "r161": {
+        "success_text": "Five sentences, four drafts, one admission of fault. The note goes into the fretwork with a paper whisper, and the cathedral's hush takes custody of your apology. Tomorrow at morning mass, a frightened clerk will find one more reason not to decide it's over.",
         "failure_text": ""
       }
     }
