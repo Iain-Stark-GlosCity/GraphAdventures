@@ -1,7 +1,7 @@
 {
   "schema": {
     "name": "adventure-knowledge-graph",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "description": "A stateful, directed knowledge graph for a modern-day espionage mystery. Same executable traversal rules as every adventure on this platform (conditions, effects, costs, tests), themed entirely through content: tradecraft instead of torches, heat instead of curses."
   },
   "graph": {
@@ -823,13 +823,12 @@
       "visibility": { "conditions": [{ "op": "knows", "fact": "drop_schedule" }] },
       "costs": [{ "resource": "hours", "amount": 1 }],
       "effects": [
-        { "op": "set_flag", "flag": "meridian_trust", "value": "convinced" },
-        { "op": "add_knowledge", "fact": "exfil_window" },
+        { "op": "set_flag", "flag": "meridian_trust", "value": "wary" },
         { "op": "add_knowledge", "fact": "meridian_terms" }
       ],
-      "stakes": "Quoting the drop schedule proves you are the real contact in one sentence.",
-      "hook": "Only two living people know what was under that bench. Be the second, visibly.",
-      "narrative": { "player_intent": "Prove authenticity with the drop intelligence.", "dramatic_role": "Reward for the intelligence chain: trust and the exfil window in one stroke." }
+      "stakes": "Knowing which door a settlement clerk slips out of gets you the meeting — the proving still has to happen face to face.",
+      "hook": "Only two living people know what was under that bench. Be the second — but say nothing here. Not by this doorway.",
+      "narrative": { "player_intent": "Use the drop intelligence to arrange a private meeting.", "dramatic_role": "The intelligence chain buys the audience; the trust and the window are still to be earned in the back room." }
     },
     {
       "id": "r040",
@@ -1217,8 +1216,11 @@
   "validation": {
     "notes": "Counts are maintained by scripts/validate-adventure.js and the CI reachability gate; see README.",
     "node_count": 17,
-    "route_count": 41,
-    "known_soft_locks": []
+    "route_count": 46,
+    "known_soft_locks": [],
+    "ending_assertions": {
+      "ending_burned": [{ "flag": "cover_status", "value": "blown" }]
+    }
   },
   "semantic_layer": {
     "version": "0.1.0",

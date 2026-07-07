@@ -3,7 +3,7 @@
 const crypto = require("node:crypto");
 
 const { EngineError, StoreConflictError, routeUnavailable } = require("./errors");
-const { allPass } = require("./conditions");
+const { allPass, evalCondition } = require("./conditions");
 const { applyEffects, applyKnowledgeGrants } = require("./effects");
 const { makeRoller } = require("./dice");
 const { resolveTest } = require("./resolve");
@@ -303,6 +303,85 @@ function createEngine({ adventure, adventures, store, now = () => new Date().toI
       .map((r) => publicRoute(adventure, r));
   }
 
+  // Controlled visibility for gated routes. By default a route whose
+  // conditions or costs fail simply disappears from available_routes, which
+  // makes some gates unreadable in play (a crossing that needs an item the
+  // player has never heard of, a certification that needs ink after the
+  // bottle ran dry). A route can opt in to being surfaced while unavailable
+  // by declaring disclosure:
+  //   "blocked"      — surfaced with the exact unmet requirements
+  //   "foreshadowed" — surfaced with only the author's vague foreshadow text
+  // Routes without disclosure stay hidden, and routes gated by visibility
+  // conditions or already consumed are never surfaced regardless of
+  // disclosure — visibility remains the true-secret tier; disclosure only
+  // softens condition and cost gates.
+  function describeCondition(cond, adventure) {
+    if (Array.isArray(cond.any)) {
+      return `any of: ${cond.any.map((c) => describeCondition(c, adventure)).join("; ")}`;
+    }
+    switch (cond.op) {
+      case "has_item":
+        return `requires ${adventure.itemsById.get(cond.item)?.name ?? cond.item}`;
+      case "missing_item":
+        return `requires not carrying ${adventure.itemsById.get(cond.item)?.name ?? cond.item}`;
+      case "knows": {
+        const title = adventure.doc.semantic_layer?.knowledge_revelations?.[cond.fact]?.title;
+        return `requires knowing: ${title ?? cond.fact}`;
+      }
+      case "not_knows": {
+        const title = adventure.doc.semantic_layer?.knowledge_revelations?.[cond.fact]?.title;
+        return `requires not yet knowing: ${title ?? cond.fact}`;
+      }
+      case "flag_is":
+        return `requires ${cond.flag} to be ${cond.value}`;
+      case "flag_not":
+        return `requires ${cond.flag} not to be ${cond.value}`;
+      case "stat_at_least":
+        return `requires ${cond.stat} of at least ${cond.value}`;
+      case "stat_below":
+        return `requires ${cond.stat} below ${cond.value}`;
+      case "resource_at_least":
+        return `requires at least ${cond.value} ${cond.resource}`;
+      case "has_condition":
+        return `requires the ${cond.condition} condition`;
+      case "missing_condition":
+        return `requires being free of the ${cond.condition} condition`;
+      default:
+        return "requires something unmet";
+    }
+  }
+
+  function blockedRoutesFor(adventure, state, status) {
+    if (status !== "active") return [];
+    const out = [];
+    for (const route of adventure.routesByFrom.get(state.current_node) ?? []) {
+      if (!route.disclosure) continue;
+      if (!isVisible(route, state) || !isNotConsumed(route, state)) continue;
+      const legal = isLegal(route, state);
+      const affordable = isAffordable(route, state);
+      if (legal && affordable) continue; // available — listed normally instead
+      if (route.disclosure === "foreshadowed") {
+        out.push({ label: route.label, disclosure: "foreshadowed", hint: route.foreshadow });
+        continue;
+      }
+      const reasons = [];
+      if (!legal) {
+        for (const cond of route.conditions ?? []) {
+          if (!evalCondition(cond, state)) reasons.push(describeCondition(cond, adventure));
+        }
+      }
+      for (const cost of route.costs ?? []) {
+        if (state.resources[cost.resource] < cost.amount) {
+          reasons.push(
+            `requires ${cost.amount} ${cost.resource} (you have ${state.resources[cost.resource]})`
+          );
+        }
+      }
+      out.push({ label: route.label, disclosure: "blocked", reason: reasons.join("; ") });
+    }
+    return out;
+  }
+
   // Content revision 0.2.5's semantic_layer.route_resolutions[route_id]:
   // success_text always, failure_text only on routes with a test. Verified
   // safe to reveal post-hoc — where it names the failure destination, that
@@ -328,7 +407,7 @@ function createEngine({ adventure, adventures, store, now = () => new Date().toI
     // recording one, same "no mutation" guarantee as the rest of get_node.
     // Defaults to a first visit if an older run predates visited_nodes.
     const visitCount = state.visited_nodes?.[state.current_node] ?? 1;
-    return {
+    const result = {
       run_id: doc.run_id,
       adventure_id: doc.adventure_id,
       revision: doc.revision,
@@ -337,6 +416,9 @@ function createEngine({ adventure, adventures, store, now = () => new Date().toI
       node: publicNode(node, state, visitCount),
       available_routes: availableRoutesFor(adventure, state, doc.status),
     };
+    const blocked = blockedRoutesFor(adventure, state, doc.status);
+    if (blocked.length > 0) result.blocked_routes = blocked;
+    return result;
   }
 
   async function walk(runId, routeId, expectedRevision) {
@@ -452,6 +534,8 @@ function createEngine({ adventure, adventures, store, now = () => new Date().toI
       node: publicNode(destinationNode, state, destinationVisitCount),
       available_routes: availableRoutesFor(adventure, state, status),
     };
+    const blocked = blockedRoutesFor(adventure, state, status);
+    if (blocked.length > 0) result.blocked_routes = blocked;
     const resolutionText = routeResolutionText(adventure, route.id, success);
     if (resolutionText) result.route_resolution = resolutionText;
     return result;

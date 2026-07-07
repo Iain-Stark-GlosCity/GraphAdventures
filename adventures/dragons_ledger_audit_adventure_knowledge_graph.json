@@ -1,7 +1,7 @@
 {
   "schema": {
     "name": "adventure-knowledge-graph",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "description": "A stateful, directed knowledge graph for a comic high-fantasy audit: a junior adjuster of the Guild of Weights & Reckoning is sent up the mountain to reconcile a dragon's hoard, and discovers that the deadliest thing in the cave is the discrepancy. Same executable rule DSL as every adventure on this platform."
   },
   "graph": {
@@ -497,6 +497,14 @@
       "title": "Returned, Unreconciled",
       "summary": "You come down the mountain with nothing filed and nothing proven, and the Guild expresses its disappointment the way only an institution can: in writing, forever.",
       "tags": ["ending", "failure"],
+      "read_aloud_variants": [
+        {
+          "conditions": [{ "op": "knows", "fact": "hoard_shortfall" }],
+          "priority": 10,
+          "text": "The Guild does not shout. The Guild convenes. A committee receives your preliminary finding in a room with a very long table, and here is the cruelty of it: the number is right. Everyone at that table knows the number is right. Four hundredweight of gold, a named mechanism, a pattern of dusk wagons — and no certification, no stamped page, no scale sworn against the master set. 'Substantial,' the chair allows, in the tone reserved for bridges that almost reach the far bank. The finding is annotated PRELIMINARY — UNRECONCILED and filed where such findings are filed: preserved, unactioned, technically alive. Your name moves down the dispatch board, not to the bottom — the committee is scrupulous — but low enough. In the corridors the little joke is gentler and somehow worse: came down with the whole story and half a signature. Years later, auditing municipal ponds, you can still recite the number. It is still right.",
+          "narrative_note": "The evidence-laden variant of the disgrace: the tragedy is procedural, not epistemic — the auditor knew, and knowing was not the same as certifying."
+        }
+      ],
       "read_aloud": "The Guild does not shout. The Guild convenes. A committee receives your non-finding in a room with a very long table and no water jug on your end of it, and the words 'full and true reconciliation' are read aloud twice, slowly, with your signature displayed beneath them on an easel. Your seal is not taken from you — that would be dramatic, and the Guild does not do drama — but your name moves to the bottom of the dispatch board, into the section informally known as the tide-tables, and there it stays. Years later you will still hear it in corridors, the little joke: went up the mountain, came down with the mule. The mule, you reflect, in the long afternoons of auditing municipal ponds, at least knew the way.",
       "narrative": {
         "local_history": "The Guild's disciplinary minutes are its true epic literature; your hearing runs to four beautifully drafted pages.",
@@ -714,6 +722,19 @@
       "narrative": { "player_intent": "Recover.", "dramatic_role": "The rest loop." }
     },
     {
+      "id": "d038",
+      "from": "counting_caverns",
+      "to": "counting_caverns",
+      "label": "Requisition a bottle of audit ink from the counting-room stores — four gold",
+      "kind": "commerce",
+      "disclosure": "blocked",
+      "costs": [{ "resource": "gold", "amount": 4 }],
+      "effects": [{ "op": "modify_resource", "resource": "ink", "amount": 4 }],
+      "stakes": "A gold dearer than the gatehouse commissary — mountain prices — but a finding that dies of a dry nib is dearer still.",
+      "hook": "The stores kobold stamps the requisition twice and charges you for the second stamp.",
+      "narrative": { "player_intent": "Restock the working resource mid-audit.", "dramatic_role": "Deadlock protection: certification always stays purchasable, at a premium, without a march back down to the gatehouse." }
+    },
+    {
       "id": "d037",
       "from": "counting_caverns",
       "to": "descent_road",
@@ -838,6 +859,7 @@
       "to": "weighbridge",
       "label": "Certify the counter-weights against the master set",
       "kind": "investigation",
+      "disclosure": "blocked",
       "one_time": true,
       "conditions": [{ "op": "knows", "fact": "freight_pattern" }],
       "costs": [{ "resource": "ink", "amount": 1 }],
@@ -890,6 +912,7 @@
       "to": "descent_road",
       "label": "Accept Maurice's 'consultancy arrangement' and sign his filing",
       "kind": "bargain",
+      "one_time": true,
       "effects": [
         { "op": "modify_resource", "resource": "gold", "amount": 25 },
         { "op": "set_flag", "flag": "audit_status", "value": "filed_false" }
@@ -942,6 +965,7 @@
       "to": "weighbridge",
       "label": "Appeal to Grimble's knightly nature — and his paperwork",
       "kind": "social",
+      "one_time": true,
       "test": {
         "type": "skill",
         "stat": "credibility",
@@ -992,6 +1016,7 @@
       "to": "ending_clean_audit",
       "label": "Deliver the finding: the skim, the comptroller, the proof",
       "kind": "climax",
+      "disclosure": "blocked",
       "conditions": [
         { "op": "knows", "fact": "hoard_shortfall" },
         { "op": "has_item", "item": "weighbridge_certificate" }
@@ -1067,11 +1092,29 @@
       "to": "ending_guild_disgrace",
       "label": "Report back with nothing proven",
       "kind": "exit",
-      "conditions": [{ "op": "flag_not", "flag": "audit_status", "value": "filed_false" }],
+      "conditions": [
+        { "op": "flag_not", "flag": "audit_status", "value": "filed_false" },
+        { "op": "not_knows", "fact": "hoard_shortfall" }
+      ],
       "effects": [],
       "stakes": "No finding, no fraud, no future: the committee, the long table, and the little joke in corridors, forever.",
       "hook": "Went up the mountain, came down with the mule.",
-      "narrative": { "player_intent": "Give up and go home.", "dramatic_role": "The empty-handed terminus." }
+      "narrative": { "player_intent": "Give up and go home.", "dramatic_role": "The empty-handed terminus, offered only when the satchel is genuinely empty; with a quantified shortfall in hand the descent is d103's preliminary filing instead." }
+    },
+    {
+      "id": "d103",
+      "from": "descent_road",
+      "to": "ending_guild_disgrace",
+      "label": "File a preliminary finding — quantified, but uncertified",
+      "kind": "exit",
+      "conditions": [
+        { "op": "flag_not", "flag": "audit_status", "value": "filed_false" },
+        { "op": "knows", "fact": "hoard_shortfall" }
+      ],
+      "effects": [],
+      "stakes": "You have the number and you can name the hand behind it — but a finding the Guild cannot stamp is a rumour with a bibliography, and the committee grades what is certified, not what is true.",
+      "hook": "Four hundredweight of missing gold, sworn to by no scale. The mule carries it easily.",
+      "narrative": { "player_intent": "File what you have, short of proof.", "dramatic_role": "The honest-but-insufficient terminus: distinguishes an evidence-laden withdrawal from an empty-handed one, so the ending can acknowledge what was actually established." }
     },
     {
       "id": "d102",
@@ -1088,9 +1131,13 @@
   "relations": [],
   "validation": {
     "notes": "Counts are maintained by scripts/validate-adventure.js and the CI reachability gate; see README.",
-    "node_count": 15,
-    "route_count": 33,
-    "known_soft_locks": []
+    "node_count": 16,
+    "route_count": 42,
+    "known_soft_locks": [],
+    "ending_assertions": {
+      "ending_clean_audit": [{ "flag": "audit_status", "value": "filed_true" }],
+      "ending_cooked_books": [{ "flag": "audit_status", "value": "filed_false" }]
+    }
   },
   "semantic_layer": {
     "version": "0.1.0",

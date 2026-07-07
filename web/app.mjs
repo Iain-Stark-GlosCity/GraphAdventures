@@ -326,6 +326,23 @@ function renderChoices(view) {
     button.addEventListener("click", () => choose(route));
     box.append(button);
   }
+  // Gated choices the content chose to let the player perceive: a "blocked"
+  // entry names exactly what's missing, a "foreshadowed" one only hints.
+  // Rendered inert — they're scenery with a keyhole, not buttons.
+  for (const blocked of view.blocked_routes ?? []) {
+    const detail = blocked.disclosure === "blocked" ? blocked.reason : blocked.hint;
+    box.append(
+      el(
+        "div",
+        { class: "choice blocked" },
+        el("span", { class: "choice-label", text: blocked.label }),
+        detail ? el("span", { class: "choice-stakes", text: detail }) : null,
+        blocked.disclosure === "blocked"
+          ? el("span", { class: "choice-badges" }, el("span", { class: "badge locked", text: "Out of reach" }))
+          : null
+      )
+    );
+  }
   storyAppend(box);
 }
 

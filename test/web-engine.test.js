@@ -146,3 +146,26 @@ test("random playthroughs never crash the web engine", async () => {
   }
   assert.ok(completed > 0, "at least one run reached an ending");
 });
+
+// Blocked-route disclosure must project identically in both engines: same
+// entries, same reasons, same secrecy (foreshadowed hints carry no
+// requirement detail).
+test("blocked-route disclosure matches the server engine", async () => {
+  const { web, webAdventure } = await webSetup();
+  const { doc } = web.newRun(webAdventure);
+  doc.state.current_node = "vault_antechamber";
+  const webView = web.getNode(webAdventure, doc);
+
+  const seal = webView.blocked_routes.find((b) => b.label === "Present the Brass Seal");
+  assert.equal(seal.disclosure, "blocked");
+  assert.match(seal.reason, /Brass Seal/);
+  const clause = webView.blocked_routes.find((b) => b.disclosure === "foreshadowed");
+  assert.ok(clause.hint.length > 0);
+  assert.ok(!("reason" in clause), "a foreshadowed route reveals only its hint");
+
+  const { engine, store } = makeEngine();
+  const run = await engine.newRun(adventure.id);
+  store.runs.get(run.run_id).doc.state.current_node = "vault_antechamber";
+  const serverView = await engine.getNode(run.run_id);
+  assert.deepEqual(webView.blocked_routes, serverView.blocked_routes);
+});

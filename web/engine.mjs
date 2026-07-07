@@ -393,6 +393,78 @@ function routeResolutionText(adventure, routeId, success) {
   return success ? resolution.success_text : resolution.failure_text;
 }
 
+// Controlled visibility for gated routes — ported verbatim from
+// src/engine/engine.js. A route declaring disclosure "blocked" is surfaced
+// with its exact unmet requirements; "foreshadowed" with only its authored
+// foreshadow hint. Routes without disclosure stay hidden, and routes gated
+// by visibility conditions or already consumed are never surfaced.
+function describeCondition(cond, adventure) {
+  if (Array.isArray(cond.any)) {
+    return `any of: ${cond.any.map((c) => describeCondition(c, adventure)).join("; ")}`;
+  }
+  switch (cond.op) {
+    case "has_item":
+      return `requires ${adventure.itemsById.get(cond.item)?.name ?? cond.item}`;
+    case "missing_item":
+      return `requires not carrying ${adventure.itemsById.get(cond.item)?.name ?? cond.item}`;
+    case "knows": {
+      const title = adventure.doc.semantic_layer?.knowledge_revelations?.[cond.fact]?.title;
+      return `requires knowing: ${title ?? cond.fact}`;
+    }
+    case "not_knows": {
+      const title = adventure.doc.semantic_layer?.knowledge_revelations?.[cond.fact]?.title;
+      return `requires not yet knowing: ${title ?? cond.fact}`;
+    }
+    case "flag_is":
+      return `requires ${cond.flag} to be ${cond.value}`;
+    case "flag_not":
+      return `requires ${cond.flag} not to be ${cond.value}`;
+    case "stat_at_least":
+      return `requires ${cond.stat} of at least ${cond.value}`;
+    case "stat_below":
+      return `requires ${cond.stat} below ${cond.value}`;
+    case "resource_at_least":
+      return `requires at least ${cond.value} ${cond.resource}`;
+    case "has_condition":
+      return `requires the ${cond.condition} condition`;
+    case "missing_condition":
+      return `requires being free of the ${cond.condition} condition`;
+    default:
+      return "requires something unmet";
+  }
+}
+
+function blockedRoutesFor(adventure, state, status) {
+  if (status !== "active") return [];
+  const out = [];
+  for (const route of adventure.routesByFrom.get(state.current_node) ?? []) {
+    if (!route.disclosure) continue;
+    if (!isVisible(route, state) || !isNotConsumed(route, state)) continue;
+    const legal = isLegal(route, state);
+    const affordable = isAffordable(route, state);
+    if (legal && affordable) continue; // available — listed normally instead
+    if (route.disclosure === "foreshadowed") {
+      out.push({ label: route.label, disclosure: "foreshadowed", hint: route.foreshadow });
+      continue;
+    }
+    const reasons = [];
+    if (!legal) {
+      for (const cond of route.conditions ?? []) {
+        if (!evalCondition(cond, state)) reasons.push(describeCondition(cond, adventure));
+      }
+    }
+    for (const cost of route.costs ?? []) {
+      if (state.resources[cost.resource] < cost.amount) {
+        reasons.push(
+          `requires ${cost.amount} ${cost.resource} (you have ${state.resources[cost.resource]})`
+        );
+      }
+    }
+    out.push({ label: route.label, disclosure: "blocked", reason: reasons.join("; ") });
+  }
+  return out;
+}
+
 // ---------------------------------------------------------------- runs ----
 
 /** Starts a run. Returns { doc, result }; doc is what the app persists. */
@@ -424,6 +496,8 @@ export function newRun(adventure, { label = null, randomInt, now = () => new Dat
     arrival_effects_applied: enrichEffects(adventure, arrivalEffects),
     available_routes: availableRoutesFor(adventure, state, "active"),
   };
+  const entryBlocked = blockedRoutesFor(adventure, state, "active");
+  if (entryBlocked.length > 0) result.blocked_routes = entryBlocked;
   const intro = adventure.doc.graph.opening_context?.player_facing_introduction;
   if (intro) result.opening_context = intro;
   return { doc, result };
@@ -440,7 +514,7 @@ export function getNode(adventure, doc) {
   const state = doc.state;
   const node = adventure.nodesById.get(state.current_node);
   const visitCount = state.visited_nodes?.[state.current_node] ?? 1;
-  return {
+  const result = {
     run_id: doc.run_id,
     revision: doc.revision,
     status: doc.status,
@@ -448,6 +522,9 @@ export function getNode(adventure, doc) {
     node: publicNode(adventure, node, state, visitCount),
     available_routes: availableRoutesFor(adventure, state, doc.status),
   };
+  const blocked = blockedRoutesFor(adventure, state, doc.status);
+  if (blocked.length > 0) result.blocked_routes = blocked;
+  return result;
 }
 
 /** Takes a route. Mutates doc (state, log, revision) and returns the step. */
@@ -537,6 +614,8 @@ export function walk(adventure, doc, routeId, { randomInt, now = () => new Date(
     available_routes: availableRoutesFor(adventure, state, status),
     state: publicState(state),
   };
+  const blocked = blockedRoutesFor(adventure, state, status);
+  if (blocked.length > 0) result.blocked_routes = blocked;
   const resolutionText = routeResolutionText(adventure, route.id, success);
   if (resolutionText) result.route_resolution = resolutionText;
   return result;

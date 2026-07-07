@@ -282,6 +282,15 @@ main#game {
 .badge.cost { border-color: var(--rust); color: #d59b83; }
 .badge.test { border-color: var(--accent-dim); color: var(--accent); }
 .badge.visited { border-style: dashed; color: var(--ink-dim); }
+.badge.locked { border-style: dashed; border-color: var(--rust); color: #d59b83; }
+
+/* Disclosed-but-unavailable routes: visible scenery, not buttons. */
+.choice.blocked {
+  opacity: 0.55;
+  cursor: default;
+  border-style: dashed;
+}
+.choice.blocked .choice-stakes { font-style: italic; }
 
 .ending, .stuck { border-color: var(--accent-dim); text-align: center; padding: 1.6rem; }
 .ending h3, .stuck h3 { color: var(--accent); font-variant: small-caps; margin: 0 0 0.4rem; font-size: 1.3rem; }
