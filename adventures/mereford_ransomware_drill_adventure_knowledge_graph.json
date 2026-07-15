@@ -1,0 +1,662 @@
+{
+  "schema": {
+    "name": "adventure-knowledge-graph",
+    "version": "0.1.1",
+    "description": "A stateful, directed knowledge graph for a cyber-incident crisis-management gamebook: Gold Command talks a ransomware attack on a district council through a 72-hour statutory clock. Same executable rule DSL as every adventure on this platform."
+  },
+  "graph": {
+    "id": "mereford-ransomware-drill",
+    "title": "Gold Command: The Mereford Incident",
+    "subtitle": "A cyber-incident training exercise in judgement under a 72-hour clock",
+    "genre": ["cyber incident response", "public sector", "crisis management", "gamebook"],
+    "tone": ["tense", "procedural", "ethically pointed", "grounded"],
+    "entry_node": "incident_alert",
+    "terminal_nodes": [
+      "ending_recovery_strong",
+      "ending_ransom_paid",
+      "ending_catastrophic",
+      "ending_scandal",
+      "ending_dead"
+    ],
+    "design_notes": [
+      "There is no combat here; the death invariant node exists because the platform requires it, not because this story reaches it.",
+      "skill represents technical judgement under pressure and is tested twice: once at the moment of containment, once at the moment of attribution. Both times the honest answer is ambiguous under time pressure.",
+      "cover_up_attempted and late_containment are the two ways a Gold Command can lose the story even when the technical response is sound.",
+      "exposure only ever goes up; it is a ratchet, not a stat you can recover, matching how a live incident actually accumulates institutional risk."
+    ],
+    "narrative_premise": "06:10 on a Monday. The SOC has flagged mass file-encryption across Mereford District Council's shared drives. A ransom note names a 72-hour window before stolen data is published. You are Gold Command. Every choice you make in the next three days will be reconstructed later — by the ICO, by an FOI request, or by a journalist — whether or not it feels like it matters now.",
+    "core_mystery": "How far in did they get, and can you prove it before the clock forces you to guess in public?",
+    "dramatic_question": "Is the honest version of events worth more than the managed one?",
+    "hidden_truth": "The intrusion came through a third-party print supplier's VPN credentials, reused from a breach two years ago that was never rotated.",
+    "opening_context": {
+      "player_facing_introduction": "Your phone lights up at 06:10 with the kind of message that ends a normal week: SOC has flagged mass file-encryption across the council's shared drives, and a ransom note is already sitting in three inboxes, naming a 72-hour deadline before stolen data goes public. You are Gold Command. Nobody has briefed the Leader yet. Nobody has told the press office. Right now it is just you, a laptop, and a clock that started running before you woke up."
+    }
+  },
+  "ruleset": {
+    "mode": "single_player_gamebook",
+    "player_state": {
+      "stats": {
+        "skill": { "type": "integer", "min": 1, "max": 12, "initial": 8 },
+        "stamina": { "type": "integer", "min": 0, "max": 10, "initial": 10 },
+        "luck": { "type": "integer", "min": 0, "max": 12, "initial": 8 },
+        "team_trust": { "type": "integer", "min": 0, "max": 15, "initial": 10 },
+        "public_confidence": { "type": "integer", "min": 0, "max": 15, "initial": 10 },
+        "exposure": { "type": "integer", "min": 0, "max": 15, "initial": 0 }
+      },
+      "resources": {
+        "hours_to_deadline": { "type": "integer", "min": 0, "initial": 72 },
+        "comms_capital": { "type": "integer", "min": 0, "initial": 5 }
+      },
+      "collections": {
+        "inventory": { "type": "set", "initial": [] },
+        "conditions": { "type": "set", "initial": [] },
+        "knowledge": { "type": "set", "initial": ["ransom_note_seen"] }
+      },
+      "flags": {
+        "network_isolated": { "type": "boolean", "initial": false },
+        "command_structure_formal": { "type": "boolean", "initial": false },
+        "exfil_confirmed": { "type": "enum", "values": ["unknown", "confirmed", "unconfirmed"], "initial": "unknown" },
+        "regulator_notified": { "type": "boolean", "initial": false },
+        "public_statement_made": { "type": "boolean", "initial": false },
+        "ransom_paid": { "type": "boolean", "initial": false },
+        "cover_up_attempted": { "type": "boolean", "initial": false },
+        "late_containment": { "type": "boolean", "initial": false }
+      }
+    },
+    "condition_dsl": {
+      "operators": [
+        "has_item", "missing_item", "flag_is", "flag_not", "stat_at_least", "stat_below",
+        "resource_at_least", "has_condition", "missing_condition", "knows", "not_knows"
+      ],
+      "combination": "All conditions on a route must pass unless the route uses an explicit any block."
+    },
+    "effect_dsl": {
+      "operators": [
+        "add_item", "remove_item", "set_flag", "modify_stat", "modify_resource",
+        "add_condition", "remove_condition", "add_knowledge", "emit_event"
+      ]
+    },
+    "test_dsl": {
+      "types": ["skill", "luck", "combat", "choice"],
+      "notes": "2d6 against stat plus modifier. This adventure only ever tests skill; there are no combat encounters, and luck is present for contract parity but untested."
+    }
+  },
+  "regions": [
+    {
+      "id": "mereford_incident",
+      "name": "Mereford District Council, Incident Room",
+      "depth": 0,
+      "theme": "a 72-hour clock, a laptop, and every decision reconstructed later",
+      "narrative": {
+        "surface_read": "SOC dashboards, a borrowed meeting room, a ransom note nobody has stopped rereading.",
+        "deeper_truth": "The technical incident is survivable; what actually ends careers is what gets said, or not said, while it's still live.",
+        "dramatic_function": "Keep every choice legible as both an operational decision and a future line in an ICO report.",
+        "sensory_palette": ["cold coffee", "a phone that will not stop", "the ransom note's flat, rehearsed prose", "a countdown nobody can pause"]
+      }
+    }
+  ],
+  "items": [],
+  "encounters": [],
+  "nodes": [
+    {
+      "id": "incident_alert",
+      "type": "start",
+      "region": "mereford_incident",
+      "title": "06:10, The Call",
+      "summary": "SOC reports mass encryption across shared drives; a ransom note demands payment within 72 hours or stolen data goes public.",
+      "tags": ["start", "briefing"],
+      "read_aloud": "Your phone will not stop lighting up. SOC has flagged mass file-encryption across the council's shared drives, spreading fast enough that nobody has a clean count yet. A ransom note is already sitting in three inboxes, its prose flat and rehearsed: pay within 72 hours or the stolen data goes public. Every minute of hesitation lets the encryption spread further; every minute you don't spend, you can't get back. Whatever you decide in the next sixty seconds, someone will ask you to justify it in writing before the week is out.",
+      "read_aloud_revisit": "06:10 again, in memory if nowhere else: the phone, the flat ransom prose, the clock that started before you were awake.",
+      "narrative": {
+        "present_tension": "Every minute of hesitation lets the spread grow, but acting on incomplete information can cause its own damage.",
+        "hidden_truth": "The intrusion came through a third-party print supplier's VPN credentials, reused from a breach two years ago that was never rotated.",
+        "sensory_details": ["a phone screen that won't go dark", "the ransom note's flat, corporate prose", "cold coffee, untouched"],
+        "emotional_undertone": "The particular loneliness of being the first person who has to decide anything."
+      }
+    },
+    {
+      "id": "contain_early",
+      "type": "location",
+      "region": "mereford_incident",
+      "title": "Cut and Contained",
+      "summary": "Isolation lands fast. Spread is limited, but council tax, benefits payments and the print supplier link all go dark with it.",
+      "tags": ["containment"],
+      "read_aloud": "The order goes out and the network drops behind it: council tax, benefits payments and the print supplier link all go dark in the same stroke as the encryption's spread. It is the right call and an expensive one, and you will not know for hours which of those two facts residents will remember first.",
+      "read_aloud_revisit": "The network stays down, quiet in the particular way of a system that has been switched off rather than merely broken.",
+      "narrative": {
+        "present_tension": "Containment bought you time; it did not buy you certainty about what already left the building.",
+        "sensory_details": ["dashboards going grey one by one", "a silence where the helpdesk queue used to be"],
+        "emotional_undertone": "Relief with a bill attached."
+      }
+    },
+    {
+      "id": "spread_confirmed",
+      "title": "The Blast Radius Grows",
+      "type": "location",
+      "region": "mereford_incident",
+      "summary": "While you verify, encryption reaches the finance and benefits payment systems. Exposure rises.",
+      "tags": ["escalation"],
+      "read_aloud": "Verification takes the time it takes, and the encryption does not wait politely for you to finish it. By the time the scope is clear, it has reached the finance and benefits payment systems. The number of people whose money is now delayed just became a number you will have to say out loud, later, to someone who wants to know why.",
+      "read_aloud_revisit": "The blast radius as confirmed: finance, benefits, a spreadsheet of consequences that keeps growing while you read it.",
+      "narrative": {
+        "present_tension": "Verification was the responsible instinct; it was also expensive, and the expense is not yours alone to pay.",
+        "sensory_details": ["a scope document that keeps needing new rows", "the benefits team's phone, ringing and ringing"],
+        "emotional_undertone": "Being right about caution and wrong about the cost of it, in the same hour."
+      }
+    },
+    {
+      "id": "assemble_command",
+      "type": "location",
+      "region": "mereford_incident",
+      "title": "Gold, Silver, Bronze",
+      "summary": "Formal command structure costs you twenty minutes but buys coordination you'll need on day two.",
+      "tags": ["structure"],
+      "read_aloud": "You spend twenty minutes nobody wants to spend standing up a formal Gold, Silver and Bronze structure before touching the network switch. It feels like theatre while the fires are still small. It will feel like the only sane decision you made once day two arrives and six different departments need to be told six different things at once, in the right order, by someone whose authority isn't in question.",
+      "read_aloud_revisit": "The command structure holds, minutes spent long ago on a decision that is still paying for itself.",
+      "narrative": {
+        "present_tension": "Structure now is time you don't have; structure later is coordination you won't have.",
+        "sensory_details": ["a whiteboard filling with names and roles", "the specific relief of someone finally being told what to do"],
+        "emotional_undertone": "Discipline that looks like delay until it doesn't."
+      }
+    },
+    {
+      "id": "forensics_engage",
+      "type": "challenge",
+      "region": "mereford_incident",
+      "title": "What Did They Take?",
+      "summary": "Forensics works the logs. The exfiltration claim in the ransom note may be real, may be bluff — the evidence is ambiguous under time pressure.",
+      "tags": ["investigation"],
+      "read_aloud": "Forensics gets to work on the logs, and the ransom note's claim of stolen data sits there unresolved: it might be real, it might be bluff dressed up to look real, and the evidence available inside the deadline is stubbornly ambiguous either way. You can push for a read now, on partial evidence, or wait for something closer to certainty — and the clock is charging interest on that choice too.",
+      "read_aloud_revisit": "The logs are still being read, line by line, against a claim that refuses to resolve cleanly.",
+      "narrative": {
+        "present_tension": "Certainty and speed are trading against each other, and the trade only gets worse the longer you hold both.",
+        "hidden_truth": "The exfiltration is real: the attackers pulled a benefits-and-payroll export through the same compromised VPN link three days before the ransom note landed.",
+        "sensory_details": ["log timestamps scrolling past faster than anyone can read them", "a forensic analyst's coffee, also cold"],
+        "emotional_undertone": "The specific vertigo of a fact that exists but hasn't been proven yet."
+      }
+    },
+    {
+      "id": "delay_disclosure",
+      "type": "location",
+      "region": "mereford_incident",
+      "title": "The Silence Gets Expensive",
+      "summary": "Waiting for certainty eats the clock. A local reporter is already asking why council tax payments have failed for three days.",
+      "tags": ["escalation"],
+      "read_aloud": "Waiting for certainty eats the clock in a way that doesn't show up on any dashboard. On the third day of failed council tax payments, a local reporter starts asking why, in the tone of someone who already suspects the answer and is only confirming it for the record.",
+      "read_aloud_revisit": "The silence is still costing you, in the specific currency of a reporter's patience running out.",
+      "narrative": {
+        "present_tension": "Every hour of waiting for forensic certainty is an hour someone outside the building spends filling the silence with their own theory.",
+        "sensory_details": ["a voicemail from the local paper, unreturned", "the benefits helpline's hold music, looping"],
+        "emotional_undertone": "Diligence curdling into something that looks, from outside, like evasion."
+      }
+    },
+    {
+      "id": "comms_prep",
+      "type": "location",
+      "region": "mereford_incident",
+      "title": "Drafting the Line to Take",
+      "summary": "Comms and legal draft a public statement. The version that protects residents and the version that protects reputations are not quite the same document.",
+      "tags": ["comms"],
+      "read_aloud": "Comms and legal sit down to draft the line to take, and two documents start to emerge from the same set of facts: the version that tells residents what they need to know to protect themselves, and the version that reads best in six months' time. Nobody in the room says out loud that these are different documents. Everyone in the room knows it.",
+      "read_aloud_revisit": "The draft statement sits on the table, still doing its quiet work of deciding whose interests it actually serves.",
+      "narrative": {
+        "present_tension": "The gap between the two drafts is small enough to miss and large enough to matter.",
+        "sensory_details": ["two marked-up drafts on the same table", "a red pen moving faster over one than the other"],
+        "emotional_undertone": "A form of dishonesty that never has to admit it is one."
+      }
+    },
+    {
+      "id": "political_pressure",
+      "type": "encounter",
+      "region": "mereford_incident",
+      "title": "The Leader Wants This Managed",
+      "summary": "The Leader and Chief Exec want services back and disclosure minimised. 'Managed' is doing a lot of work in that sentence.",
+      "tags": ["social", "pivotal"],
+      "read_aloud": "The Leader and the Chief Exec want services back and disclosure minimised, and they say so in the careful, deniable language of people who will not be the ones quoted. 'Managed' is doing a great deal of work in that sentence. Everyone in the room agrees residents come first; nobody says out loud what that means this week, because it means something different to each of them.",
+      "read_aloud_revisit": "The Leader's office again, the same careful language, the same word — managed — still doing all the work it was doing before.",
+      "narrative": {
+        "present_tension": "Everyone in the room agrees residents come first; they disagree, without saying so, about what that means this week.",
+        "sensory_details": ["a closed door with a raised-voice murmur behind it", "a statement draft with more redactions than sentences"],
+        "emotional_undertone": "Consensus that is really just silence, worn by several people at once."
+      }
+    },
+    {
+      "id": "public_disclosure",
+      "type": "location",
+      "region": "mereford_incident",
+      "title": "Going Public",
+      "summary": "The statement goes out. Residents, press and the regulator now know what you know. The ransom deadline is still running.",
+      "tags": ["comms", "pivotal"],
+      "read_aloud": "The statement goes out. Residents, press and the regulator now know roughly what you know, at roughly the same time you know it, which is either the whole point of doing this properly or the last mistake you make, depending on who you ask by the end of the week. The ransom deadline does not pause to let the news cycle catch up.",
+      "read_aloud_revisit": "The statement is out there now, doing its slow work in inboxes and newsrooms, impossible to call back.",
+      "narrative": {
+        "present_tension": "Once it is public, every subsequent decision is made in front of an audience that was not in the room for the earlier ones.",
+        "sensory_details": ["a press office phone ringing before the statement has finished sending", "a comment thread filling in real time"],
+        "emotional_undertone": "The relief of honesty, immediately followed by the weight of it."
+      }
+    },
+    {
+      "id": "regulator_call",
+      "type": "location",
+      "region": "mereford_incident",
+      "title": "The 72-Hour Clock, Kept",
+      "summary": "ICO and NCSC are notified inside the statutory window. It buys credibility for everything that follows.",
+      "tags": ["compliance"],
+      "read_aloud": "The call to the ICO and NCSC goes out inside the statutory window, on evidence that is good enough rather than perfect. It is not a comfortable call to make on partial certainty. It is, on every later page of every later report, the call that buys you credibility for everything that follows it.",
+      "read_aloud_revisit": "The regulator notification sits logged and timestamped, a fact nobody can later dispute.",
+      "narrative": {
+        "present_tension": "A timely, imperfect notification will always read better in hindsight than a late, complete one.",
+        "sensory_details": ["a call reference number, written down twice to be sure", "the strange calm of a deadline actually met"],
+        "emotional_undertone": "A small, procedural act of courage that nobody in the room will call brave."
+      }
+    },
+    {
+      "id": "deeper_spread",
+      "type": "location",
+      "region": "mereford_incident",
+      "title": "Overrun",
+      "summary": "The delay costs everything containable. Encryption reaches backups that weren't properly segmented.",
+      "tags": ["escalation", "consequence"],
+      "read_aloud": "The delay costs everything that was still containable. Encryption reaches the backups — the ones that were supposed to be segmented, and weren't, quite, in the way the architecture diagram had always promised. There is no clean floor left to stand on.",
+      "read_aloud_revisit": "The overrun sits where you left it: backups gone, and no version of events where that isn't the headline.",
+      "narrative": {
+        "present_tension": "The last safety net you were counting on was never as separate as the diagram said it was.",
+        "sensory_details": ["a backup job log ending mid-line", "a silence where a recovery plan used to be"],
+        "emotional_undertone": "The specific despair of a plan failing exactly where you were told it couldn't."
+      }
+    },
+    {
+      "id": "cover_up_exposed",
+      "type": "location",
+      "region": "mereford_incident",
+      "title": "It Gets Out Anyway",
+      "summary": "A journalist files an FOI request that the softened statement can't survive. The story is no longer the breach — it's the silence.",
+      "tags": ["escalation", "consequence"],
+      "read_aloud": "A journalist files an FOI request the softened statement was never built to survive, and the story turns overnight. It is no longer the breach. It is the silence around the breach, and silence makes for a much better headline than an honest technical failure ever would.",
+      "read_aloud_revisit": "The story has already turned, and there is no version of the softened statement that survives a second reading.",
+      "narrative": {
+        "present_tension": "A cover-up only has to fail once to become the entire story.",
+        "sensory_details": ["an FOI response with a due date already passed", "a phone that has started ringing from numbers you don't recognise"],
+        "emotional_undertone": "The specific shame of being caught managing the truth rather than telling it."
+      }
+    },
+    {
+      "id": "ending_recovery_strong",
+      "type": "ending",
+      "region": "mereford_incident",
+      "title": "ENDING: The Playbook Worked",
+      "summary": "Regulator notified in time, ransom refused, backups held. Services return within the week. The ICO takes no further action; the incident becomes the case study you cite next time someone asks 'is this worth the budget.'",
+      "tags": ["ending", "strong"],
+      "read_aloud": "Regulator notified in time, ransom refused, backups held. Services return within the week, in the right order, without a second crisis hiding behind the first one. The ICO takes no further action. The incident becomes the case study you cite, calmly, the next time someone in a budget meeting asks whether any of this was worth paying for.",
+      "narrative": {
+        "present_tension": "Resolved, at the cost of every easy shortcut you didn't take.",
+        "sensory_details": ["a services dashboard turning green, department by department", "a debrief slide with no red text on it"],
+        "emotional_undertone": "The quiet, almost anticlimactic satisfaction of a plan that simply worked."
+      }
+    },
+    {
+      "id": "ending_ransom_paid",
+      "type": "ending",
+      "region": "mereford_incident",
+      "title": "ENDING: Bought, Not Solved",
+      "summary": "The payment buys a decryption key and a quieter fortnight. It also buys an NCA enquiry into sanctioned-entity payment risk, and an internal audit finding that follows you for years.",
+      "tags": ["ending", "mixed"],
+      "read_aloud": "The payment buys a working decryption key and a quieter fortnight than the alternative would have given you. It also buys an NCA enquiry into sanctioned-entity payment risk, and an internal audit finding with your name near the top of it that will still be circulating in meetings years from now, cited by people who weren't there.",
+      "narrative": {
+        "present_tension": "Deferred, at a rate of interest nobody quoted you up front.",
+        "sensory_details": ["a decryption key that actually works, disappointingly ordinary to look at", "an audit finding, filed and unforgettable"],
+        "emotional_undertone": "Relief with a second bill still to arrive."
+      }
+    },
+    {
+      "id": "ending_catastrophic",
+      "type": "ending",
+      "region": "mereford_incident",
+      "title": "ENDING: Overrun",
+      "summary": "Benefits payments fail for weeks. National coverage. The ICO opens a full investigation; the Leader resigns before it concludes.",
+      "tags": ["ending", "bad"],
+      "read_aloud": "Benefits payments fail for weeks, not days. National coverage follows, then a full ICO investigation, and the Leader resigns before it concludes — not because anyone forced the point, but because there is no longer a version of staying that doesn't look worse than going.",
+      "narrative": {
+        "present_tension": "Ended, in the worst way an incident can end: everyone still has questions, and nobody in the room can answer them any more.",
+        "sensory_details": ["a national news chyron with the council's name in it", "an empty chair where the Leader used to sit"],
+        "emotional_undertone": "The particular exhaustion of an incident that outlasted everyone's authority to fix it."
+      }
+    },
+    {
+      "id": "ending_scandal",
+      "type": "ending",
+      "region": "mereford_incident",
+      "title": "ENDING: The Cover-Up Was Worse",
+      "summary": "The breach was survivable. The softened statement was not. You are named, personally, in the resulting report.",
+      "tags": ["ending", "bad"],
+      "read_aloud": "The breach, on its own, was survivable — councils survive breaches every year. The softened statement was not. The resulting report names you, personally, not for the ransomware, but for the sentence you approved that everyone in the room knew wasn't quite true when you approved it.",
+      "narrative": {
+        "present_tension": "Ended, with your own signature the last piece of evidence anyone needed.",
+        "sensory_details": ["a report with your name in a sentence you can't unread", "a phone that has stopped ringing, which is somehow worse"],
+        "emotional_undertone": "The specific loneliness of being right about the technology and wrong about the truth."
+      }
+    },
+    {
+      "id": "ending_dead",
+      "type": "ending",
+      "region": "mereford_incident",
+      "title": "ENDING: The Clock Outlasted You",
+      "summary": "Another sleepless night at the incident desk finally costs more than the investigation gained. Someone else has to finish reading the logs.",
+      "tags": ["ending", "bad", "collapse"],
+      "read_aloud": "You told yourself one more pass through the logs, one more sleepless night, and the incident would finally hold still. It doesn't. Somewhere around the fourth night without real sleep, the room tips sideways and does not come back. Somebody else finishes reading the logs. The incident does not pause to wait for you to recover, and neither, it turns out, does anyone's memory of who was meant to be in charge.",
+      "narrative": {
+        "present_tension": "Ended, by the one variable nobody put on the incident dashboard: you.",
+        "sensory_details": ["a keyboard, still warm, under someone else's hands now", "a shift handover written by a colleague, careful not to say too much"],
+        "emotional_undertone": "The cost of treating your own limits as the one risk not worth logging."
+      }
+    }
+  ],
+  "routes": [
+    {
+      "id": "m001",
+      "from": "incident_alert",
+      "to": "contain_early",
+      "label": "Isolate the network immediately",
+      "kind": "risk",
+      "test": {
+        "type": "skill",
+        "stat": "skill",
+        "modifier": 0,
+        "failure_to": "spread_confirmed",
+        "failure_effects": [{ "op": "modify_stat", "stat": "exposure", "amount": 3 }]
+      },
+      "effects": [{ "op": "set_flag", "flag": "network_isolated", "value": true }],
+      "stakes": "Cut now, on instinct, and you either contain it clean or misjudge the scope and watch it spread anyway.",
+      "hook": "Every minute of hesitation is spreading; every switch you throw blind might be the wrong one.",
+      "narrative": { "player_intent": "Act immediately on incomplete information.", "dramatic_role": "The judgement test that opens the adventure." }
+    },
+    {
+      "id": "m002",
+      "from": "incident_alert",
+      "to": "spread_confirmed",
+      "label": "Verify scope before cutting services",
+      "kind": "open",
+      "effects": [{ "op": "modify_stat", "stat": "exposure", "amount": 3 }],
+      "stakes": "Caution costs blast radius; verification takes time the encryption doesn't.",
+      "hook": "Cutting services blind has its own cost. So does not cutting them.",
+      "narrative": { "player_intent": "Confirm the picture before acting.", "dramatic_role": "The cautious road, guaranteed to cost exposure." }
+    },
+    {
+      "id": "m003",
+      "from": "incident_alert",
+      "to": "assemble_command",
+      "label": "Stand up formal Gold/Silver/Bronze first",
+      "kind": "open",
+      "effects": [{ "op": "set_flag", "flag": "command_structure_formal", "value": true }],
+      "stakes": "Twenty minutes of structure now, paid back in coordination later.",
+      "hook": "It looks like delay while the fires are still small.",
+      "narrative": { "player_intent": "Build command structure before acting.", "dramatic_role": "The investment road." }
+    },
+    {
+      "id": "m010",
+      "from": "contain_early",
+      "to": "forensics_engage",
+      "label": "Bring in forensics to confirm exfiltration",
+      "kind": "open",
+      "effects": [],
+      "stakes": "The ransom note's data-theft claim needs an answer before you can decide anything else.",
+      "hook": "The note says data left the building. The note also wants your money.",
+      "narrative": { "player_intent": "Investigate the exfiltration claim.", "dramatic_role": "Hub spoke to the investigation branch." }
+    },
+    {
+      "id": "m011",
+      "from": "contain_early",
+      "to": "political_pressure",
+      "label": "Push to reopen benefits payments before forensics finish",
+      "kind": "open",
+      "effects": [],
+      "stakes": "Residents need their payments; forensics needs the network exactly as it is.",
+      "hook": "The benefits helpline has stopped ringing. That is not the same as stopped needing.",
+      "narrative": { "player_intent": "Prioritise service restoration over investigation.", "dramatic_role": "Early route into the political pressure encounter." }
+    },
+    {
+      "id": "m020",
+      "from": "spread_confirmed",
+      "to": "contain_early",
+      "label": "Isolate now, later than you should have",
+      "kind": "open",
+      "effects": [
+        { "op": "set_flag", "flag": "network_isolated", "value": true },
+        { "op": "set_flag", "flag": "late_containment", "value": true }
+      ],
+      "stakes": "Contained, finally — but the record will show you waited.",
+      "hook": "The switch is still there. It always was.",
+      "narrative": { "player_intent": "Contain the incident, belatedly.", "dramatic_role": "The delayed correction; marks late_containment permanently." }
+    },
+    {
+      "id": "m021",
+      "from": "spread_confirmed",
+      "to": "deeper_spread",
+      "label": "Try to buy time before isolating",
+      "kind": "open",
+      "effects": [],
+      "stakes": "Every extra minute of uncontained spread is a minute you can't get back.",
+      "hook": "The backups are supposed to be segmented from this. Supposed to be.",
+      "narrative": { "player_intent": "Delay containment further.", "dramatic_role": "The road to the overrun ending." }
+    },
+    {
+      "id": "m030",
+      "from": "assemble_command",
+      "to": "contain_early",
+      "label": "Isolate the network now",
+      "kind": "open",
+      "effects": [{ "op": "set_flag", "flag": "network_isolated", "value": true }],
+      "stakes": "Structure is in place; now the network comes down.",
+      "hook": "Gold, Silver and Bronze all agree: cut it.",
+      "narrative": { "player_intent": "Contain with formal structure already standing.", "dramatic_role": "The disciplined containment route." }
+    },
+    {
+      "id": "m031",
+      "from": "assemble_command",
+      "to": "spread_confirmed",
+      "label": "Verify scope first",
+      "kind": "open",
+      "effects": [{ "op": "modify_stat", "stat": "exposure", "amount": 3 }],
+      "stakes": "Even with structure standing, verification still costs blast radius.",
+      "hook": "Command structure doesn't slow the encryption down. Only isolation does that.",
+      "narrative": { "player_intent": "Verify before acting, with structure in place.", "dramatic_role": "The cautious route out of the structured branch." }
+    },
+    {
+      "id": "m040",
+      "from": "forensics_engage",
+      "to": "forensics_engage",
+      "label": "Work the logs for a definitive answer",
+      "kind": "investigation",
+      "one_time": true,
+      "test": {
+        "type": "skill",
+        "stat": "skill",
+        "modifier": 2,
+        "failure_to": "forensics_engage",
+        "failure_effects": [{ "op": "set_flag", "flag": "exfil_confirmed", "value": "unconfirmed" }]
+      },
+      "effects": [{ "op": "set_flag", "flag": "exfil_confirmed", "value": "confirmed" }],
+      "stakes": "A clean read of the logs turns a suspicion into a fact you can put in a regulator notification.",
+      "hook": "The timestamps are all there. Reading them right, under this clock, is the hard part.",
+      "narrative": { "player_intent": "Establish whether data actually left the network.", "dramatic_role": "The core investigative test of the adventure." }
+    },
+    {
+      "id": "m041",
+      "from": "forensics_engage",
+      "to": "regulator_call",
+      "label": "Notify ICO/NCSC now, on partial evidence",
+      "kind": "open",
+      "effects": [{ "op": "set_flag", "flag": "regulator_notified", "value": true }],
+      "stakes": "Notify inside the window on the evidence you have, imperfect as it is.",
+      "hook": "A timely, imperfect notification reads better in every report that follows.",
+      "narrative": { "player_intent": "Notify the regulator immediately.", "dramatic_role": "The fast, defensible compliance route." }
+    },
+    {
+      "id": "m042",
+      "from": "forensics_engage",
+      "to": "delay_disclosure",
+      "label": "Wait for forensic certainty before notifying",
+      "kind": "open",
+      "effects": [{ "op": "modify_stat", "stat": "exposure", "amount": 2 }],
+      "stakes": "Certainty is worth having. It is not free.",
+      "hook": "Somewhere outside this room, a reporter is already noticing the silence.",
+      "narrative": { "player_intent": "Delay notification for a stronger evidence base.", "dramatic_role": "The road that lets exposure and the press cycle catch up." }
+    },
+    {
+      "id": "m043",
+      "from": "forensics_engage",
+      "to": "comms_prep",
+      "label": "Loop in comms before deciding",
+      "kind": "open",
+      "effects": [],
+      "stakes": "Bringing comms in early shapes what gets said before the decision is even made.",
+      "hook": "The line to take is being drafted whether or not you've decided what the line is.",
+      "narrative": { "player_intent": "Involve comms before committing to a disclosure path.", "dramatic_role": "Route into the statement-drafting branch." }
+    },
+    {
+      "id": "m044",
+      "from": "forensics_engage",
+      "to": "forensics_engage",
+      "label": "Keep working through the night instead of resting",
+      "kind": "risk",
+      "test": {
+        "type": "luck",
+        "stat": "luck",
+        "modifier": 0,
+        "failure_to": "ending_dead",
+        "failure_effects": [{ "op": "modify_stat", "stat": "stamina", "amount": -10 }]
+      },
+      "effects": [{ "op": "modify_stat", "stat": "stamina", "amount": -2 }],
+      "stakes": "Another pass through the logs without sleep might catch what you missed. It might also be the pass that breaks you.",
+      "hook": "Nobody is going to tell you to stop. That's exactly the problem.",
+      "narrative": { "player_intent": "Push past exhaustion for another shot at the evidence.", "dramatic_role": "The optional, repeatable risk that can end the run outright." }
+    },
+    {
+      "id": "m050",
+      "from": "delay_disclosure",
+      "to": "regulator_call",
+      "label": "Notify the regulator now, later than the statutory window",
+      "kind": "open",
+      "effects": [
+        { "op": "set_flag", "flag": "regulator_notified", "value": true },
+        { "op": "set_flag", "flag": "late_containment", "value": true }
+      ],
+      "stakes": "Late is worse than on time, and considerably better than never.",
+      "hook": "The window closed while you were waiting for certainty. Notify anyway.",
+      "narrative": { "player_intent": "Notify the regulator despite the missed deadline.", "dramatic_role": "The recovery route out of delay." }
+    },
+    {
+      "id": "m051",
+      "from": "delay_disclosure",
+      "to": "cover_up_exposed",
+      "label": "Hold the line on silence a while longer",
+      "kind": "open",
+      "effects": [{ "op": "set_flag", "flag": "cover_up_attempted", "value": true }],
+      "stakes": "Silence held past the point of plausibility stops looking like caution.",
+      "hook": "The reporter's questions aren't going away because you don't answer them.",
+      "narrative": { "player_intent": "Continue withholding disclosure.", "dramatic_role": "The road into the cover-up ending." }
+    },
+    {
+      "id": "m060",
+      "from": "comms_prep",
+      "to": "public_disclosure",
+      "label": "Publish the transparent version",
+      "kind": "open",
+      "effects": [{ "op": "set_flag", "flag": "public_statement_made", "value": true }],
+      "stakes": "The version that protects residents goes out, as written.",
+      "hook": "Legal signed off. It just didn't sign off enthusiastically.",
+      "narrative": { "player_intent": "Publish the honest statement.", "dramatic_role": "The transparency route." }
+    },
+    {
+      "id": "m061",
+      "from": "comms_prep",
+      "to": "political_pressure",
+      "label": "Hold for exec sign-off first",
+      "kind": "open",
+      "effects": [],
+      "stakes": "Sign-off is procedure. It is also an opportunity for the statement to change hands.",
+      "hook": "The Leader's office has asked to see it before it goes anywhere.",
+      "narrative": { "player_intent": "Route the statement through executive approval.", "dramatic_role": "Route into the political pressure encounter." }
+    },
+    {
+      "id": "m070",
+      "from": "political_pressure",
+      "to": "public_disclosure",
+      "label": "Hold the line on full, timely disclosure",
+      "kind": "open",
+      "effects": [
+        { "op": "modify_stat", "stat": "team_trust", "amount": 2 },
+        { "op": "set_flag", "flag": "public_statement_made", "value": true }
+      ],
+      "stakes": "Refusing to soften the statement costs you politically and buys your team's trust.",
+      "hook": "'Managed' was never going to be a word you could put your name to.",
+      "narrative": { "player_intent": "Resist pressure to soften the statement.", "dramatic_role": "The integrity route through the pivotal encounter." }
+    },
+    {
+      "id": "m071",
+      "from": "political_pressure",
+      "to": "cover_up_exposed",
+      "label": "Soften the statement to protect the political leadership",
+      "kind": "open",
+      "effects": [{ "op": "set_flag", "flag": "cover_up_attempted", "value": true }],
+      "stakes": "The softened version buys the Leader a quieter week and buys you a much worse one later.",
+      "hook": "It only has to fail once for the softening to become the whole story.",
+      "narrative": { "player_intent": "Yield to political pressure.", "dramatic_role": "The road into the cover-up ending." }
+    },
+    {
+      "id": "m080",
+      "from": "public_disclosure",
+      "to": "ending_recovery_strong",
+      "label": "Refuse to pay, restore from backup",
+      "kind": "open",
+      "effects": [],
+      "stakes": "Refusing the ransom bets everything on the backups actually being clean.",
+      "hook": "The backups were segmented on the diagram. Now you find out if they were segmented in fact.",
+      "narrative": { "player_intent": "Refuse the ransom and recover independently.", "dramatic_role": "The clean-recovery finale road." }
+    },
+    {
+      "id": "m081",
+      "from": "public_disclosure",
+      "to": "ending_ransom_paid",
+      "label": "Authorise a quiet ransom payment to buy certainty",
+      "kind": "open",
+      "effects": [{ "op": "set_flag", "flag": "ransom_paid", "value": true }],
+      "stakes": "A quiet payment buys speed and certainty, and creates a paper trail of its own.",
+      "hook": "Quiet is doing a lot of work in 'quiet payment'.",
+      "narrative": { "player_intent": "Pay the ransom despite the public statement already made.", "dramatic_role": "The mixed-outcome finale road." }
+    },
+    {
+      "id": "m090",
+      "from": "regulator_call",
+      "to": "public_disclosure",
+      "label": "Move to public disclosure",
+      "kind": "open",
+      "effects": [{ "op": "set_flag", "flag": "public_statement_made", "value": true }],
+      "stakes": "The regulator knows. Residents and press are next.",
+      "hook": "A notification logged with the ICO is not the same as a notification the public has seen.",
+      "narrative": { "player_intent": "Proceed to public disclosure after notifying the regulator.", "dramatic_role": "Hub spoke to the public disclosure endgame." }
+    },
+    {
+      "id": "m100",
+      "from": "deeper_spread",
+      "to": "ending_catastrophic",
+      "label": "Assess the damage",
+      "kind": "open",
+      "effects": [],
+      "stakes": "There is no version of this assessment that comes back small.",
+      "hook": "The backups are gone. There is nothing left to contain.",
+      "narrative": { "player_intent": "Face the full scope of the overrun.", "dramatic_role": "Route into the catastrophic ending." }
+    },
+    {
+      "id": "m110",
+      "from": "cover_up_exposed",
+      "to": "ending_scandal",
+      "label": "Face the fallout",
+      "kind": "open",
+      "effects": [],
+      "stakes": "The story has already turned. There is no statement left that changes that.",
+      "hook": "The FOI response is due, and there is no answer that doesn't confirm what the journalist already suspects.",
+      "narrative": { "player_intent": "Confront the consequences of the exposed cover-up.", "dramatic_role": "Route into the scandal ending." }
+    }
+  ]
+}

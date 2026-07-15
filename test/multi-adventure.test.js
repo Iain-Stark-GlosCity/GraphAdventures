@@ -28,12 +28,13 @@ function makeMultiEngine({ faces, store = new MemoryRunStore() } = {}) {
   return { engine, store };
 }
 
-test("the manifest hosts the four adventures with unique ids", () => {
-  assert.ok(adventures.length === 4, `expected 4 adventures, got ${adventures.length}`);
+test("the manifest hosts the five adventures with unique ids", () => {
+  assert.ok(adventures.length === 5, `expected 5 adventures, got ${adventures.length}`);
   assert.ok(byId.has("rust-wind-hills-dungeon"));
   assert.ok(byId.has("vienna-clearing-house"));
   assert.ok(byId.has("hollow-market-tithe"));
   assert.ok(byId.has("dragons-ledger-audit"));
+  assert.ok(byId.has("mereford-ransomware-drill"));
 });
 
 test("every hosted adventure honours the walker contract: core stats and ending_dead", () => {
@@ -92,7 +93,13 @@ test("new_run with an unknown adventure lists what this server hosts", async () 
     assert.match(e.message, /dragons-ledger-audit/);
     assert.deepEqual(
       [...e.extra.hosted_adventures].sort(),
-      ["dragons-ledger-audit", "hollow-market-tithe", "rust-wind-hills-dungeon", "vienna-clearing-house"]
+      [
+        "dragons-ledger-audit",
+        "hollow-market-tithe",
+        "mereford-ransomware-drill",
+        "rust-wind-hills-dungeon",
+        "vienna-clearing-house",
+      ]
     );
     return true;
   });
