@@ -22,7 +22,9 @@
       "There is no combat here. skill and luck carry the platform's standard test types instead: skill is technical/procedural judgement under pressure, tested at containment and at attribution, where the honest answer is ambiguous either time; luck is what the incident hands you regardless of judgement, sharpest at the recovery gamble, where refusing the ransom only pays off if the backups turn out as clean as the diagram claimed.",
       "stamina is the one variable nobody puts on the incident dashboard: it only moves if Gold Command chooses to keep grinding through the night instead of resting, and running it to zero is the only way this story reaches ending_dead.",
       "exposure is the sole bespoke stat, held to the platform's usual one-extra-stat pattern: a ratchet that only rises, standing in for how much of the incident becomes visible and reconstructable from outside the room.",
-      "cover_up_attempted and late_containment are the two ways a Gold Command can lose the story even when the technical response is sound; team_trust and public_confidence were cut as stats that never earned their keep, leaving the flags to carry that weight instead."
+      "cover_up_attempted and late_containment are the two ways a Gold Command can lose the story even when the technical response is sound; team_trust and public_confidence were cut as stats that never earned their keep, leaving the flags to carry that weight instead.",
+      "law_enforcement_call and cyber_insurance_call model two real levers most ransomware training skips: reporting to Action Fraud/the NCA is a genuine, low-cost decision with a mechanical payoff (a stronger forensics test) rather than flavour text, and the insurer's refusal to cover a ransom payment is drawn from how UK cyber insurance policies actually treat sanctions-adjacent payment risk, not invented for drama.",
+      "political_pressure's rumour_delivery is the closest a solo gamebook gets to the multi-stakeholder friction of a live tabletop exercise: two speakers, both right from where they're standing, neither of whom the player gets to cross-examine."
     ],
     "narrative_premise": "06:10 on a Monday. The SOC has flagged mass file-encryption across Mereford District Council's shared drives. A ransom note names a 72-hour window before stolen data is published. You are Gold Command. Every choice you make in the next three days will be reconstructed later — by the ICO, by an FOI request, or by a journalist — whether or not it feels like it matters now.",
     "core_mystery": "How far in did they get, and can you prove it before the clock forces you to guess in public?",
@@ -58,7 +60,8 @@
         "public_statement_made": { "type": "boolean", "initial": false },
         "ransom_paid": { "type": "boolean", "initial": false },
         "cover_up_attempted": { "type": "boolean", "initial": false },
-        "late_containment": { "type": "boolean", "initial": false }
+        "late_containment": { "type": "boolean", "initial": false },
+        "law_enforcement_notified": { "type": "boolean", "initial": false }
       }
     },
     "condition_dsl": {
@@ -158,6 +161,21 @@
       }
     },
     {
+      "id": "law_enforcement_call",
+      "type": "location",
+      "region": "mereford_incident",
+      "title": "Whose Investigation Is This?",
+      "summary": "Before forensics goes deep, someone asks the question nobody has yet: has anyone told Action Fraud and the NCA this is happening?",
+      "tags": ["compliance", "investigation"],
+      "read_aloud": "Someone in the room finally asks the question that's been sitting there since 06:10: has anyone told Action Fraud and the NCA this is happening? Reporting now, before the logs are even fully read, hands the investigation to people who do this for a living and puts a formal evidence trail under everything forensics finds from this point on. It also means outsiders are in the room while you're still working out what actually happened. Waiting costs nothing on the surface — until the day someone asks why law enforcement was the last to know.",
+      "read_aloud_revisit": "The question is still open: law enforcement, now, or once there's something more definite to hand them.",
+      "narrative": {
+        "present_tension": "Reporting early buys formal support and a clean evidentiary chain; reporting late buys you room to work without an audience, at the cost of that same chain.",
+        "sensory_details": ["a phone number for the NCA's reporting line, written on a Post-it, not yet dialled", "a duty log with a gap where 'law enforcement notified' should be timestamped"],
+        "emotional_undertone": "The particular discomfort of a call that costs nothing to make and everything to have skipped."
+      }
+    },
+    {
       "id": "forensics_engage",
       "type": "challenge",
       "region": "mereford_incident",
@@ -212,6 +230,18 @@
       "tags": ["social", "pivotal"],
       "read_aloud": "The Leader and the Chief Exec want services back and disclosure minimised, and they say so in the careful, deniable language of people who will not be the ones quoted. 'Managed' is doing a great deal of work in that sentence. Everyone in the room agrees residents come first; nobody says out loud what that means this week, because it means something different to each of them.",
       "read_aloud_revisit": "The Leader's office again, the same careful language, the same word — managed — still doing all the work it was doing before.",
+      "rumour_delivery": [
+        {
+          "speaker": "The Leader's special adviser, standing just behind the Leader's chair",
+          "text": "Nobody is asking you to lie. We're asking you to lead with what's confirmed and let the rest come out on its own timeline. That's not spin, that's sequencing.",
+          "truth_status": "self-serving_but_plausible"
+        },
+        {
+          "speaker": "The benefits service manager, on speakerphone from the emergency payments desk",
+          "text": "I've got people who haven't been paid in three days asking me why the council won't say what's going on. I don't have a sequencing answer for them. I have a Thursday.",
+          "truth_status": "true_and_unanswerable"
+        }
+      ],
       "narrative": {
         "present_tension": "Everyone in the room agrees residents come first; they disagree, without saying so, about what that means this week.",
         "sensory_details": ["a closed door with a raised-voice murmur behind it", "a statement draft with more redactions than sentences"],
@@ -231,6 +261,22 @@
         "present_tension": "Once it is public, every subsequent decision is made in front of an audience that was not in the room for the earlier ones.",
         "sensory_details": ["a press office phone ringing before the statement has finished sending", "a comment thread filling in real time"],
         "emotional_undertone": "The relief of honesty, immediately followed by the weight of it."
+      }
+    },
+    {
+      "id": "cyber_insurance_call",
+      "type": "location",
+      "region": "mereford_incident",
+      "title": "The Policy's Fine Print",
+      "summary": "The council's cyber insurer joins the call before the ransom decision, and their position is blunter than the policy document ever was.",
+      "tags": ["compliance", "pivotal"],
+      "read_aloud": "The insurer's incident line is answered by someone who has clearly had this exact conversation before. Their position lands flat and unambiguous: they will not indemnify a ransom payment to a group this plausibly linked to a sanctioned jurisdiction, and paying anyway is very likely to void the policy outright — the backup restoration and incident-response costs, on the other hand, are exactly what the policy exists for. It is, they point out, not really a coverage decision. It is the decision.",
+      "read_aloud_revisit": "The insurer's position hasn't moved: covered for recovery, not covered for the ransom, and the two are not equally risky in ways that matter to them.",
+      "narrative": {
+        "present_tension": "The policy was written to make this decision look simple. Making it under a live deadline does not feel simple.",
+        "hidden_truth": "The insurer already suspects the attacker is sanctions-adjacent from the ransom note's payment instructions alone; they are not guessing when they say the payment is unlikely to be covered.",
+        "sensory_details": ["a policy document, several tabs deep, open on a second screen", "the insurer's loss adjuster taking notes audibly faster than the conversation warrants"],
+        "emotional_undertone": "The strange comfort of a decision that someone else has already priced."
       }
     },
     {
@@ -304,12 +350,12 @@
       "type": "ending",
       "region": "mereford_incident",
       "title": "ENDING: Bought, Not Solved",
-      "summary": "The payment buys a decryption key and a quieter fortnight. It also buys an NCA enquiry into sanctioned-entity payment risk, and an internal audit finding that follows you for years.",
+      "summary": "The payment buys a decryption key and a quieter fortnight. It also buys an NCA enquiry into sanctioned-entity payment risk, a voided insurance policy, and an internal audit finding that follows you for years.",
       "tags": ["ending", "mixed"],
-      "read_aloud": "The payment buys a working decryption key and a quieter fortnight than the alternative would have given you. It also buys an NCA enquiry into sanctioned-entity payment risk, and an internal audit finding with your name near the top of it that will still be circulating in meetings years from now, cited by people who weren't there.",
+      "read_aloud": "The payment buys a working decryption key and a quieter fortnight than the alternative would have given you. It also buys an NCA enquiry into sanctioned-entity payment risk, a cyber insurance policy the insurer voids exactly as promised, and an internal audit finding with your name near the top of it that will still be circulating in meetings years from now, cited by people who weren't there. The insurer's loss adjuster, it turns out, took very good notes.",
       "narrative": {
-        "present_tension": "Deferred, at a rate of interest nobody quoted you up front.",
-        "sensory_details": ["a decryption key that actually works, disappointingly ordinary to look at", "an audit finding, filed and unforgettable"],
+        "present_tension": "Deferred, at a rate of interest nobody quoted you up front — the insurer quoted it, and you heard it, and paid anyway.",
+        "sensory_details": ["a decryption key that actually works, disappointingly ordinary to look at", "a claim rejection letter, impressively fast for an insurer", "an audit finding, filed and unforgettable"],
         "emotional_undertone": "Relief with a second bill still to arrive."
       }
     },
@@ -400,13 +446,35 @@
     {
       "id": "m010",
       "from": "contain_early",
-      "to": "forensics_engage",
-      "label": "Bring in forensics to confirm exfiltration",
+      "to": "law_enforcement_call",
+      "label": "Move to confirm exfiltration",
       "kind": "open",
       "effects": [],
-      "stakes": "The ransom note's data-theft claim needs an answer before you can decide anything else.",
+      "stakes": "The ransom note's data-theft claim needs an answer before you can decide anything else — starting with who else needs to be in on the answer.",
       "hook": "The note says data left the building. The note also wants your money.",
-      "narrative": { "player_intent": "Investigate the exfiltration claim.", "dramatic_role": "Hub spoke to the investigation branch." }
+      "narrative": { "player_intent": "Begin the investigation.", "dramatic_role": "Hub spoke to the investigation branch." }
+    },
+    {
+      "id": "m015",
+      "from": "law_enforcement_call",
+      "to": "forensics_engage",
+      "label": "Report to Action Fraud and the NCA now, before forensics goes any deeper",
+      "kind": "open",
+      "effects": [{ "op": "set_flag", "flag": "law_enforcement_notified", "value": true }],
+      "stakes": "An outside agency in the room this early, in exchange for a formal, defensible evidence chain from here on.",
+      "hook": "The reporting line takes four minutes to answer. It costs you nothing but the interruption.",
+      "narrative": { "player_intent": "Engage law enforcement before the forensic work proceeds.", "dramatic_role": "The procedurally sound but socially costly choice; strengthens the forensics test that follows." }
+    },
+    {
+      "id": "m016",
+      "from": "law_enforcement_call",
+      "to": "forensics_engage",
+      "label": "Handle it internally for now; report later if it's confirmed",
+      "kind": "open",
+      "effects": [{ "op": "modify_stat", "stat": "exposure", "amount": 1 }],
+      "stakes": "Working without an audience, at the cost of a weaker evidence trail if this ever needs proving to someone else.",
+      "hook": "Nobody has actually decided not to report it. It just hasn't happened yet.",
+      "narrative": { "player_intent": "Delay law enforcement engagement.", "dramatic_role": "The quieter road; weakens the forensics test and nudges exposure regardless of outcome." }
     },
     {
       "id": "m011",
@@ -473,6 +541,7 @@
       "label": "Work the logs for a definitive answer",
       "kind": "investigation",
       "one_time": true,
+      "conditions": [{ "op": "flag_is", "flag": "law_enforcement_notified", "value": false }],
       "test": {
         "type": "skill",
         "stat": "skill",
@@ -481,9 +550,29 @@
         "failure_effects": [{ "op": "set_flag", "flag": "exfil_confirmed", "value": "unconfirmed" }]
       },
       "effects": [{ "op": "set_flag", "flag": "exfil_confirmed", "value": "confirmed" }],
-      "stakes": "A clean read of the logs turns a suspicion into a fact you can put in a regulator notification.",
+      "stakes": "A clean read of the logs, worked alone, turns a suspicion into a fact you can put in a regulator notification — if you can read it right without help.",
       "hook": "The timestamps are all there. Reading them right, under this clock, is the hard part.",
-      "narrative": { "player_intent": "Establish whether data actually left the network.", "dramatic_role": "The core investigative test of the adventure." }
+      "narrative": { "player_intent": "Establish whether data actually left the network, without outside support.", "dramatic_role": "The core investigative test, run at the harder difficulty available when law enforcement wasn't looped in." }
+    },
+    {
+      "id": "m041b",
+      "from": "forensics_engage",
+      "to": "forensics_engage",
+      "label": "Work the logs for a definitive answer, with the NCA's technical support",
+      "kind": "investigation",
+      "one_time": true,
+      "conditions": [{ "op": "flag_is", "flag": "law_enforcement_notified", "value": true }],
+      "test": {
+        "type": "skill",
+        "stat": "skill",
+        "modifier": 4,
+        "failure_to": "forensics_engage",
+        "failure_effects": [{ "op": "set_flag", "flag": "exfil_confirmed", "value": "unconfirmed" }]
+      },
+      "effects": [{ "op": "set_flag", "flag": "exfil_confirmed", "value": "confirmed" }],
+      "stakes": "A clean read of the logs turns a suspicion into a fact you can put in a regulator notification — and this time you're not reading them alone.",
+      "hook": "The NCA's analyst has seen this exact log pattern before. That's worth more than another pot of coffee.",
+      "narrative": { "player_intent": "Establish whether data actually left the network, with formal backup.", "dramatic_role": "The reward for the law-enforcement decision: a meaningfully better test at the adventure's core investigation." }
     },
     {
       "id": "m041",
@@ -606,8 +695,19 @@
       "narrative": { "player_intent": "Yield to political pressure.", "dramatic_role": "The road into the cover-up ending." }
     },
     {
-      "id": "m080",
+      "id": "m075",
       "from": "public_disclosure",
+      "to": "cyber_insurance_call",
+      "label": "Loop in the council's cyber insurer before deciding on the ransom",
+      "kind": "open",
+      "effects": [],
+      "stakes": "The policy has an opinion on this decision whether or not you ask for it; better to hear it before you choose.",
+      "hook": "Someone in finance has already found the incident-response hotline number in the policy documents.",
+      "narrative": { "player_intent": "Consult the insurer before the ransom decision.", "dramatic_role": "Hub spoke into the insurance-informed finale." }
+    },
+    {
+      "id": "m080",
+      "from": "cyber_insurance_call",
       "to": "ending_recovery_strong",
       "label": "Refuse to pay, restore from backup",
       "kind": "risk",
@@ -619,20 +719,23 @@
         "failure_effects": [{ "op": "modify_stat", "stat": "exposure", "amount": 2 }]
       },
       "effects": [],
-      "stakes": "Refusing the ransom bets everything on the backups actually being clean — the diagram said segmented, and no amount of judgement gets you a better answer than the restore job itself.",
+      "stakes": "Refusing the ransom bets everything on the backups actually being clean — the diagram said segmented, and no amount of judgement gets you a better answer than the restore job itself. At least the policy covers the attempt.",
       "hook": "The backups were segmented on the diagram. Now you find out if they were segmented in fact.",
       "narrative": { "player_intent": "Refuse the ransom and recover independently.", "dramatic_role": "The clean-recovery finale gamble; the one moment fortune, not judgement, decides the outcome." }
     },
     {
       "id": "m081",
-      "from": "public_disclosure",
+      "from": "cyber_insurance_call",
       "to": "ending_ransom_paid",
-      "label": "Authorise a quiet ransom payment to buy certainty",
+      "label": "Authorise a quiet ransom payment to buy certainty, against the insurer's advice",
       "kind": "open",
-      "effects": [{ "op": "set_flag", "flag": "ransom_paid", "value": true }],
-      "stakes": "A quiet payment buys speed and certainty, and creates a paper trail of its own.",
+      "effects": [
+        { "op": "set_flag", "flag": "ransom_paid", "value": true },
+        { "op": "modify_stat", "stat": "exposure", "amount": 2 }
+      ],
+      "stakes": "A quiet payment buys speed and certainty, creates a paper trail of its own, and — the insurer was clear about this part — leaves the bill uncovered.",
       "hook": "Quiet is doing a lot of work in 'quiet payment'.",
-      "narrative": { "player_intent": "Pay the ransom despite the public statement already made.", "dramatic_role": "The mixed-outcome finale road." }
+      "narrative": { "player_intent": "Pay the ransom against the insurer's explicit advice.", "dramatic_role": "The mixed-outcome finale road; now costed correctly against the policy that won't cover it." }
     },
     {
       "id": "m090",
