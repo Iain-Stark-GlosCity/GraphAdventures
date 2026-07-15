@@ -19,10 +19,10 @@
       "ending_dead"
     ],
     "design_notes": [
-      "There is no combat here; the death invariant node exists because the platform requires it, not because this story reaches it.",
-      "skill represents technical judgement under pressure and is tested twice: once at the moment of containment, once at the moment of attribution. Both times the honest answer is ambiguous under time pressure.",
-      "cover_up_attempted and late_containment are the two ways a Gold Command can lose the story even when the technical response is sound.",
-      "exposure only ever goes up; it is a ratchet, not a stat you can recover, matching how a live incident actually accumulates institutional risk."
+      "There is no combat here. skill and luck carry the platform's standard test types instead: skill is technical/procedural judgement under pressure, tested at containment and at attribution, where the honest answer is ambiguous either time; luck is what the incident hands you regardless of judgement, sharpest at the recovery gamble, where refusing the ransom only pays off if the backups turn out as clean as the diagram claimed.",
+      "stamina is the one variable nobody puts on the incident dashboard: it only moves if Gold Command chooses to keep grinding through the night instead of resting, and running it to zero is the only way this story reaches ending_dead.",
+      "exposure is the sole bespoke stat, held to the platform's usual one-extra-stat pattern: a ratchet that only rises, standing in for how much of the incident becomes visible and reconstructable from outside the room.",
+      "cover_up_attempted and late_containment are the two ways a Gold Command can lose the story even when the technical response is sound; team_trust and public_confidence were cut as stats that never earned their keep, leaving the flags to carry that weight instead."
     ],
     "narrative_premise": "06:10 on a Monday. The SOC has flagged mass file-encryption across Mereford District Council's shared drives. A ransom note names a 72-hour window before stolen data is published. You are Gold Command. Every choice you make in the next three days will be reconstructed later — by the ICO, by an FOI request, or by a journalist — whether or not it feels like it matters now.",
     "core_mystery": "How far in did they get, and can you prove it before the clock forces you to guess in public?",
@@ -39,8 +39,6 @@
         "skill": { "type": "integer", "min": 1, "max": 12, "initial": 8 },
         "stamina": { "type": "integer", "min": 0, "max": 10, "initial": 10 },
         "luck": { "type": "integer", "min": 0, "max": 12, "initial": 8 },
-        "team_trust": { "type": "integer", "min": 0, "max": 15, "initial": 10 },
-        "public_confidence": { "type": "integer", "min": 0, "max": 15, "initial": 10 },
         "exposure": { "type": "integer", "min": 0, "max": 15, "initial": 0 }
       },
       "resources": {
@@ -78,7 +76,7 @@
     },
     "test_dsl": {
       "types": ["skill", "luck", "combat", "choice"],
-      "notes": "2d6 against stat plus modifier. This adventure only ever tests skill; there are no combat encounters, and luck is present for contract parity but untested."
+      "notes": "2d6 against stat plus modifier. skill is tested at containment and at attribution; luck is tested at the backup-integrity gamble and, optionally, at the burnout risk. There are no combat encounters."
     }
   },
   "regions": [
@@ -258,6 +256,13 @@
       "summary": "The delay costs everything containable. Encryption reaches backups that weren't properly segmented.",
       "tags": ["escalation", "consequence"],
       "read_aloud": "The delay costs everything that was still containable. Encryption reaches the backups — the ones that were supposed to be segmented, and weren't, quite, in the way the architecture diagram had always promised. There is no clean floor left to stand on.",
+      "read_aloud_variants": [
+        {
+          "conditions": [{ "op": "flag_is", "flag": "public_statement_made", "value": true }],
+          "priority": 10,
+          "text": "The restore job stalls on the same backups the architecture diagram swore were segmented from the rest of the network. They weren't, quite. You already told residents and the regulator that refusing to pay was the responsible choice. It still might have been — but there is no clean floor left to stand on, and the statement is already out there, unable to be unsaid."
+        }
+      ],
       "read_aloud_revisit": "The overrun sits where you left it: backups gone, and no version of events where that isn't the headline.",
       "narrative": {
         "present_tension": "The last safety net you were counting on was never as separate as the diagram said it was.",
@@ -584,11 +589,8 @@
       "to": "public_disclosure",
       "label": "Hold the line on full, timely disclosure",
       "kind": "open",
-      "effects": [
-        { "op": "modify_stat", "stat": "team_trust", "amount": 2 },
-        { "op": "set_flag", "flag": "public_statement_made", "value": true }
-      ],
-      "stakes": "Refusing to soften the statement costs you politically and buys your team's trust.",
+      "effects": [{ "op": "set_flag", "flag": "public_statement_made", "value": true }],
+      "stakes": "Refusing to soften the statement costs you politically, here, tonight — and is the only version of this evening nobody has to lie about later.",
       "hook": "'Managed' was never going to be a word you could put your name to.",
       "narrative": { "player_intent": "Resist pressure to soften the statement.", "dramatic_role": "The integrity route through the pivotal encounter." }
     },
@@ -608,11 +610,18 @@
       "from": "public_disclosure",
       "to": "ending_recovery_strong",
       "label": "Refuse to pay, restore from backup",
-      "kind": "open",
+      "kind": "risk",
+      "test": {
+        "type": "luck",
+        "stat": "luck",
+        "modifier": 2,
+        "failure_to": "deeper_spread",
+        "failure_effects": [{ "op": "modify_stat", "stat": "exposure", "amount": 2 }]
+      },
       "effects": [],
-      "stakes": "Refusing the ransom bets everything on the backups actually being clean.",
+      "stakes": "Refusing the ransom bets everything on the backups actually being clean — the diagram said segmented, and no amount of judgement gets you a better answer than the restore job itself.",
       "hook": "The backups were segmented on the diagram. Now you find out if they were segmented in fact.",
-      "narrative": { "player_intent": "Refuse the ransom and recover independently.", "dramatic_role": "The clean-recovery finale road." }
+      "narrative": { "player_intent": "Refuse the ransom and recover independently.", "dramatic_role": "The clean-recovery finale gamble; the one moment fortune, not judgement, decides the outcome." }
     },
     {
       "id": "m081",
