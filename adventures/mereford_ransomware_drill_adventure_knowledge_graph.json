@@ -27,7 +27,10 @@
       "political_pressure's rumour_delivery is the closest a solo gamebook gets to the multi-stakeholder friction of a live tabletop exercise: two speakers, both right from where they're standing, neither of whom the player gets to cross-examine.",
       "regulator_call and its flag (regulator_notified) refer to the ICO specifically, not to a bundled 'ICO/NCSC' action: the ICO notification is the actual legal duty the 72-hour clock enforces under UK GDPR, while an NCSC report is valuable, voluntary technical-advisory engagement with no statutory deadline of its own. The read_aloud narrates both calls happening together, as councils typically do in practice, but is explicit that only one of them is checked against a clock — don't reintroduce the conflation.",
       "hours_to_deadline and comms_capital are load-bearing, not decorative: every route that represents genuine delay (verifying scope, waiting for forensic certainty, holding silence, the burnout grind, executive sign-off) spends hours_to_deadline, and spending enough of it locks the clean-recovery gamble (m080) behind a foreshadowed resource_at_least gate — dawdle for certainty and the option to refuse the ransom on your own terms can be gone by the time you reach it. comms_capital works the same way on the political axis, gating the integrity route through political_pressure (m070, requires comms_capital >= 3 of a starting 5): the reckless direct road (m011, cost 4) always forecloses it, the careful comms-led road (m043 cost 1, then m061 cost 1, total 2) always preserves it. Verify with real numbers before shipping a gate like this — the first version of this gate required more capital than any reachable path could retain, making the 'integrity' choice permanently unreachable.",
-      "m080 (the clean-recovery gamble) requires regulator_notified = true as well as enough hours remaining, and validation.ending_assertions enforces it: ending_recovery_strong's prose claims the regulator was notified in time, so no route may reach it without actually setting that flag. A route that grants the best ending without the mechanics to back it up is worse than no ending at all — it teaches the wrong lesson."
+      "m080 (the clean-recovery gamble) requires regulator_notified = true as well as enough hours remaining, and validation.ending_assertions enforces it: ending_recovery_strong's prose claims the regulator was notified in time, so no route may reach it without actually setting that flag. A route that grants the best ending without the mechanics to back it up is worse than no ending at all — it teaches the wrong lesson.",
+      "regulator_call's read_aloud_variants are keyed on exfil_confirmed as well as late_notification: a player who ran the NCA-backed logs test (m041b) before notifying has a confirmed fact, not a hedge, and the notification text has to say so. m041 itself stays a single, evidence-agnostic route ('on the evidence you have') precisely so the destination node's variant can carry the true framing — don't push evidence-state language back onto the route label, or the two will drift out of sync again the next time a route gets edited without checking the node it feeds.",
+      "m081 (paying the ransom) is a luck test, not a guaranteed purchase, on a document check of NCSC's actual current guidance (ncsc.gov.uk/guidance/organisations-considering-payment-in-ransomware-incidents, July 2026): NCSC and UK law enforcement do not encourage, endorse or condone payment, and are explicit that paying carries no guarantee of getting a working decryptor or any data back at all. A route that always pays off misrepresents that guidance as strongly as the earlier ungated ending misrepresented the ICO duty. Failure routes to ending_catastrophic — paid and still lost everything, the compounded worst case — with its own read_aloud_variant.",
+      "cyber_insurance_call and ending_ransom_paid both name the UK government's July 2025 consultation response committing to a targeted ban on ransomware payments by all public sector bodies (local government included), verified against gov.uk and the Home Office consultation outcome. As of this adventure's present day the ban is announced policy, not yet enacted law — the text is careful to say so — but it is real, current, and specifically on-point for a district council, and a training exercise that ignores it is behind the actual policy conversation its players will be having."
     ],
     "narrative_premise": "06:10 on a Monday. The SOC has flagged mass file-encryption across Mereford District Council's shared drives. A ransom note names a 72-hour window before stolen data is published. You are Gold Command. Every choice you make in the next three days will be reconstructed later — by the ICO, by an FOI request, or by a journalist — whether or not it feels like it matters now.",
     "core_mystery": "How far in did they get, and can you prove it before the clock forces you to guess in public?",
@@ -274,7 +277,7 @@
       "title": "The Policy's Fine Print",
       "summary": "The council's cyber insurer joins the call before the ransom decision, and their position is blunter than the policy document ever was.",
       "tags": ["compliance", "pivotal"],
-      "read_aloud": "The insurer's incident line is answered by someone who has clearly had this exact conversation before. Their position lands flat and unambiguous: they will not indemnify a ransom payment to a group this plausibly linked to a sanctioned jurisdiction, and paying anyway is very likely to void the policy outright — the backup restoration and incident-response costs, on the other hand, are exactly what the policy exists for. It is, they point out, not really a coverage decision. It is the decision. There's one more thing they need you to hear before you choose: their recovery panel won't sign off on a restore attempt this late if too much of the seventy-two hours is already gone. Whatever's happened to the clock so far is about to become part of this decision too.",
+      "read_aloud": "The insurer's incident line is answered by someone who has clearly had this exact conversation before. Their position lands flat and unambiguous: they will not indemnify a ransom payment to a group this plausibly linked to a sanctioned jurisdiction, and paying anyway is very likely to void the policy outright — the backup restoration and incident-response costs, on the other hand, are exactly what the policy exists for. It is, they point out, not really a coverage decision. It is the decision. There's one more thing they need you to hear before you choose: their recovery panel won't sign off on a restore attempt this late if too much of the seventy-two hours is already gone. Whatever's happened to the clock so far is about to become part of this decision too. And one thing they're careful to say is not legal advice, but they say it anyway: central government already can't pay ransoms, and the Home Office's own consultation response has committed to extending that ban to every public body in the country, councils included. It isn't law yet. Everyone on this call can hear which way the wind is blowing.",
       "read_aloud_revisit": "The insurer's position hasn't moved: covered for recovery, not covered for the ransom, and the two are not equally risky in ways that matter to them.",
       "narrative": {
         "present_tension": "The policy was written to make this decision look simple. Making it under a live deadline does not feel simple.",
@@ -293,9 +296,22 @@
       "read_aloud": "The call to the ICO goes out promptly, on evidence that is good enough rather than perfect. This is the one notification on your list that isn't optional: UK GDPR gives you seventy-two hours from becoming aware of a breach to tell the regulator, whether or not you're certain yet what happened, and this call goes out with most of that window still in hand. Somebody separately rings the NCSC's reporting line too, for the technical support and threat intelligence — welcome, useful, but voluntary, and nobody will ever ask you to prove you made that second call. Only the first one is checked against a clock.",
       "read_aloud_variants": [
         {
+          "conditions": [
+            { "op": "flag_is", "flag": "late_notification", "value": true },
+            { "op": "flag_is", "flag": "exfil_confirmed", "value": "confirmed" }
+          ],
+          "priority": 20,
+          "text": "The call to the ICO goes out at last, and for once you're not reading from a script of caveats: the logs are read, the exfiltration is confirmed, and the notification carries a fact instead of a hedge. It is still later than it should have been — UK GDPR's seventy-two hours were still running when you finally dialled, but only just, and the delay is on the record alongside the certainty. Somebody separately rings the NCSC's reporting line too, for the technical support and threat intelligence — welcome, useful, but voluntary. Only the ICO call was ever checked against a clock, and this one, at least, is telling the truth about what you know."
+        },
+        {
           "conditions": [{ "op": "flag_is", "flag": "late_notification", "value": true }],
-          "priority": 10,
+          "priority": 15,
           "text": "The call to the ICO goes out at last, on evidence that is good enough rather than perfect — later than it should have, after a wait for certainty that ran on longer than the decision needed. UK GDPR gives you seventy-two hours from becoming aware of a breach to tell the regulator; you're still inside that window, but you've spent enough of it that this notification carries the delay on its face, not just in your own conscience. Somebody separately rings the NCSC's reporting line too, for the technical support and threat intelligence — welcome, useful, but voluntary, and nobody will ever ask you to prove you made that second call. Only the first one was ever checked against a clock, and the clock noticed."
+        },
+        {
+          "conditions": [{ "op": "flag_is", "flag": "exfil_confirmed", "value": "confirmed" }],
+          "priority": 10,
+          "text": "The call to the ICO goes out promptly, and this time 'on the evidence you have' means something more than a hedge: the logs are read and the exfiltration is confirmed before you ever pick up the phone. This is the one notification on your list that isn't optional — UK GDPR gives you seventy-two hours from becoming aware of a breach to tell the regulator — and this call goes out early, with a definite answer instead of a probable one. Somebody separately rings the NCSC's reporting line too, for the technical support and threat intelligence — welcome, useful, but voluntary, and nobody will ever ask you to prove you made that second call. Only the first one is checked against a clock."
         }
       ],
       "read_aloud_revisit": "The ICO notification sits logged and timestamped, a fact nobody can later dispute. The NCSC call sits alongside it, helpful and unrequired.",
@@ -361,9 +377,9 @@
       "type": "ending",
       "region": "mereford_incident",
       "title": "ENDING: Bought, Not Solved",
-      "summary": "The payment buys a decryption key and a quieter fortnight. It also buys an NCA enquiry into sanctioned-entity payment risk, a voided insurance policy, and an internal audit finding that follows you for years.",
+      "summary": "The payment buys a decryption key and a quieter fortnight. It also buys an NCA enquiry into sanctioned-entity payment risk, a voided insurance policy, and an internal audit finding that follows you for years — filed just as the sector-wide payment ban the government had already committed to finally clears Parliament.",
       "tags": ["ending", "mixed"],
-      "read_aloud": "The payment buys a working decryption key and a quieter fortnight than the alternative would have given you. It also buys an NCA enquiry into sanctioned-entity payment risk, a cyber insurance policy the insurer voids exactly as promised, and an internal audit finding with your name near the top of it that will still be circulating in meetings years from now, cited by people who weren't there. The insurer's loss adjuster, it turns out, took very good notes.",
+      "read_aloud": "The payment buys a working decryption key and a quieter fortnight than the alternative would have given you. It also buys an NCA enquiry into sanctioned-entity payment risk, a cyber insurance policy the insurer voids exactly as promised, and an internal audit finding with your name near the top of it that will still be circulating in meetings years from now, cited by people who weren't there. The insurer's loss adjuster, it turns out, took very good notes. Eighteen months later, when the promised ban on public-sector ransom payments finally becomes law, your finding is the case study the second-reading debate keeps coming back to.",
       "narrative": {
         "present_tension": "Deferred, at a rate of interest nobody quoted you up front — the insurer quoted it, and you heard it, and paid anyway.",
         "sensory_details": ["a decryption key that actually works, disappointingly ordinary to look at", "a claim rejection letter, impressively fast for an insurer", "an audit finding, filed and unforgettable"],
@@ -378,6 +394,13 @@
       "summary": "Benefits payments fail for weeks. National coverage. The ICO opens a full investigation; the Leader resigns before it concludes.",
       "tags": ["ending", "bad"],
       "read_aloud": "Benefits payments fail for weeks, not days. National coverage follows, then a full ICO investigation, and the Leader resigns before it concludes — not because anyone forced the point, but because there is no longer a version of staying that doesn't look worse than going.",
+      "read_aloud_variants": [
+        {
+          "conditions": [{ "op": "flag_is", "flag": "ransom_paid", "value": true }],
+          "priority": 10,
+          "text": "The payment went out, and the decryptor that came back doesn't work — not fully, not on the systems that matter. NCSC's guidance said as much, in the small print nobody read aloud in the room: paying buys no guarantee. Benefits payments fail for weeks, not days. National coverage follows, then a full ICO investigation that now has a second question to ask — not just how you were breached, but why the council paid a group under sanctions scrutiny and still ended up here. The Leader resigns before it concludes."
+        }
+      ],
       "narrative": {
         "present_tension": "Ended, in the worst way an incident can end: everyone still has questions, and nobody in the room can answer them any more.",
         "sensory_details": ["a national news chyron with the council's name in it", "an empty chair where the Leader used to sit"],
@@ -595,12 +618,12 @@
       "id": "m041",
       "from": "forensics_engage",
       "to": "regulator_call",
-      "label": "Notify the ICO now, on partial evidence",
+      "label": "Notify the ICO now, on the evidence you have",
       "kind": "open",
       "effects": [{ "op": "set_flag", "flag": "regulator_notified", "value": true }],
-      "stakes": "Notify inside the statutory window on the evidence you have, imperfect as it is — this is the one call the clock actually measures.",
-      "hook": "A timely, imperfect notification reads better in every report that follows.",
-      "narrative": { "player_intent": "Notify the ICO immediately, inside the legal deadline.", "dramatic_role": "The fast, defensible compliance route." }
+      "stakes": "Notify inside the statutory window on the evidence you have, whatever state it's in — this is the one call the clock actually measures.",
+      "hook": "A timely notification reads better in every report that follows, whether the evidence behind it is definite or still partial.",
+      "narrative": { "player_intent": "Notify the ICO immediately, inside the legal deadline.", "dramatic_role": "The fast, defensible compliance route; available whether or not exfiltration is confirmed yet — regulator_call's read_aloud_variants pick the framing (definite vs. partial evidence) to match the actual state." }
     },
     {
       "id": "m042",
@@ -760,14 +783,24 @@
       "from": "cyber_insurance_call",
       "to": "ending_ransom_paid",
       "label": "Authorise a quiet ransom payment to buy certainty, against the insurer's advice",
-      "kind": "open",
+      "kind": "risk",
+      "test": {
+        "type": "luck",
+        "stat": "luck",
+        "modifier": -2,
+        "failure_to": "ending_catastrophic",
+        "failure_effects": [
+          { "op": "set_flag", "flag": "ransom_paid", "value": true },
+          { "op": "modify_stat", "stat": "exposure", "amount": 5 }
+        ]
+      },
       "effects": [
         { "op": "set_flag", "flag": "ransom_paid", "value": true },
         { "op": "modify_stat", "stat": "exposure", "amount": 2 }
       ],
-      "stakes": "A quiet payment buys speed and certainty, creates a paper trail of its own, and — the insurer was clear about this part — leaves the bill uncovered.",
-      "hook": "Quiet is doing a lot of work in 'quiet payment'.",
-      "narrative": { "player_intent": "Pay the ransom against the insurer's explicit advice.", "dramatic_role": "The mixed-outcome finale road; now costed correctly against the policy that won't cover it." }
+      "stakes": "A quiet payment buys speed and certainty, creates a paper trail of its own, and — the insurer was clear about this part — leaves the bill uncovered. It does not buy a guarantee: NCSC guidance is explicit that paying carries no assurance the criminals hand over a working decryptor, or hand over anything at all.",
+      "hook": "Quiet is doing a lot of work in 'quiet payment' — and 'paid' is not the same word as 'solved'.",
+      "narrative": { "player_intent": "Pay the ransom against the insurer's explicit advice.", "dramatic_role": "The mixed-outcome finale road, now genuinely a gamble rather than a guaranteed purchase — reflecting NCSC's guidance that ransomware payment carries no guarantee of recovery. Failure lands you paying and still losing everything, the worst combined outcome." }
     },
     {
       "id": "m090",
