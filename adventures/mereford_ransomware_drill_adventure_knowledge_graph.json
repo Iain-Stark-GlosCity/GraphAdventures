@@ -22,11 +22,12 @@
       "There is no combat here. skill and luck carry the platform's standard test types instead: skill is technical/procedural judgement under pressure, tested at containment and at attribution, where the honest answer is ambiguous either time; luck is what the incident hands you regardless of judgement, sharpest at the recovery gamble, where refusing the ransom only pays off if the backups turn out as clean as the diagram claimed.",
       "stamina is the one variable nobody puts on the incident dashboard: it only moves if Gold Command chooses to keep grinding through the night instead of resting, and running it to zero is the only way this story reaches ending_dead.",
       "exposure is the sole bespoke stat, held to the platform's usual one-extra-stat pattern: a ratchet that only rises, standing in for how much of the incident becomes visible and reconstructable from outside the room.",
-      "cover_up_attempted and late_containment are the two ways a Gold Command can lose the story even when the technical response is sound; team_trust and public_confidence were cut as stats that never earned their keep, leaving the flags to carry that weight instead.",
+      "cover_up_attempted and late_containment are two of the ways a Gold Command can lose the story even when the technical response is sound; team_trust and public_confidence were cut as stats that never earned their keep, leaving the flags to carry that weight instead. late_containment (set by m020, late network isolation) and late_notification (set by m050, a delayed but still in-window ICO call) are deliberately separate flags — conflating a containment lapse with a notification lapse was an earlier bug here and shouldn't come back.",
       "law_enforcement_call and cyber_insurance_call model two real levers most ransomware training skips: reporting to Action Fraud/the NCA is a genuine, low-cost decision with a mechanical payoff (a stronger forensics test) rather than flavour text, and the insurer's refusal to cover a ransom payment is drawn from how UK cyber insurance policies actually treat sanctions-adjacent payment risk, not invented for drama.",
       "political_pressure's rumour_delivery is the closest a solo gamebook gets to the multi-stakeholder friction of a live tabletop exercise: two speakers, both right from where they're standing, neither of whom the player gets to cross-examine.",
       "regulator_call and its flag (regulator_notified) refer to the ICO specifically, not to a bundled 'ICO/NCSC' action: the ICO notification is the actual legal duty the 72-hour clock enforces under UK GDPR, while an NCSC report is valuable, voluntary technical-advisory engagement with no statutory deadline of its own. The read_aloud narrates both calls happening together, as councils typically do in practice, but is explicit that only one of them is checked against a clock — don't reintroduce the conflation.",
-      "hours_to_deadline and comms_capital are load-bearing, not decorative: every route that represents genuine delay (verifying scope, waiting for forensic certainty, holding silence, the burnout grind, executive sign-off) spends hours_to_deadline, and spending enough of it locks the clean-recovery gamble (m080) behind a foreshadowed resource_at_least gate — dawdle for certainty and the option to refuse the ransom on your own terms can be gone by the time you reach it. comms_capital works the same way on the political axis: forcing an early service reopening or looping comms in unprompted both spend it, and spending enough forecloses the integrity route through political_pressure (m070), forcing bow_to_pressure instead. Neither resource should be left unread by a route ever again — that was the platform's earlier team_trust/public_confidence mistake happening again with a resource instead of a stat."
+      "hours_to_deadline and comms_capital are load-bearing, not decorative: every route that represents genuine delay (verifying scope, waiting for forensic certainty, holding silence, the burnout grind, executive sign-off) spends hours_to_deadline, and spending enough of it locks the clean-recovery gamble (m080) behind a foreshadowed resource_at_least gate — dawdle for certainty and the option to refuse the ransom on your own terms can be gone by the time you reach it. comms_capital works the same way on the political axis, gating the integrity route through political_pressure (m070, requires comms_capital >= 3 of a starting 5): the reckless direct road (m011, cost 4) always forecloses it, the careful comms-led road (m043 cost 1, then m061 cost 1, total 2) always preserves it. Verify with real numbers before shipping a gate like this — the first version of this gate required more capital than any reachable path could retain, making the 'integrity' choice permanently unreachable.",
+      "m080 (the clean-recovery gamble) requires regulator_notified = true as well as enough hours remaining, and validation.ending_assertions enforces it: ending_recovery_strong's prose claims the regulator was notified in time, so no route may reach it without actually setting that flag. A route that grants the best ending without the mechanics to back it up is worse than no ending at all — it teaches the wrong lesson."
     ],
     "narrative_premise": "06:10 on a Monday. The SOC has flagged mass file-encryption across Mereford District Council's shared drives. A ransom note names a 72-hour window before stolen data is published. You are Gold Command. Every choice you make in the next three days will be reconstructed later — by the ICO, by an FOI request, or by a journalist — whether or not it feels like it matters now.",
     "core_mystery": "How far in did they get, and can you prove it before the clock forces you to guess in public?",
@@ -63,6 +64,7 @@
         "ransom_paid": { "type": "boolean", "initial": false },
         "cover_up_attempted": { "type": "boolean", "initial": false },
         "late_containment": { "type": "boolean", "initial": false },
+        "late_notification": { "type": "boolean", "initial": false },
         "law_enforcement_notified": { "type": "boolean", "initial": false }
       }
     },
@@ -198,9 +200,9 @@
       "type": "location",
       "region": "mereford_incident",
       "title": "The Silence Gets Expensive",
-      "summary": "Waiting for certainty eats the clock. A local reporter is already asking why council tax payments have failed for three days.",
+      "summary": "Waiting for certainty eats the clock. A local reporter is already asking why council tax payments have failed for a day and counting.",
       "tags": ["escalation"],
-      "read_aloud": "Waiting for certainty eats the clock in a way that doesn't show up on any dashboard. On the third day of failed council tax payments, a local reporter starts asking why, in the tone of someone who already suspects the answer and is only confirming it for the record.",
+      "read_aloud": "Waiting for certainty eats the clock in a way that doesn't show up on any dashboard. Council tax payments have now been down for the best part of a day, long enough that a local reporter starts asking why, in the tone of someone who already suspects the answer and is only confirming it for the record.",
       "read_aloud_revisit": "The silence is still costing you, in the specific currency of a reporter's patience running out.",
       "narrative": {
         "present_tension": "Every hour of waiting for forensic certainty is an hour someone outside the building spends filling the silence with their own theory.",
@@ -288,7 +290,14 @@
       "title": "The 72-Hour Clock, Kept",
       "summary": "The ICO notification goes out inside the statutory window — the one call on this list that is actually a legal duty, not a courtesy.",
       "tags": ["compliance"],
-      "read_aloud": "The call to the ICO goes out inside the statutory window, on evidence that is good enough rather than perfect. This is the one notification on your list that isn't optional: UK GDPR gives you seventy-two hours from becoming aware of a breach to tell the regulator, whether or not you're certain yet what happened. Somebody separately rings the NCSC's reporting line too, for the technical support and threat intelligence — welcome, useful, but voluntary, and nobody will ever ask you to prove you made that second call. Only the first one is checked against a clock.",
+      "read_aloud": "The call to the ICO goes out promptly, on evidence that is good enough rather than perfect. This is the one notification on your list that isn't optional: UK GDPR gives you seventy-two hours from becoming aware of a breach to tell the regulator, whether or not you're certain yet what happened, and this call goes out with most of that window still in hand. Somebody separately rings the NCSC's reporting line too, for the technical support and threat intelligence — welcome, useful, but voluntary, and nobody will ever ask you to prove you made that second call. Only the first one is checked against a clock.",
+      "read_aloud_variants": [
+        {
+          "conditions": [{ "op": "flag_is", "flag": "late_notification", "value": true }],
+          "priority": 10,
+          "text": "The call to the ICO goes out at last, on evidence that is good enough rather than perfect — later than it should have, after a wait for certainty that ran on longer than the decision needed. UK GDPR gives you seventy-two hours from becoming aware of a breach to tell the regulator; you're still inside that window, but you've spent enough of it that this notification carries the delay on its face, not just in your own conscience. Somebody separately rings the NCSC's reporting line too, for the technical support and threat intelligence — welcome, useful, but voluntary, and nobody will ever ask you to prove you made that second call. Only the first one was ever checked against a clock, and the clock noticed."
+        }
+      ],
       "read_aloud_revisit": "The ICO notification sits logged and timestamped, a fact nobody can later dispute. The NCSC call sits alongside it, helpful and unrequired.",
       "narrative": {
         "present_tension": "A timely, imperfect notification will always read better in hindsight than a late, complete one — and only the ICO clock actually enforces that lesson.",
@@ -396,7 +405,7 @@
       "title": "ENDING: The Clock Outlasted You",
       "summary": "Another sleepless night at the incident desk finally costs more than the investigation gained. Someone else has to finish reading the logs.",
       "tags": ["ending", "bad", "collapse"],
-      "read_aloud": "You told yourself one more pass through the logs, one more sleepless night, and the incident would finally hold still. It doesn't. Somewhere around the fourth night without real sleep, the room tips sideways and does not come back. Somebody else finishes reading the logs. The incident does not pause to wait for you to recover, and neither, it turns out, does anyone's memory of who was meant to be in charge.",
+      "read_aloud": "You told yourself one more pass through the logs, one more sleepless stretch, and the incident would finally hold still. It doesn't. Somewhere in the small hours, the room tips sideways and does not come back. Somebody else finishes reading the logs. The incident does not pause to wait for you to recover, and neither, it turns out, does anyone's memory of who was meant to be in charge.",
       "narrative": {
         "present_tension": "Ended, by the one variable nobody put on the incident dashboard: you.",
         "sensory_details": ["a keyboard, still warm, under someone else's hands now", "a shift handover written by a colleague, careful not to say too much"],
@@ -472,12 +481,12 @@
       "id": "m016",
       "from": "law_enforcement_call",
       "to": "forensics_engage",
-      "label": "Handle it internally for now; report later if it's confirmed",
+      "label": "Handle it internally for now, without looping in law enforcement",
       "kind": "open",
       "effects": [{ "op": "modify_stat", "stat": "exposure", "amount": 1 }],
-      "stakes": "Working without an audience, at the cost of a weaker evidence trail if this ever needs proving to someone else.",
-      "hook": "Nobody has actually decided not to report it. It just hasn't happened yet.",
-      "narrative": { "player_intent": "Delay law enforcement engagement.", "dramatic_role": "The quieter road; weakens the forensics test and nudges exposure regardless of outcome." }
+      "stakes": "Working without an audience, at the cost of a weaker evidence trail if this ever needs proving to someone else — and this window doesn't reopen once forensics is already underway.",
+      "hook": "Nobody has actually decided not to report it. It just isn't happening right now, and there's no later moment in this incident where the decision comes back around.",
+      "narrative": { "player_intent": "Delay law enforcement engagement.", "dramatic_role": "The quieter road; weakens the forensics test and nudges exposure regardless of outcome. One-way — there's no route back to law_enforcement_call once forensics begins." }
     },
     {
       "id": "m011",
@@ -485,9 +494,9 @@
       "to": "political_pressure",
       "label": "Push to reopen benefits payments before forensics finish",
       "kind": "open",
-      "costs": [{ "resource": "hours_to_deadline", "amount": 4 }, { "resource": "comms_capital", "amount": 2 }],
+      "costs": [{ "resource": "hours_to_deadline", "amount": 4 }, { "resource": "comms_capital", "amount": 4 }],
       "effects": [],
-      "stakes": "Residents need their payments; forensics needs the network exactly as it is — and forcing the issue this early spends political capital you may want later.",
+      "stakes": "Residents need their payments; forensics needs the network exactly as it is — and forcing the issue against professional advice this early spends most of the political capital you'll want when the Leader pushes back an hour from now.",
       "hook": "The benefits helpline has stopped ringing. That is not the same as stopped needing.",
       "narrative": { "player_intent": "Prioritise service restoration over investigation.", "dramatic_role": "Early route into the political pressure encounter." }
     },
@@ -534,8 +543,9 @@
       "to": "spread_confirmed",
       "label": "Verify scope first",
       "kind": "open",
+      "costs": [{ "resource": "hours_to_deadline", "amount": 6 }],
       "effects": [{ "op": "modify_stat", "stat": "exposure", "amount": 3 }],
-      "stakes": "Even with structure standing, verification still costs blast radius.",
+      "stakes": "Even with structure standing, verification still costs blast radius and the same six hours it always does.",
       "hook": "Command structure doesn't slow the encryption down. Only isolation does that.",
       "narrative": { "player_intent": "Verify before acting, with structure in place.", "dramatic_role": "The cautious route out of the structured branch." }
     },
@@ -610,9 +620,9 @@
       "to": "comms_prep",
       "label": "Loop in comms before deciding",
       "kind": "open",
-      "costs": [{ "resource": "hours_to_deadline", "amount": 2 }, { "resource": "comms_capital", "amount": 2 }],
+      "costs": [{ "resource": "hours_to_deadline", "amount": 2 }, { "resource": "comms_capital", "amount": 1 }],
       "effects": [],
-      "stakes": "Bringing comms in early shapes what gets said before the decision is even made, and spends some of the goodwill you'll want when the Leader pushes back.",
+      "stakes": "Bringing comms in early shapes what gets said before the decision is even made, at a small cost in goodwill — a proper process now is cheaper than a fight later.",
       "hook": "The line to take is being drafted whether or not you've decided what the line is.",
       "narrative": { "player_intent": "Involve comms before committing to a disclosure path.", "dramatic_role": "Route into the statement-drafting branch." }
     },
@@ -639,15 +649,15 @@
       "id": "m050",
       "from": "delay_disclosure",
       "to": "regulator_call",
-      "label": "Notify the ICO now, later than the statutory window",
+      "label": "Notify the ICO now, later than you should have",
       "kind": "open",
       "effects": [
         { "op": "set_flag", "flag": "regulator_notified", "value": true },
-        { "op": "set_flag", "flag": "late_containment", "value": true }
+        { "op": "set_flag", "flag": "late_notification", "value": true }
       ],
-      "stakes": "Late is worse than on time, and considerably better than never.",
-      "hook": "The seventy-two hours closed while you were waiting for certainty. Notify anyway.",
-      "narrative": { "player_intent": "Notify the ICO despite the missed statutory deadline.", "dramatic_role": "The recovery route out of delay." }
+      "stakes": "Late is worse than on time, and considerably better than never — you're still well inside the seventy-two hours, but the delay is on the record now, not just in your own head.",
+      "hook": "The certainty took longer than it should have. Notify anyway, and don't pretend the wait didn't happen.",
+      "narrative": { "player_intent": "Notify the ICO after an avoidable delay.", "dramatic_role": "The recovery route out of delay; sets late_notification, a distinct flag from late_containment (network isolation delay), so the two lapses don't get conflated." }
     },
     {
       "id": "m051",
@@ -678,9 +688,9 @@
       "to": "political_pressure",
       "label": "Hold for exec sign-off first",
       "kind": "open",
-      "costs": [{ "resource": "hours_to_deadline", "amount": 6 }],
+      "costs": [{ "resource": "hours_to_deadline", "amount": 6 }, { "resource": "comms_capital", "amount": 1 }],
       "effects": [],
-      "stakes": "Sign-off is procedure. It is also an opportunity for the statement to change hands, and six hours you don't get back.",
+      "stakes": "Sign-off is procedure. It is also an opportunity for the statement to change hands, and six hours — and a little more goodwill — you don't get back.",
       "hook": "The Leader's office has asked to see it before it goes anywhere.",
       "narrative": { "player_intent": "Route the statement through executive approval.", "dramatic_role": "Route into the political pressure encounter." }
     },
@@ -690,13 +700,13 @@
       "to": "public_disclosure",
       "label": "Hold the line on full, timely disclosure",
       "kind": "open",
-      "conditions": [{ "op": "resource_at_least", "resource": "comms_capital", "value": 4 }],
+      "conditions": [{ "op": "resource_at_least", "resource": "comms_capital", "value": 3 }],
       "disclosure": "foreshadowed",
-      "foreshadow": "Holding this line in front of the Leader takes political capital, not just conviction — and if you already spent yours winning an earlier argument, you won't have enough left to win this one.",
+      "foreshadow": "Holding this line in front of the Leader takes political capital, not just conviction — and if you already spent most of yours forcing an earlier argument, you won't have enough left to win this one.",
       "effects": [{ "op": "set_flag", "flag": "public_statement_made", "value": true }],
       "stakes": "Refusing to soften the statement costs you politically, here, tonight — and is the only version of this evening nobody has to lie about later.",
       "hook": "'Managed' was never going to be a word you could put your name to.",
-      "narrative": { "player_intent": "Resist pressure to soften the statement.", "dramatic_role": "The integrity route through the pivotal encounter — gated on comms_capital, so spending goodwill earlier can foreclose it." }
+      "narrative": { "player_intent": "Resist pressure to soften the statement.", "dramatic_role": "The integrity route through the pivotal encounter — gated on comms_capital, so the reckless early-reopening road forecloses it while the careful, comms-led road preserves it." }
     },
     {
       "id": "m071",
@@ -727,9 +737,12 @@
       "to": "ending_recovery_strong",
       "label": "Refuse to pay, restore from backup",
       "kind": "risk",
-      "conditions": [{ "op": "resource_at_least", "resource": "hours_to_deadline", "value": 40 }],
+      "conditions": [
+        { "op": "resource_at_least", "resource": "hours_to_deadline", "value": 40 },
+        { "op": "flag_is", "flag": "regulator_notified", "value": true }
+      ],
       "disclosure": "foreshadowed",
-      "foreshadow": "A full restore-and-verify cycle needs real runway — the recovery team is honest that they can't safely attempt it on whatever's left of the clock once you're this far into the seventy-two hours.",
+      "foreshadow": "A full restore-and-verify cycle needs real runway — the recovery team is honest that they can't safely attempt it on whatever's left of the clock once you're this far into the seventy-two hours. And the insurer has noticed something else: there's no ICO reference number on this file. A clean recovery doesn't cover a missed statutory duty.",
       "test": {
         "type": "luck",
         "stat": "luck",
@@ -784,10 +797,21 @@
       "to": "ending_scandal",
       "label": "Face the fallout",
       "kind": "open",
+      "conditions": [{ "op": "flag_is", "flag": "cover_up_attempted", "value": true }],
       "effects": [],
       "stakes": "The story has already turned. There is no statement left that changes that.",
       "hook": "The FOI response is due, and there is no answer that doesn't confirm what the journalist already suspects.",
-      "narrative": { "player_intent": "Confront the consequences of the exposed cover-up.", "dramatic_role": "Route into the scandal ending." }
+      "narrative": { "player_intent": "Confront the consequences of the exposed cover-up.", "dramatic_role": "Route into the scandal ending. The condition is always true in practice — cover_up_exposed is only ever reached after a route that sets cover_up_attempted — but stating it lets validation.ending_assertions prove ending_scandal's prose is honest, since the static checker only looks one hop back." }
     }
-  ]
+  ],
+  "validation": {
+    "notes": "Counts are maintained by scripts/validate-adventure.js and the CI reachability gate; see README.",
+    "node_count": 19,
+    "route_count": 29,
+    "known_soft_locks": [],
+    "ending_assertions": {
+      "ending_recovery_strong": [{ "flag": "regulator_notified", "value": true }],
+      "ending_scandal": [{ "flag": "cover_up_attempted", "value": true }]
+    }
+  }
 }
