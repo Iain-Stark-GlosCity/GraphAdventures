@@ -24,7 +24,8 @@
       "exposure is the sole bespoke stat, held to the platform's usual one-extra-stat pattern: a ratchet that only rises, standing in for how much of the incident becomes visible and reconstructable from outside the room.",
       "cover_up_attempted and late_containment are the two ways a Gold Command can lose the story even when the technical response is sound; team_trust and public_confidence were cut as stats that never earned their keep, leaving the flags to carry that weight instead.",
       "law_enforcement_call and cyber_insurance_call model two real levers most ransomware training skips: reporting to Action Fraud/the NCA is a genuine, low-cost decision with a mechanical payoff (a stronger forensics test) rather than flavour text, and the insurer's refusal to cover a ransom payment is drawn from how UK cyber insurance policies actually treat sanctions-adjacent payment risk, not invented for drama.",
-      "political_pressure's rumour_delivery is the closest a solo gamebook gets to the multi-stakeholder friction of a live tabletop exercise: two speakers, both right from where they're standing, neither of whom the player gets to cross-examine."
+      "political_pressure's rumour_delivery is the closest a solo gamebook gets to the multi-stakeholder friction of a live tabletop exercise: two speakers, both right from where they're standing, neither of whom the player gets to cross-examine.",
+      "regulator_call and its flag (regulator_notified) refer to the ICO specifically, not to a bundled 'ICO/NCSC' action: the ICO notification is the actual legal duty the 72-hour clock enforces under UK GDPR, while an NCSC report is valuable, voluntary technical-advisory engagement with no statutory deadline of its own. The read_aloud narrates both calls happening together, as councils typically do in practice, but is explicit that only one of them is checked against a clock — don't reintroduce the conflation."
     ],
     "narrative_premise": "06:10 on a Monday. The SOC has flagged mass file-encryption across Mereford District Council's shared drives. A ransom note names a 72-hour window before stolen data is published. You are Gold Command. Every choice you make in the next three days will be reconstructed later — by the ICO, by an FOI request, or by a journalist — whether or not it feels like it matters now.",
     "core_mystery": "How far in did they get, and can you prove it before the clock forces you to guess in public?",
@@ -284,12 +285,12 @@
       "type": "location",
       "region": "mereford_incident",
       "title": "The 72-Hour Clock, Kept",
-      "summary": "ICO and NCSC are notified inside the statutory window. It buys credibility for everything that follows.",
+      "summary": "The ICO notification goes out inside the statutory window — the one call on this list that is actually a legal duty, not a courtesy.",
       "tags": ["compliance"],
-      "read_aloud": "The call to the ICO and NCSC goes out inside the statutory window, on evidence that is good enough rather than perfect. It is not a comfortable call to make on partial certainty. It is, on every later page of every later report, the call that buys you credibility for everything that follows it.",
-      "read_aloud_revisit": "The regulator notification sits logged and timestamped, a fact nobody can later dispute.",
+      "read_aloud": "The call to the ICO goes out inside the statutory window, on evidence that is good enough rather than perfect. This is the one notification on your list that isn't optional: UK GDPR gives you seventy-two hours from becoming aware of a breach to tell the regulator, whether or not you're certain yet what happened. Somebody separately rings the NCSC's reporting line too, for the technical support and threat intelligence — welcome, useful, but voluntary, and nobody will ever ask you to prove you made that second call. Only the first one is checked against a clock.",
+      "read_aloud_revisit": "The ICO notification sits logged and timestamped, a fact nobody can later dispute. The NCSC call sits alongside it, helpful and unrequired.",
       "narrative": {
-        "present_tension": "A timely, imperfect notification will always read better in hindsight than a late, complete one.",
+        "present_tension": "A timely, imperfect notification will always read better in hindsight than a late, complete one — and only the ICO clock actually enforces that lesson.",
         "sensory_details": ["a call reference number, written down twice to be sure", "the strange calm of a deadline actually met"],
         "emotional_undertone": "A small, procedural act of courage that nobody in the room will call brave."
       }
@@ -578,12 +579,12 @@
       "id": "m041",
       "from": "forensics_engage",
       "to": "regulator_call",
-      "label": "Notify ICO/NCSC now, on partial evidence",
+      "label": "Notify the ICO now, on partial evidence",
       "kind": "open",
       "effects": [{ "op": "set_flag", "flag": "regulator_notified", "value": true }],
-      "stakes": "Notify inside the window on the evidence you have, imperfect as it is.",
+      "stakes": "Notify inside the statutory window on the evidence you have, imperfect as it is — this is the one call the clock actually measures.",
       "hook": "A timely, imperfect notification reads better in every report that follows.",
-      "narrative": { "player_intent": "Notify the regulator immediately.", "dramatic_role": "The fast, defensible compliance route." }
+      "narrative": { "player_intent": "Notify the ICO immediately, inside the legal deadline.", "dramatic_role": "The fast, defensible compliance route." }
     },
     {
       "id": "m042",
@@ -629,15 +630,15 @@
       "id": "m050",
       "from": "delay_disclosure",
       "to": "regulator_call",
-      "label": "Notify the regulator now, later than the statutory window",
+      "label": "Notify the ICO now, later than the statutory window",
       "kind": "open",
       "effects": [
         { "op": "set_flag", "flag": "regulator_notified", "value": true },
         { "op": "set_flag", "flag": "late_containment", "value": true }
       ],
       "stakes": "Late is worse than on time, and considerably better than never.",
-      "hook": "The window closed while you were waiting for certainty. Notify anyway.",
-      "narrative": { "player_intent": "Notify the regulator despite the missed deadline.", "dramatic_role": "The recovery route out of delay." }
+      "hook": "The seventy-two hours closed while you were waiting for certainty. Notify anyway.",
+      "narrative": { "player_intent": "Notify the ICO despite the missed statutory deadline.", "dramatic_role": "The recovery route out of delay." }
     },
     {
       "id": "m051",
