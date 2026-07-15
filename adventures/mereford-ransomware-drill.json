@@ -1,0 +1,180 @@
+{
+  "adventure_id": "mereford-ransomware-drill",
+  "title": "Gold Command: The Mereford Incident",
+  "subtitle": "A cyber-incident training exercise in judgement under a 72-hour clock",
+  "genre": ["cyber incident response", "public sector", "crisis management", "gamebook"],
+  "tone": ["tense", "procedural", "ethically pointed", "grounded"],
+  "narrative_premise": "06:10 on a Monday. The SOC has flagged mass file-encryption across Mereford District Council's shared drives. A ransom note names a 72-hour window before stolen data is published. You are Gold Command. Every choice you make in the next three days will be reconstructed later — by the ICO, by an FOI request, or by a journalist — whether or not it feels like it matters now.",
+  "version": "0.1.0-draft",
+  "design_notes": "Drafted outside the Rust Wind Hills authoring pipeline — no write tool was available via MCP, so this is a plain JSON draft to review/edit before ingestion. Node/route/state shape modelled on vienna-clearing-house's live schema (stats, resources, inventory, conditions, knowledge, flags; narrative sub-object with local_history/present_tension/hidden_truth/sensory_details/emotional_undertone/narrative_hooks).",
+  "state_template": {
+    "stats": { "technical_judgement": 8, "team_trust": 10, "public_confidence": 10, "exposure": 0 },
+    "resources": { "hours_to_deadline": 72, "comms_capital": 5 },
+    "inventory": [],
+    "conditions": [],
+    "knowledge": ["ransom_note_seen"],
+    "flags": {
+      "network_isolated": false,
+      "command_structure_formal": false,
+      "exfil_confirmed": null,
+      "regulator_notified": false,
+      "public_statement_made": false,
+      "ransom_paid": false,
+      "cover_up_attempted": false,
+      "late_containment": false
+    }
+  },
+  "nodes": [
+    {
+      "id": "incident_alert",
+      "title": "06:10, The Call",
+      "summary": "SOC reports mass encryption across shared drives; a ransom note demands payment within 72 hours or stolen data goes public.",
+      "narrative": {
+        "present_tension": "Every minute of hesitation is spread, but acting on incomplete information can cause its own damage.",
+        "hidden_truth": "The intrusion came through a third-party print supplier's VPN credentials, reused from a breach two years ago that was never rotated.",
+        "narrative_hooks": ["Establish the 72-hour clock.", "Make clear this will be reconstructed later by someone who wasn't in the room."]
+      },
+      "routes": [
+        { "route_id": "isolate_now", "label": "Isolate the network immediately", "to": "contain_early", "test": "technical_judgement" },
+        { "route_id": "verify_first", "label": "Verify scope before cutting services", "to": "spread_confirmed" },
+        { "route_id": "call_gold_command", "label": "Stand up formal Gold/Silver/Bronze first", "to": "assemble_command" }
+      ]
+    },
+    {
+      "id": "contain_early",
+      "title": "Cut and Contained",
+      "summary": "Isolation lands fast. Spread is limited, but council tax, benefits payments and the print supplier link all go dark with it.",
+      "effects": [{ "op": "set_flag", "flag": "network_isolated", "value": true }],
+      "routes": [
+        { "route_id": "assess_exfil", "label": "Bring in forensics to confirm exfiltration", "to": "forensics_engage" },
+        { "route_id": "reopen_services_early", "label": "Push to reopen benefits payments before forensics finish", "to": "political_pressure", "requires": null }
+      ]
+    },
+    {
+      "id": "spread_confirmed",
+      "title": "The Blast Radius Grows",
+      "summary": "While you verify, encryption reaches the finance and benefits payment systems. Exposure rises.",
+      "effects": [{ "op": "increment_stat", "stat": "exposure", "amount": 3 }],
+      "routes": [
+        { "route_id": "isolate_now_late", "label": "Isolate now, later than you should have", "to": "contain_early", "effects": [{ "op": "set_flag", "flag": "late_containment", "value": true }] },
+        { "route_id": "negotiate_time", "label": "Try to buy time before isolating", "to": "deeper_spread" }
+      ]
+    },
+    {
+      "id": "assemble_command",
+      "title": "Gold, Silver, Bronze",
+      "summary": "Formal command structure costs you twenty minutes but buys coordination you'll need on day two.",
+      "effects": [{ "op": "set_flag", "flag": "command_structure_formal", "value": true }],
+      "routes": [
+        { "route_id": "isolate_now", "label": "Isolate the network now", "to": "contain_early" },
+        { "route_id": "verify_first", "label": "Verify scope first", "to": "spread_confirmed" }
+      ]
+    },
+    {
+      "id": "forensics_engage",
+      "title": "What Did They Take?",
+      "summary": "Forensics works the logs. The exfiltration claim in the ransom note may be real, may be bluff — the evidence is ambiguous under time pressure.",
+      "test": "technical_judgement",
+      "effects": [{ "op": "set_flag", "flag": "exfil_confirmed", "value": "test_result" }],
+      "routes": [
+        { "route_id": "notify_regulator_now", "label": "Notify ICO/NCSC now, on partial evidence", "to": "regulator_call" },
+        { "route_id": "wait_for_certainty", "label": "Wait for forensic certainty before notifying", "to": "delay_disclosure" },
+        { "route_id": "brief_press_office", "label": "Loop in comms before deciding", "to": "comms_prep" }
+      ]
+    },
+    {
+      "id": "delay_disclosure",
+      "title": "The Silence Gets Expensive",
+      "summary": "Waiting for certainty eats the clock. A local reporter is already asking why council tax payments have failed for three days.",
+      "effects": [{ "op": "increment_stat", "stat": "exposure", "amount": 2 }],
+      "routes": [
+        { "route_id": "notify_late", "label": "Notify the regulator now, later than the statutory window", "to": "regulator_call", "effects": [{ "op": "set_flag", "flag": "late_containment", "value": true }] },
+        { "route_id": "continue_silence", "label": "Hold the line on silence a while longer", "to": "cover_up_exposed" }
+      ]
+    },
+    {
+      "id": "comms_prep",
+      "title": "Drafting the Line to Take",
+      "summary": "Comms and legal draft a public statement. The version that protects residents and the version that protects reputations are not quite the same document.",
+      "routes": [
+        { "route_id": "publish_statement", "label": "Publish the transparent version", "to": "public_disclosure" },
+        { "route_id": "hold_for_exec_signoff", "label": "Hold for exec sign-off first", "to": "political_pressure" }
+      ]
+    },
+    {
+      "id": "political_pressure",
+      "title": "The Leader Wants This Managed", 
+      "summary": "The Leader and Chief Exec want services back and disclosure minimised. 'Managed' is doing a lot of work in that sentence.",
+      "narrative": {
+        "present_tension": "Everyone in the room agrees residents come first; they disagree, without saying so, about what that means this week."
+      },
+      "routes": [
+        { "route_id": "hold_line_transparency", "label": "Hold the line on full, timely disclosure", "to": "public_disclosure", "effects": [{ "op": "increment_stat", "stat": "team_trust", "amount": 2 }] },
+        { "route_id": "bow_to_pressure", "label": "Soften the statement to protect the political leadership", "to": "cover_up_exposed", "effects": [{ "op": "set_flag", "flag": "cover_up_attempted", "value": true }] }
+      ]
+    },
+    {
+      "id": "public_disclosure",
+      "title": "Going Public",
+      "summary": "The statement goes out. Residents, press and the regulator now know what you know. The ransom deadline is still running.",
+      "effects": [{ "op": "set_flag", "flag": "public_statement_made", "value": true }],
+      "routes": [
+        { "route_id": "refuse_ransom", "label": "Refuse to pay, restore from backup", "to": "ending_recovery_strong" },
+        { "route_id": "pay_ransom_quietly", "label": "Authorise a quiet ransom payment to buy certainty", "to": "ending_ransom_paid", "effects": [{ "op": "set_flag", "flag": "ransom_paid", "value": true }] }
+      ]
+    },
+    {
+      "id": "regulator_call",
+      "title": "The 72-Hour Clock, Kept",
+      "summary": "ICO and NCSC are notified inside the statutory window. It buys credibility for everything that follows.",
+      "effects": [{ "op": "set_flag", "flag": "regulator_notified", "value": true }],
+      "routes": [
+        { "route_id": "to_public_statement", "label": "Move to public disclosure", "to": "public_disclosure" }
+      ]
+    },
+    {
+      "id": "deeper_spread",
+      "title": "Overrun",
+      "summary": "The delay costs everything containable. Encryption reaches backups that weren't properly segmented.",
+      "routes": [
+        { "route_id": "to_catastrophic", "label": "Assess the damage", "to": "ending_catastrophic" }
+      ]
+    },
+    {
+      "id": "cover_up_exposed",
+      "title": "It Gets Out Anyway",
+      "summary": "A journalist files an FOI request that the softened statement can't survive. The story is no longer the breach — it's the silence.",
+      "routes": [
+        { "route_id": "to_scandal", "label": "Face the fallout", "to": "ending_scandal" }
+      ]
+    },
+    {
+      "id": "ending_recovery_strong",
+      "title": "ENDING: The Playbook Worked",
+      "summary": "Regulator notified in time, ransom refused, backups held. Services return within the week. The ICO takes no further action; the incident becomes the case study you cite next time someone asks 'is this worth the budget.'",
+      "ending_type": "strong",
+      "routes": []
+    },
+    {
+      "id": "ending_ransom_paid",
+      "title": "ENDING: Bought, Not Solved",
+      "summary": "The payment buys a decryption key and a quieter fortnight. It also buys an NCA enquiry into sanctioned-entity payment risk, and an internal audit finding that follows you for years.",
+      "ending_type": "mixed",
+      "routes": []
+    },
+    {
+      "id": "ending_catastrophic",
+      "title": "ENDING: Overrun",
+      "summary": "Benefits payments fail for weeks. National coverage. The ICO opens a full investigation; the Leader resigns before it concludes.",
+      "ending_type": "bad",
+      "routes": []
+    },
+    {
+      "id": "ending_scandal",
+      "title": "ENDING: The Cover-Up Was Worse",
+      "summary": "The breach was survivable. The softened statement was not. You are named, personally, in the resulting report.",
+      "ending_type": "bad",
+      "routes": []
+    }
+  ]
+}
