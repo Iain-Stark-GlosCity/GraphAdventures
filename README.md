@@ -20,7 +20,7 @@ manifest.
 | `vienna-clearing-house` | The Clearing House | Modern-day spy mystery: dead drops, a mole hunt and one exchange window in Vienna |
 | `hollow-market-tithe` | The Tithe of Hollow Market | Urban fantasy: an unseelie fae market under the city, favours for currency, dawn as the clock |
 | `dragons-ledger-audit` | The Dragon's Ledger | Comic high fantasy: a guild auditor reconciling a dragon's hoard, where the deadliest thing is the discrepancy |
-| `mereford-ransomware-drill` | Gold Command: The Mereford Incident | Cyber incident response drill: a council ransomware attack, a 72-hour statutory clock, and choices reconstructed later by the ICO |
+| `mereford-ransomware-drill` | Gold Command: The Mereford Incident | Senior-management case study: a council ransomware attack, competing duties across containment, comms, law enforcement, the regulator and the insurer, and choices reconstructed later by the ICO |
 
 The point of the extra three is to demonstrate that the platform is adventure-agnostic:
 each one re-themes the *same* executable DSL rather than extending the engine. The spy

@@ -7,7 +7,7 @@
   "graph": {
     "id": "mereford-ransomware-drill",
     "title": "Gold Command: The Mereford Incident",
-    "subtitle": "A cyber-incident training exercise in judgement under a 72-hour clock",
+    "subtitle": "An interactive senior-management case study in cyber incident dependencies, competing duties and governance consequences — not a technical incident-response drill",
     "genre": ["cyber incident response", "public sector", "crisis management", "gamebook"],
     "tone": ["tense", "procedural", "ethically pointed", "grounded"],
     "entry_node": "incident_alert",
@@ -19,16 +19,17 @@
       "ending_dead"
     ],
     "design_notes": [
+      "POSITIONING — be honest about what this is when introducing it: an interactive senior-management case study designed to expose how containment, staff comms, law enforcement, public comms, individual notification, the regulator and the insurer depend on and constrain each other, best used with a facilitator and a structured debrief. It is not a realistic simulation of Gold Command, not technical incident-response training, not formal data-protection training, and not a test of any real organisation's actual response plan. The mechanical judgement calls (isolate vs. verify, when to loop in support, how to sequence disclosure) are worth discussing; the specific numbers, timings and thresholds are a training abstraction, not a benchmark to hit.",
       "There is no combat here. skill and luck carry the platform's standard test types instead: skill is technical/procedural judgement under pressure, tested at containment and at attribution, where the honest answer is ambiguous either time; luck is what the incident hands you regardless of judgement, sharpest at the recovery gamble, where refusing the ransom only pays off if the backups turn out as clean as the diagram claimed.",
       "stamina is the one variable nobody puts on the incident dashboard: it only moves if Gold Command chooses to keep grinding through the night instead of resting, and running it to zero is the only way this story reaches ending_dead.",
       "exposure is the sole bespoke stat, held to the platform's usual one-extra-stat pattern: a ratchet that only rises, standing in for how much of the incident becomes visible and reconstructable from outside the room.",
       "cover_up_attempted and late_containment are two of the ways a Gold Command can lose the story even when the technical response is sound; team_trust and public_confidence were cut as stats that never earned their keep, leaving the flags to carry that weight instead. late_containment (set by m020, late network isolation) is a genuine consequence flag; it is not the same thing as any ICO-timing flag, and shouldn't be conflated with one — see the notes below on ico_notification_delayed / ico_notified_after_public_disclosure for why 'late' language around the ICO call specifically was removed.",
-      "law_enforcement_call and cyber_insurance_call model two real levers most ransomware training skips: reporting to Action Fraud/the NCA is a genuine, low-cost decision with a mechanical payoff (a stronger forensics test) rather than flavour text, and the insurer's refusal to cover a ransom payment is drawn from how UK cyber insurance policies actually treat sanctions-adjacent payment risk, not invented for drama.",
+      "law_enforcement_call and cyber_insurance_call model two real levers most ransomware training skips: reporting to Report Fraud (the national cyber crime and fraud service that replaced Action Fraud in December 2025) and requesting NCSC incident management support is a genuine, low-cost decision with a mechanical payoff (a stronger forensics test) rather than flavour text, and the insurer's refusal to cover a ransom payment is drawn from how UK cyber insurance policies actually treat sanctions-adjacent payment risk, not invented for drama. NCSC's incident management team, not the NCA, is the realistic source of 24/7 technical support for a council-scale incident — Priya C. is deliberately introduced here rather than at regulator_call, and regulator_call no longer repeats a separate NCSC contact, since a real council would already be in contact with the same team by the time it calls the ICO.",
       "political_pressure's rumour_delivery is the closest a solo gamebook gets to the multi-stakeholder friction of a live tabletop exercise: two speakers, both right from where they're standing, neither of whom the player gets to cross-examine.",
       "regulator_call and its flag (regulator_notified) refer to the ICO specifically, not to a bundled 'ICO/NCSC' action: the ICO notification is the actual legal duty the 72-hour clock enforces under UK GDPR, while an NCSC report is valuable, voluntary technical-advisory engagement with no statutory deadline of its own. The read_aloud narrates both calls happening together, as councils typically do in practice, but is explicit that only one of them is checked against a clock — don't reintroduce the conflation.",
       "hours_to_deadline and comms_capital are load-bearing, not decorative: every route that represents genuine delay (verifying scope, waiting for forensic certainty, holding silence, the burnout grind, executive sign-off) spends hours_to_deadline, and spending enough of it locks the clean-recovery gamble (m080) behind a foreshadowed resource_at_least gate — dawdle for certainty and the option to refuse the ransom on your own terms can be gone by the time you reach it. comms_capital works the same way on the political axis, gating the integrity route through political_pressure (m070, requires comms_capital >= 3 of a starting 5): the reckless direct road (m011, cost 4) always forecloses it, the careful comms-led road (m043 cost 1, then m061 cost 1, total 2) always preserves it. Verify with real numbers before shipping a gate like this — the first version of this gate required more capital than any reachable path could retain, making the 'integrity' choice permanently unreachable.",
       "m080 (the clean-recovery gamble) requires regulator_notified = true as well as enough hours remaining, and validation.ending_assertions enforces it: ending_recovery_strong's prose claims the regulator was notified in time, so no route may reach it without actually setting that flag. A route that grants the best ending without the mechanics to back it up is worse than no ending at all — it teaches the wrong lesson.",
-      "regulator_call's read_aloud_variants are keyed on exfil_confirmed as well as on the ICO-timing flags below: a player who ran the NCA-backed logs test (m041b) before notifying has a confirmed fact, not a hedge, and the notification text has to say so. m041 itself stays a single, evidence-agnostic route ('on the evidence you have') precisely so the destination node's variant can carry the true framing — don't push evidence-state language back onto the route label, or the two will drift out of sync again the next time a route gets edited without checking the node it feeds.",
+      "regulator_call's read_aloud_variants are keyed on exfil_confirmed as well as on the ICO-timing flags below: a player who ran the NCSC-supported logs test (m041b) before notifying has a confirmed fact, not a hedge, and the notification text has to say so. m041 itself stays a single, evidence-agnostic route ('on the evidence you have') precisely so the destination node's variant can carry the true framing — don't push evidence-state language back onto the route label, or the two will drift out of sync again the next time a route gets edited without checking the node it feeds.",
       "m081 (paying the ransom) is a luck test, not a guaranteed purchase, on a document check of NCSC's actual current guidance (ncsc.gov.uk/guidance/organisations-considering-payment-in-ransomware-incidents, July 2026): NCSC and UK law enforcement do not encourage, endorse or condone payment, and are explicit that paying carries no guarantee of getting a working decryptor or any data back at all. A route that always pays off misrepresents that guidance as strongly as the earlier ungated ending misrepresented the ICO duty. Failure routes to ending_catastrophic — paid and still lost everything, the compounded worst case — with its own read_aloud_variant.",
       "cyber_insurance_call and ending_ransom_paid both name the UK government's July 2025 consultation response committing to a targeted ban on ransomware payments by all public sector bodies (local government included), verified against gov.uk and the Home Office consultation outcome. As of this adventure's present day the ban is announced policy, not yet enacted law — the text is careful to say so — but it is real, current, and specifically on-point for a district council, and a training exercise that ignores it is behind the actual policy conversation its players will be having.",
       "IMPORTANT — m060 and m070 do not, and should not, force a stop at regulator_call before reaching public_disclosure. That's deliberate, not an oversight: skipping the ICO notification has to be a real, choosable path or the m080 gate (regulator_notified required for the clean-recovery ending) isn't teaching anything, it's just decoration on a route that was never reachable anyway. public_disclosure's read_aloud correctly says so when it happens (a read_aloud_variant keyed on regulator_notified = false), rather than the earlier bug where it unconditionally claimed the regulator was informed regardless.",
@@ -77,6 +78,7 @@
         "ico_notification_delayed": { "type": "boolean", "initial": false },
         "ico_notified_after_public_disclosure": { "type": "boolean", "initial": false },
         "affected_people_notified": { "type": "boolean", "initial": false },
+        "holding_statement_first": { "type": "boolean", "initial": false },
         "law_enforcement_notified": { "type": "boolean", "initial": false },
         "staff_informed_safely": { "type": "boolean", "initial": false },
         "staff_comms_leaked": { "type": "boolean", "initial": false }
@@ -191,7 +193,7 @@
         "present_tension": "The fastest channel is the one you trust least, and the channel you trust most is the slowest one you have.",
         "hidden_truth": "The attacker's access to the network died with the initial containment; nobody currently on the network can read outgoing mail. But nobody in the room knows that for certain yet, and 'probably fine' is not something you can put your name to in writing.",
         "sensory_details": ["a helpdesk queue counter climbing in the corner of a screen", "a draft email open in a mail client nobody's sure is safe to send from", "a WhatsApp group someone started without being asked to"],
-        "emotional_undertone": "The specific paralysis of not trusting the tool you'd normally reach for first."
+        "emotional_undertone": "Not trusting the one tool built for exactly this moment."
       }
     },
     {
@@ -199,14 +201,14 @@
       "type": "location",
       "region": "mereford_incident",
       "title": "Whose Investigation Is This?",
-      "summary": "Before forensics goes deep, someone asks the question nobody has yet: has anyone told Action Fraud and the NCA this is happening?",
+      "summary": "Before forensics goes deep, someone asks the question nobody has yet: has anyone reported this to Report Fraud and asked NCSC's incident management team for support?",
       "tags": ["compliance", "investigation"],
-      "read_aloud": "Someone in the room finally asks the question that's been sitting there since 06:10: has anyone told Action Fraud and the NCA this is happening? Reporting now, before the logs are even fully read, hands the investigation to people who do this for a living and puts a formal evidence trail under everything forensics finds from this point on. It also means outsiders are in the room while you're still working out what actually happened. Waiting costs nothing on the surface — until the day someone asks why law enforcement was the last to know.",
-      "read_aloud_revisit": "The question is still open: law enforcement, now, or once there's something more definite to hand them.",
+      "read_aloud": "Someone in the room finally asks the question that's been sitting there since 06:10: has anyone reported this to Report Fraud, the national cyber crime and fraud service, and asked NCSC's incident management team for support? Reporting now, before the logs are even fully read, hands the crime report to people who do this for a living and puts a formal evidence trail under everything forensics finds from this point on. It also means outsiders are in the room while you're still working out what actually happened. Waiting costs nothing on the surface — until the day someone asks why they were the last to know.",
+      "read_aloud_revisit": "The question is still open: report it now, or once there's something more definite to hand them.",
       "narrative": {
         "present_tension": "Reporting early buys formal support and a clean evidentiary chain; reporting late buys you room to work without an audience, at the cost of that same chain.",
-        "sensory_details": ["a phone number for the NCA's reporting line, written on a Post-it, not yet dialled", "a duty log with a gap where 'law enforcement notified' should be timestamped"],
-        "emotional_undertone": "The particular discomfort of a call that costs nothing to make and everything to have skipped."
+        "sensory_details": ["reportfraud.police.uk open in a browser tab, not yet submitted", "a duty log with a gap where 'reported' should be timestamped"],
+        "emotional_undertone": "A call that costs nothing to make and everything to have skipped."
       }
     },
     {
@@ -252,14 +254,14 @@
       "type": "location",
       "region": "mereford_incident",
       "title": "Drafting the Line to Take",
-      "summary": "Comms and legal draft a public statement. The version that protects residents and the version that protects reputations are not quite the same document.",
+      "summary": "Comms and legal draft the public statement, working from the same facts but disagreeing on how much certainty to commit to in writing before the picture is complete.",
       "tags": ["comms"],
-      "read_aloud": "Comms and legal sit down to draft the line to take, and two documents start to emerge from the same set of facts: the version that tells residents what they need to know to protect themselves, and the version that reads best in six months' time. Nobody in the room says out loud that these are different documents. Everyone in the room knows it.",
-      "read_aloud_revisit": "The draft statement sits on the table, still doing its quiet work of deciding whose interests it actually serves.",
+      "read_aloud": "Comms and legal sit down to draft the line to take. Legal wants fewer numbers until the scope is confirmed — a figure published now and revised downward next week reads as either caution or incompetence, and there's no controlling which. Comms wants more detail now, on the theory that residents fill silence with worse guesses than the truth would give them. Both positions are reasonable. Neither drafter is wrong about the risk they're naming.",
+      "read_aloud_revisit": "The draft statement sits on the table, still unresolved between two defensible instincts.",
       "narrative": {
-        "present_tension": "The gap between the two drafts is small enough to miss and large enough to matter.",
+        "present_tension": "Publishing early risks a number that has to be walked back; waiting risks residents hearing it from somewhere else first.",
         "sensory_details": ["two marked-up drafts on the same table", "a red pen moving faster over one than the other"],
-        "emotional_undertone": "A form of dishonesty that never has to admit it is one."
+        "emotional_undertone": "A genuine disagreement between people trying to get the same thing right."
       }
     },
     {
@@ -267,18 +269,23 @@
       "type": "encounter",
       "region": "mereford_incident",
       "title": "The Leader Wants This Managed",
-      "summary": "The Leader and Chief Exec want services back and disclosure minimised. 'Managed' is doing a lot of work in that sentence.",
+      "summary": "The Leader and Chief Exec want a review before anything goes out — and they have three specific, defensible reasons, not just a preference for quiet.",
       "tags": ["social", "pivotal"],
-      "read_aloud": "The Leader and the Chief Exec want services back and disclosure minimised, and they say so in the careful, deniable language of people who will not be the ones quoted. 'Managed' is doing a great deal of work in that sentence. Everyone in the room agrees residents come first; nobody says out loud what that means this week, because it means something different to each of them.",
+      "read_aloud": "The Leader and the Chief Exec want a look at the statement before it goes anywhere, and they're specific about why: the figures in the current draft are the forensics team's best estimate, not a confirmed count, and a number published today that has to be revised down next week reads as either panic or incompetence to residents who won't know which. There's also the ongoing report to Report Fraud to think about — publishing operational detail before the investigation has a shape could tip off exactly who they're trying to catch. And the draft, as written, implies a restoration date nobody on the technical side has actually confirmed. None of that is an instruction to hide anything. All of it is a reason to slow down, and slowing down has its own cost that the people making the case for caution are not the ones paying.",
       "read_aloud_variants": [
         {
           "conditions": [{ "op": "flag_is", "flag": "staff_comms_leaked", "value": true }],
           "priority": 10,
-          "text": "The Leader and the Chief Exec want services back and disclosure minimised, and they say so in the careful, deniable language of people who will not be the ones quoted — except this time the Leader opens with a complaint of their own: half the senior team heard about the breach from their own staff's group chats before anyone official told them anything. 'Managed' is doing a great deal of work in that sentence, and so is the fact that the room no longer entirely trusts you to manage the telling of things. Everyone agrees residents come first; nobody says out loud what that means this week, because it means something different to each of them, and now the staff have their own version circulating too."
+          "text": "The Leader and the Chief Exec want a look at the statement before it goes anywhere, and they're specific about why: unconfirmed figures, an ongoing report to Report Fraud, a restoration date nobody technical has actually signed off — and this time the Leader opens with a complaint of their own before any of that: half the senior team heard about the breach from their own staff's group chats before anyone official told them anything. The caution about the statement is the same caution as always. The fact that it's landing in a room that already doesn't trust the council's own information discipline is new."
         }
       ],
-      "read_aloud_revisit": "The Leader's office again, the same careful language, the same word — managed — still doing all the work it was doing before.",
+      "read_aloud_revisit": "The Leader's office again, the same three concerns on the table, still unresolved.",
       "rumour_delivery": [
+        {
+          "speaker": "The Leader, directly, not through the special adviser this time",
+          "text": "I'm not asking you to lie to anyone. I watched a neighbouring authority publish a casualty figure that turned out to be wrong, and I watched them spend eighteen months being 'the council that got the numbers wrong', not 'the council that got breached'. Tell me the number's solid and I'll sign off on it tonight.",
+          "truth_status": "true_and_a_real_constraint"
+        },
         {
           "speaker": "The Leader's special adviser, standing just behind the Leader's chair",
           "text": "Nobody is asking you to lie. We're asking you to lead with what's confirmed and let the rest come out on its own timeline. That's not spin, that's sequencing.",
@@ -291,9 +298,9 @@
         }
       ],
       "narrative": {
-        "present_tension": "Everyone in the room agrees residents come first; they disagree, without saying so, about what that means this week.",
+        "present_tension": "Every voice in this room is naming a real risk. None of them is naming the same one, and the statement can't wait for all three to be satisfied.",
         "sensory_details": ["a closed door with a raised-voice murmur behind it", "a statement draft with more redactions than sentences"],
-        "emotional_undertone": "Consensus that is really just silence, worn by several people at once."
+        "emotional_undertone": "Competing, legitimate duties, with no version of tonight that fully honours all of them."
       }
     },
     {
@@ -309,6 +316,11 @@
           "conditions": [{ "op": "flag_is", "flag": "regulator_notified", "value": false }],
           "priority": 10,
           "text": "The statement goes out. Residents and press know what you know, at roughly the same time you know it — but the regulator isn't on that list, not yet, not from you. A public statement is not an ICO notification; the two feel similar from a podium and are not the same act, and nobody in the room has actually made the second one. That's still fixable — the seventy-two hours haven't closed, and the call can still be made, out of order as it will now look but not late — but it fixes itself for nobody. Somebody has to notice the gap and pick up the phone. The ransom deadline does not pause to let the news cycle, or the gap in your paperwork, catch up."
+        },
+        {
+          "conditions": [{ "op": "flag_is", "flag": "holding_statement_first", "value": true }],
+          "priority": 5,
+          "text": "The short version goes out first, exactly as agreed: an incident, services affected, more detail as it's confirmed. It reads as thin to anyone wanting the whole picture tonight, and as responsible to anyone who remembers the neighbouring council that published a number it later had to walk back. The fuller account is still owed, not delivered — this bought time to get it right, not permission to skip it."
         }
       ],
       "read_aloud_revisit": "The statement is out there now, doing its slow work in inboxes and newsrooms, impossible to call back.",
@@ -325,7 +337,7 @@
       "title": "The Policy's Fine Print",
       "summary": "The council's cyber insurer joins the call before the ransom decision, and their position is blunter than the policy document ever was.",
       "tags": ["compliance", "pivotal"],
-      "read_aloud": "The insurer's incident line is answered by someone who has clearly had this exact conversation before. Their position lands flat and unambiguous: they will not indemnify a ransom payment to a group this plausibly linked to a sanctioned jurisdiction, and paying anyway is very likely to void the policy outright — the backup restoration and incident-response costs, on the other hand, are exactly what the policy exists for. It is, they point out, not really a coverage decision. It is the decision. There's one more thing they need you to hear before you choose: their recovery panel won't sign off on a restore attempt this late if too much of the seventy-two hours is already gone. Whatever's happened to the clock so far is about to become part of this decision too. And one thing they're careful to say is not legal advice, but they say it anyway: central government already can't pay ransoms, and the Home Office's own consultation response has committed to extending that ban to every public body in the country, councils included. It isn't law yet. Everyone on this call can hear which way the wind is blowing.",
+      "read_aloud": "The insurer's incident line delivers four facts, flatly, before anyone gets to a decision. Restoration and forensic costs are covered. A ransom payment to a group this plausibly linked to a sanctioned jurisdiction is not covered, and authorising one is very likely to void the policy outright. The recovery panel needs a verified backup status before it will sign off on a restore attempt. And central government already can't pay ransoms — the Home Office's own consultation response has committed to extending that ban to every public body in the country, councils included, though it isn't law yet. Only after all four facts land does the person on the line add anything of their own: it isn't really a coverage decision, they say. It's the decision.",
       "read_aloud_revisit": "The insurer's position hasn't moved: covered for recovery, not covered for the ransom, and the two are not equally risky in ways that matter to them.",
       "narrative": {
         "present_tension": "The policy was written to make this decision look simple. Making it under a live deadline does not feel simple.",
@@ -341,12 +353,12 @@
       "title": "The 72-Hour Clock, Kept",
       "summary": "The ICO notification goes out inside the statutory window — the one call on this list that is actually a legal duty, not a courtesy.",
       "tags": ["compliance"],
-      "read_aloud": "The call to the ICO goes out promptly, on evidence that is good enough rather than perfect. This is the one notification on your list that isn't optional: UK GDPR gives you seventy-two hours from becoming aware of a breach to tell the regulator, whether or not you're certain yet what happened, and this call goes out with most of that window still in hand. It comes back with a case reference — RFA1122334, written down twice to be sure — that will follow this incident through every report that mentions it from here on. Somebody separately rings the NCSC's reporting line too; the duty analyst who picks up, Priya C., takes the technical detail and promises a call back within the hour — welcome, useful, but voluntary, and nobody will ever ask you to prove you made that second call. Only the ICO reference number is checked against a clock.",
+      "read_aloud": "The call to the ICO goes out promptly, on evidence that is good enough rather than perfect. This is the one notification on your list that isn't optional: UK GDPR gives you seventy-two hours from becoming aware of a breach to tell the regulator, whether or not you're certain yet what happened, and this call goes out with most of that window still in hand. It comes back with a case reference — RFA1122334, written down twice to be sure — that will follow this incident through every report that mentions it from here on. Only the ICO reference number is checked against a clock.",
       "read_aloud_variants": [
         {
           "conditions": [{ "op": "flag_is", "flag": "ico_notified_after_public_disclosure", "value": true }],
           "priority": 25,
-          "text": "The call to the ICO goes out after the public statement, after residents and press already had the story, after someone in the room finally asked the question everyone had assumed someone else had already answered. It comes back with a case reference — RFA1122334 — attached to a notification submitted comfortably within the seventy-two hours: the statutory deadline is met, cleanly. Residents and the press heard first, which is an unusual sequence and one a post-incident review will want to understand — the law separates the duty to notify the regulator from any duty to inform the public, and doesn't dictate which comes first — but it does not, by itself, make this notification late or non-compliant. Somebody separately rings the NCSC's reporting line too; the duty analyst, Priya C., takes the detail down and doesn't comment on the sequencing, because there's nothing in it that's actually her problem to comment on."
+          "text": "The call to the ICO goes out after the public statement, after residents and press already had the story, after someone in the room finally asked the question everyone had assumed someone else had already answered. It comes back with a case reference — RFA1122334 — attached to a notification submitted comfortably within the seventy-two hours: the statutory deadline is met, cleanly. Residents and the press heard first, which is an unusual sequence and one a post-incident review will want to understand — the law separates the duty to notify the regulator from any duty to inform the public, and doesn't dictate which comes first — but it does not, by itself, make this notification late or non-compliant."
         },
         {
           "conditions": [
@@ -354,20 +366,20 @@
             { "op": "flag_is", "flag": "exfil_confirmed", "value": "confirmed" }
           ],
           "priority": 20,
-          "text": "The call to the ICO goes out, and for once you're not reading from a script of caveats: the logs are read, the exfiltration is confirmed, and the notification carries a fact instead of a hedge. It comes back with a case reference — RFA1122334 — attached to a notification that took its time and arrived complete rather than early and partial. UK GDPR's seventy-two hours are comfortably unspent; the only real question, and it's a fair one for a post-incident review to ask, is whether the wait for certainty was itself the right call when the ICO's own guidance would have accepted a report on partial evidence, updated later. Somebody separately rings the NCSC's reporting line too; the duty analyst, Priya C., has clearly seen the pattern before and doesn't waste time on the parts you already know. Only the ICO reference is ever checked against a clock, and this one arrives with time comfortably to spare."
+          "text": "The call to the ICO goes out, and for once you're not reading from a script of caveats: the logs are read, the exfiltration is confirmed, and the notification carries a fact instead of a hedge. It comes back with a case reference — RFA1122334 — attached to a notification that took its time and arrived complete rather than early and partial. UK GDPR's seventy-two hours are comfortably unspent; the only real question, and it's a fair one for a post-incident review to ask, is whether the wait for certainty was itself the right call when the ICO's own guidance would have accepted a report on partial evidence, updated later. Only the ICO reference is ever checked against a clock, and this one arrives with time comfortably to spare."
         },
         {
           "conditions": [{ "op": "flag_is", "flag": "ico_notification_delayed", "value": true }],
           "priority": 15,
-          "text": "The call to the ICO goes out, on evidence that is good enough rather than perfect, after a wait for certainty that took longer than the decision strictly needed. It comes back with a case reference — RFA1122334 — and a timestamp that sits comfortably inside the seventy-two hours UK GDPR actually allows. The statutory duty is met without qualification; the more interesting question, for anyone reviewing this afterwards, is whether reporting sooner on partial evidence — which the ICO's own guidance explicitly welcomes — would have served everyone better than waiting for a fact that turned out to cost hours nobody got back. Somebody separately rings the NCSC's reporting line too; the duty analyst, Priya C., takes the detail down without comment on the timing — welcome, useful, but voluntary. Only the ICO reference is ever checked against a clock, and the clock still has room in it."
+          "text": "The call to the ICO goes out, on evidence that is good enough rather than perfect, after a wait for certainty that took longer than the decision strictly needed. It comes back with a case reference — RFA1122334 — and a timestamp that sits comfortably inside the seventy-two hours UK GDPR actually allows. The statutory duty is met without qualification; the more interesting question, for anyone reviewing this afterwards, is whether reporting sooner on partial evidence — which the ICO's own guidance explicitly welcomes — would have served everyone better than waiting for a fact that turned out to cost hours nobody got back. Only the ICO reference is ever checked against a clock, and the clock still has room in it."
         },
         {
           "conditions": [{ "op": "flag_is", "flag": "exfil_confirmed", "value": "confirmed" }],
           "priority": 10,
-          "text": "The call to the ICO goes out promptly, and this time 'on the evidence you have' means something more than a hedge: the logs are read and the exfiltration is confirmed before you ever pick up the phone. It comes back with a case reference — RFA1122334 — attached to a notification that is both timely and complete, which the caller on the other end notes is rarer than you'd think. This is the one notification on your list that isn't optional — UK GDPR gives you seventy-two hours from becoming aware of a breach to tell the regulator — and this call goes out early, with a definite answer instead of a probable one. Somebody separately rings the NCSC's reporting line too; the duty analyst, Priya C., takes the technical detail and promises a call back within the hour — welcome, useful, but voluntary, and nobody will ever ask you to prove you made that second call. Only the ICO reference is checked against a clock."
+          "text": "The call to the ICO goes out promptly, and this time 'on the evidence you have' means something more than a hedge: the logs are read and the exfiltration is confirmed before you ever pick up the phone. It comes back with a case reference — RFA1122334 — attached to a notification that is both timely and complete, which the caller on the other end notes is rarer than you'd think. This is the one notification on your list that isn't optional — UK GDPR gives you seventy-two hours from becoming aware of a breach to tell the regulator — and this call goes out early, with a definite answer instead of a probable one. Only the ICO reference is checked against a clock."
         }
       ],
-      "read_aloud_revisit": "The ICO notification sits logged and timestamped, a fact nobody can later dispute. The NCSC call sits alongside it, helpful and unrequired.",
+      "read_aloud_revisit": "The ICO notification sits logged and timestamped, a fact nobody can later dispute.",
       "narrative": {
         "present_tension": "A prompt, imperfect notification will always read better in hindsight than a slower, complete one — and only the ICO clock actually enforces that lesson, since the law itself is content with either as long as both land inside it.",
         "sensory_details": ["a call reference number, written down twice to be sure", "the strange calm of a deadline actually met"],
@@ -393,7 +405,7 @@
       "narrative": {
         "present_tension": "The last safety net you were counting on was never as separate as the diagram said it was.",
         "sensory_details": ["a backup job log ending mid-line", "a silence where a recovery plan used to be"],
-        "emotional_undertone": "The specific despair of a plan failing exactly where you were told it couldn't."
+        "emotional_undertone": "A plan failing exactly where you were told it couldn't."
       }
     },
     {
@@ -467,7 +479,7 @@
       "narrative": {
         "present_tension": "Ended, in the worst way an incident can end: everyone still has questions, and nobody in the room can answer them any more.",
         "sensory_details": ["a national news chyron with the council's name in it", "an empty chair where the Leader used to sit"],
-        "emotional_undertone": "The particular exhaustion of an incident that outlasted everyone's authority to fix it."
+        "emotional_undertone": "An incident that outlasted everyone's authority to fix it."
       }
     },
     {
@@ -603,12 +615,12 @@
       "id": "m015",
       "from": "law_enforcement_call",
       "to": "forensics_engage",
-      "label": "Report to Action Fraud and the NCA now, before forensics goes any deeper",
+      "label": "Report to Report Fraud and request NCSC incident management support now, before forensics goes any deeper",
       "kind": "open",
       "effects": [{ "op": "set_flag", "flag": "law_enforcement_notified", "value": true }],
       "stakes": "An outside agency in the room this early, in exchange for a formal, defensible evidence chain from here on.",
-      "hook": "The reporting line takes four minutes to answer. It costs you nothing but the interruption.",
-      "narrative": { "player_intent": "Engage law enforcement before the forensic work proceeds.", "dramatic_role": "The procedurally sound but socially costly choice; strengthens the forensics test that follows." }
+      "hook": "The report takes four minutes to submit. It costs you nothing but the interruption.",
+      "narrative": { "player_intent": "Engage police reporting and NCSC support before the forensic work proceeds.", "dramatic_role": "The procedurally sound but socially costly choice; strengthens the forensics test that follows." }
     },
     {
       "id": "m016",
@@ -707,7 +719,7 @@
       "id": "m041b",
       "from": "forensics_engage",
       "to": "forensics_engage",
-      "label": "Work the logs for a definitive answer, with the NCA's technical support",
+      "label": "Work the logs for a definitive answer, with NCSC's incident management support",
       "kind": "investigation",
       "one_time": true,
       "conditions": [{ "op": "flag_is", "flag": "law_enforcement_notified", "value": true }],
@@ -721,8 +733,8 @@
       },
       "effects": [{ "op": "set_flag", "flag": "exfil_confirmed", "value": "confirmed" }],
       "stakes": "A clean read of the logs turns a suspicion into a fact you can put in a regulator notification — and this time you're not reading them alone.",
-      "hook": "The NCA's analyst has seen this exact log pattern before. That's worth more than another pot of coffee.",
-      "narrative": { "player_intent": "Establish whether data actually left the network, with formal backup.", "dramatic_role": "The reward for the law-enforcement decision: a meaningfully better test at the adventure's core investigation." }
+      "hook": "Priya C., NCSC's incident management analyst working the case since the report went in, has seen this exact log pattern before. That's worth more than another pot of coffee.",
+      "narrative": { "player_intent": "Establish whether data actually left the network, with formal backup.", "dramatic_role": "The reward for the reporting decision: a meaningfully better test at the adventure's core investigation." }
     },
     {
       "id": "m041",
@@ -808,12 +820,12 @@
       "id": "m060",
       "from": "comms_prep",
       "to": "public_disclosure",
-      "label": "Publish the transparent version",
+      "label": "Issue the statement as drafted",
       "kind": "open",
       "effects": [{ "op": "set_flag", "flag": "public_statement_made", "value": true }],
-      "stakes": "The version that protects residents goes out, as written.",
+      "stakes": "The fuller draft goes out, as written, with everything currently known about scope and impact.",
       "hook": "Legal signed off. It just didn't sign off enthusiastically.",
-      "narrative": { "player_intent": "Publish the honest statement.", "dramatic_role": "The transparency route." }
+      "narrative": { "player_intent": "Publish without further amendment.", "dramatic_role": "The direct route out of comms_prep — labelled neutrally on purpose; the reader shouldn't be told this is 'the honest one' before they choose, only afterwards, by consequence." }
     },
     {
       "id": "m061",
@@ -831,26 +843,41 @@
       "id": "m070",
       "from": "political_pressure",
       "to": "public_disclosure",
-      "label": "Hold the line on full, timely disclosure",
+      "label": "Issue the current statement now",
       "kind": "open",
       "conditions": [{ "op": "resource_at_least", "resource": "comms_capital", "value": 3 }],
       "disclosure": "foreshadowed",
       "foreshadow": "Holding this line in front of the Leader takes political capital, not just conviction — and if you already spent most of yours forcing an earlier argument, you won't have enough left to win this one.",
       "effects": [{ "op": "set_flag", "flag": "public_statement_made", "value": true }],
-      "stakes": "Refusing to soften the statement costs you politically, here, tonight — and is the only version of this evening nobody has to lie about later.",
-      "hook": "'Managed' was never going to be a word you could put your name to.",
-      "narrative": { "player_intent": "Resist pressure to soften the statement.", "dramatic_role": "The integrity route through the pivotal encounter — gated on comms_capital, so the reckless early-reopening road forecloses it while the careful, comms-led road preserves it." }
+      "stakes": "The statement goes out as drafted, on the timetable you already had — no further sign-off, no further review, whatever's in it is what residents and press get.",
+      "hook": "The Leader wants another look at the wording. You have the wording you have.",
+      "narrative": { "player_intent": "Decline the Leader's request to revisit the wording.", "dramatic_role": "Gated on comms_capital, so the reckless early-reopening road forecloses it while the careful, comms-led road preserves it. Deliberately labelled without moral framing — the reader shouldn't be told in the menu that this is the 'right' choice, only shown the consequence afterwards." }
     },
     {
       "id": "m071",
       "from": "political_pressure",
       "to": "cover_up_exposed",
-      "label": "Soften the statement to protect the political leadership",
+      "label": "Accept the Leader's office revisions before publishing",
       "kind": "open",
       "effects": [{ "op": "set_flag", "flag": "cover_up_attempted", "value": true }],
-      "stakes": "The softened version buys the Leader a quieter week and buys you a much worse one later.",
-      "hook": "It only has to fail once for the softening to become the whole story.",
-      "narrative": { "player_intent": "Yield to political pressure.", "dramatic_role": "The road into the cover-up ending." }
+      "stakes": "The revised version goes out under time pressure, without a line-by-line check against what was cut and why — a reasonable-sounding request to smooth the tone can, in practice, remove exactly the sentence that mattered.",
+      "hook": "The redline comes back fast. Nobody in the room has time to compare it word for word against the version legal signed off.",
+      "narrative": { "player_intent": "Accept edits from the Leader's office under time pressure.", "dramatic_role": "The road into the cover-up ending — deliberately not labelled as capitulation; the risk here is process (unreviewed edits under pressure), and the outcome should surprise a player who thought they were just accepting a reasonable request." }
+    },
+    {
+      "id": "m072",
+      "from": "political_pressure",
+      "to": "public_disclosure",
+      "label": "Issue a short holding statement now; publish the fuller account once affected records are confirmed",
+      "kind": "open",
+      "costs": [{ "resource": "hours_to_deadline", "amount": 6 }],
+      "effects": [
+        { "op": "set_flag", "flag": "public_statement_made", "value": true },
+        { "op": "set_flag", "flag": "holding_statement_first", "value": true }
+      ],
+      "stakes": "A short, accurate statement of what's confirmed goes out now — an incident is under investigation, services are affected, more detail follows as it's verified — with the fuller account to come once the affected-records question is actually answered rather than guessed at.",
+      "hook": "It satisfies nobody completely. The Leader gets the caution about unconfirmed numbers; residents get told something is happening, tonight, not next week.",
+      "narrative": { "player_intent": "Split the difference between speed and certainty rather than choosing one.", "dramatic_role": "The third, genuinely neutral political_pressure exit — the same phased-disclosure principle the ICO itself recommends (report what's confirmed, update as the picture develops), applied to public comms instead of the regulator. Not free: costs 6 hours, same as any other delay route." }
     },
     {
       "id": "m075",
@@ -922,7 +949,7 @@
       "id": "m081",
       "from": "cyber_insurance_call",
       "to": "ending_ransom_paid",
-      "label": "Authorise a quiet ransom payment to buy certainty, against the insurer's advice",
+      "label": "Authorise payment and pursue the decryptor",
       "kind": "risk",
       "test": {
         "type": "luck",
