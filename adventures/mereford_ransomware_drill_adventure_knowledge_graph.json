@@ -1,7 +1,7 @@
 {
   "schema": {
     "name": "adventure-knowledge-graph",
-    "version": "0.2.0",
+    "version": "0.2.1",
     "description": "A stateful, directed knowledge graph for a cyber-incident crisis-management gamebook: Gold Command talks a ransomware attack on a district council through a 72-hour statutory clock. Same executable rule DSL as every adventure on this platform."
   },
   "graph": {
@@ -41,10 +41,14 @@
       "regulator_call's ICO case reference (RFA1122334) and named NCSC duty analyst (Priya C.) are illustrative, not drawn from a real case file — the point is procedural realism (a real incident generates a specific reference number and puts a named person on the other end of the NCSC line), not any claim to represent an actual ICO case.",
       "MECHANICS — renamed hours_to_deadline to attacker_deadline_hours throughout: it was doing five jobs (attacker threat, press pressure, forensic pacing, restoration viability, insurer timing) under a name that implied it was also the ICO's clock. It never was — ICO compliance is represented purely by flags (regulator_notified, ico_notification_delayed, ico_notified_after_public_disclosure) precisely because no reachable path in this graph can breach the statutory 72 hours, so a second clock tracking the same number would carry no information. What the rename doesn't fix on its own: adding a genuinely separate ico_deadline_hours resource was considered and rejected, since it would tick in lockstep with the attacker's clock for the same reason and add a resource nothing can ever meaningfully read. If this graph is ever restructured so ICO timing can vary independently of the attacker's countdown, that's the moment to revisit this.",
       "m080's gate moved from resource_at_least attacker_deadline_hours >= 40 to has_item backup_status_report (obtained via the new route m045, forensics_engage, 2 hours). Restoration viability is now about whether the recovery team actually verified the backups, not about how much of the attacker's arbitrary countdown happens to be left — matching how real recovery decisions get made. One consequence worth knowing: the reckless m011 branch (contain_early -> political_pressure directly) never visits forensics_engage, so it can never obtain backup_status_report, so m080 is permanently unavailable on that branch, on top of the comms_capital-gated loss of m070. That's a deliberate, compounding consequence of skipping process early, not a separate bug.",
-      "service_outage_hours is new: a resource incremented (not spent) by every route that represents time spent deliberating rather than delivering — verifying scope, waiting for forensic certainty, holding silence, executive sign-off. It's read via a resource_at_least variant on ending_recovery_strong, so a technically clean, well-sequenced response that nonetheless took its time gets an honest 'closer to a fortnight, not a week' instead of always claiming the fastest possible recovery.",
-      "DICE POLICY — m001 (immediate isolation) no longer rolls a skill test. Whether isolation succeeds is a matter of organisational capability established before the incident (segmentation, tested procedures, staff availability), not a coin flip Gold Command makes in the room; making a correct decision fail on a bad roll taught the wrong lesson. Isolating blind still costs a point of exposure, because the genuine uncertainty is what already left before the switch was thrown, not whether the switch worked. Remaining tests are all at genuinely exogenous uncertainty: m080 (whether the backups turn out clean given a verified report), m012 (whether the compromised-adjacent email channel holds), m044 (burnout), m081 (whether a ransom payment actually buys a working decryptor). Don't add a skill test to a route whose outcome should be determined by a prior decision or established capability — gate or modify the route instead, the way m041b's forensics modifier already rewards the law-enforcement decision without rolling for it.",
+      "service_outage_hours (revised in v0.2.1): incremented by the same amount as every route's attacker_deadline_hours cost, success or failure, without exception — services stay down for the whole incident regardless of what Gold Command is deciding at the time, so this resource now actually measures elapsed outage time rather than only the subset of routes someone had judged 'a delay'. The earlier version only incremented on routes framed as deliberation (verifying scope, waiting for forensic certainty, executive sign-off) and silently stayed at zero through routes that cost just as many real hours — staff comms, forensic investigation, evidence-gathering, notification — which meant a run that spent nearly a full day of clock time could still read 'zero hours of outage'. It's read via a resource_at_least variant on ending_recovery_strong, so a technically clean, well-sequenced response that nonetheless took its time gets an honest 'closer to a fortnight, not a week' instead of always claiming the fastest possible recovery. If a future route ever spends attacker_deadline_hours, mirror the same amount into service_outage_hours in the same effects block (and in failure_effects too, for tested routes) — don't let the two drift apart again.",
+      "DICE POLICY — m001 (immediate isolation) no longer rolls a skill test. Whether isolation succeeds is a matter of organisational capability established before the incident (segmentation, tested procedures, staff availability), not a coin flip Gold Command makes in the room; making a correct decision fail on a bad roll taught the wrong lesson. It also no longer costs a point of exposure (removed in v0.2.1): exposure tracks what becomes visible and reconstructable from outside the room, and not yet knowing what left before containment is an epistemic gap, not external visibility — penalising it with an exposure-tracking stat was punishing the correct decision with the wrong currency. That uncertainty is already carried honestly by exfil_confirmed staying 'unknown' until forensics resolves it. Remaining tests are all at genuinely exogenous uncertainty: m080 (whether the backups turn out clean given a verified report), m012 (whether the compromised-adjacent email channel holds), m044 (burnout), m081 (whether a ransom payment actually buys a working decryptor). Don't add a skill test to a route whose outcome should be determined by a prior decision or established capability — gate or modify the route instead, the way m041b's forensics modifier already rewards the law-enforcement decision without rolling for it.",
       "ITEMS — nine artefacts exist (ransom_note, soc_alert_extract, supplier_vpn_log, backup_status_report, insurance_policy_wording, draft_public_statement, affected_data_schedule, leaders_office_email, reporters_questions), all granted, none orphaned. Only two are mechanically gated on (backup_status_report at m080, affected_data_schedule at m077) — that's a scope decision, not an oversight: the other seven exist to make key moments tangible ('here is the specific document/log/email this decision produced or required') rather than abstract flag-flipping, matching the brief's 'evidence, not just narrated choices'. Gating every item would turn artefact collection into busywork; gate the ones where possessing the evidence is genuinely the difference between a decision being informed or assumed, and let the rest do their job as texture. If a future edit wants more artefact-gated decisions, prefer the m077/m080 pattern (has_item as the actual legality condition) over adding items nothing ever checks.",
-      "HUB (v0.2.0) — gold_command_hub converts the front section (staff comms, law enforcement/NCSC reporting) from a fixed linear queue into two genuinely order-independent workstreams: h001 and h002 are both available from the hub immediately, each disappears once resolved (via its own flag, either outcome), and h003 (into forensics_engage) is never gated on either, since m040/m041b already read law_enforcement_notified live and gain nothing from an artificial hub-side gate. This is a deliberately bounded rewrite, not the full parallel-workstream vision (technical/service-continuity/legal/comms/law-enforcement/insurer/governance as simultaneous hub spokes) — that fuller version was scoped and rejected for this pass because it would mean rebuilding the entire back half of the graph (political_pressure's three-way branch, the comms_capital gate on m070, the evidence gates on m080/m077, the ICO-recovery route m076) that took several previous revisions to get right, for comparatively little additional teaching value: that half of the graph already isn't a fixed queue. Converting the one part that genuinely was — the fixed staff-comms-then-law-enforcement-then-forensics chain — captures the real lesson (Gold Command allocates attention across workstreams, doesn't personally complete a checklist in a fixed order) at a fraction of the risk to mechanics that took real iteration to verify. If this graph is restructured further, extend the hub pattern (spoke disappears once resolved, no artificial ordering gate between independent workstreams) rather than inventing a new one."
+      "HUB (v0.2.0) — gold_command_hub converts the front section (staff comms, law enforcement/NCSC reporting) from a fixed linear queue into two genuinely order-independent workstreams: h001 and h002 are both available from the hub immediately, each disappears once resolved (via its own flag, either outcome), and h003 (into forensics_engage) is never gated on either, since m040/m041b already read law_enforcement_notified live and gain nothing from an artificial hub-side gate. This is a deliberately bounded rewrite, not the full parallel-workstream vision (technical/service-continuity/legal/comms/law-enforcement/insurer/governance as simultaneous hub spokes) — that fuller version was scoped and rejected for this pass because it would mean rebuilding the entire back half of the graph (political_pressure's three-way branch, the comms_capital gate on m070, the evidence gates on m080/m077, the ICO-recovery route m076) that took several previous revisions to get right, for comparatively little additional teaching value: that half of the graph already isn't a fixed queue. Converting the one part that genuinely was — the fixed staff-comms-then-law-enforcement-then-forensics chain — captures the real lesson (Gold Command allocates attention across workstreams, doesn't personally complete a checklist in a fixed order) at a fraction of the risk to mechanics that took real iteration to verify. If this graph is restructured further, extend the hub pattern (spoke disappears once resolved, no artificial ordering gate between independent workstreams) rather than inventing a new one.",
+      "HUB FIX (v0.2.1) — the v0.2.0 hub still had a one-way exit: h003 (hub -> forensics_engage) had no route back, so choosing the investigation first permanently stranded whichever of staff comms or law-enforcement reporting was still unresolved, in direct contradiction of the hub's own read_aloud ('the investigation can start whenever you're ready for it to'). m046 (forensics_engage -> gold_command_hub) closes that gap, visible only while staff_comms_resolved or law_enforcement_call_addressed is still false. A parallel, symmetric bug existed one hop further on: m041 (forensics_engage -> regulator_call, notify the ICO now on the evidence you have) was also one-way, so a legally sound early ICO notification could permanently forfeit backup_status_report and affected_data_schedule — and with them, the clean-recovery gamble (m080) and direct individual notification (m077) — pushing a player who did the legally right thing toward the ransom-payment ending instead. m047 (regulator_call -> forensics_engage) closes that gap the same way, visible only while either evidence item is still missing. Also added: staff_comms_resolved, a single boolean set by all three staff_comms_dilemma exits (m012/m013/m014, success and failure paths alike), replacing what had been a two-flag OR check duplicated across h001's conditions and two of the hub's read_aloud_variants — same behaviour, one flag instead of an implicit AND-of-negatives that the condition DSL can't actually express inside an 'any' block.",
+      "PROCESS, NOT PERSON (v0.2.1) — m071 (accept the Leader's office revisions) previously always led to the cover-up ending, which taught 'executive edits cause scandal' rather than the intended lesson. m073 is now the counterpart: identical premise (the Leader's office sends a redline under time pressure), the only difference is a two-hour check of the revisions against the evidence before publishing. m071 remains the deterministic road to cover_up_exposed, but its label and dramatic_role now say plainly that the risk is skipping verification under pressure, not accepting input from elected members — m073 proves it by taking the same input and getting a clean outcome from one added step.",
+      "HELD, NOT DROPPED (v0.2.1) — m072 (issue a short holding statement now, publish the fuller account once affected records are confirmed) set holding_statement_first and let play continue straight to the insurer and a strong ending with no mechanical trace of whether the promised follow-up ever happened. m078 (public_disclosure -> public_disclosure, gated on holding_statement_first, full_account_published = false and has_item affected_data_schedule) is that follow-up, always offered once the evidence exists to write it honestly. It's deliberately not a hard gate on any ending — forcing it would risk exactly the kind of soft-lock this graph has already been through several rounds of fixing — but skipping it now has a real, visible cost: a dedicated read_aloud_variant on ending_recovery_strong (priority 6) names the still-open promise explicitly, so 'more detail to follow' can't quietly become the final word without the story saying so.",
+      "EXPOSURE (v0.2.1) — m001 (immediate isolation) no longer costs a point of exposure. exposure is defined elsewhere in these notes as 'how much of the incident becomes visible and reconstructable from outside the room'; not yet knowing what left the network before the switch was thrown is an internal epistemic gap, not external visibility, and charging exposure for it punished the correct decision with the wrong stat. The genuine uncertainty is still tracked honestly — exfil_confirmed simply stays 'unknown' until forensics resolves it."
     ],
     "narrative_premise": "06:10 on a Monday. The SOC has flagged mass file-encryption across Mereford District Council's shared drives. A ransom note names a 72-hour window before stolen data is published. You are Gold Command. Every choice you make in the next three days will be reconstructed later — by the ICO, by an FOI request, or by a journalist — whether or not it feels like it matters now.",
     "core_mystery": "How far in did they get, and can you prove it before the clock forces you to guess in public?",
@@ -86,10 +90,12 @@
         "ico_notified_after_public_disclosure": { "type": "boolean", "initial": false },
         "affected_people_notified": { "type": "boolean", "initial": false },
         "holding_statement_first": { "type": "boolean", "initial": false },
+        "full_account_published": { "type": "boolean", "initial": false },
         "law_enforcement_notified": { "type": "boolean", "initial": false },
         "law_enforcement_call_addressed": { "type": "boolean", "initial": false },
         "staff_informed_safely": { "type": "boolean", "initial": false },
-        "staff_comms_leaked": { "type": "boolean", "initial": false }
+        "staff_comms_leaked": { "type": "boolean", "initial": false },
+        "staff_comms_resolved": { "type": "boolean", "initial": false }
       }
     },
     "condition_dsl": {
@@ -107,7 +113,7 @@
     },
     "test_dsl": {
       "types": ["skill", "luck", "combat", "choice"],
-      "notes": "2d6 against stat plus modifier. skill is tested at containment and at attribution; luck is tested at the backup-integrity gamble and, optionally, at the burnout risk. There are no combat encounters."
+      "notes": "2d6 against stat plus modifier. skill is tested at the forensic logs review (m040/m041b), not at containment (m001, a deterministic decision — see the DICE POLICY design note); luck is tested at the backup-integrity gamble and, optionally, at the burnout risk. There are no combat encounters."
     }
   },
   "regions": [
@@ -309,10 +315,7 @@
         {
           "conditions": [
             { "op": "flag_is", "flag": "law_enforcement_call_addressed", "value": true },
-            { "any": [
-              { "op": "flag_is", "flag": "staff_informed_safely", "value": true },
-              { "op": "flag_is", "flag": "staff_comms_leaked", "value": true }
-            ] }
+            { "op": "flag_is", "flag": "staff_comms_resolved", "value": true }
           ],
           "priority": 30,
           "text": "Both of the things that couldn't wait have been addressed, for better or worse. What's left now is the investigation itself — and unlike the last two decisions, this one only has one road, not three."
@@ -323,10 +326,7 @@
           "text": "Law enforcement is sorted, one way or the other. Staff still don't know anything official, and the helpdesk queue is not going to stay patient forever."
         },
         {
-          "conditions": [{ "any": [
-            { "op": "flag_is", "flag": "staff_informed_safely", "value": true },
-            { "op": "flag_is", "flag": "staff_comms_leaked", "value": true }
-          ] }],
+          "conditions": [{ "op": "flag_is", "flag": "staff_comms_resolved", "value": true }],
           "priority": 10,
           "text": "Staff have been told something, one way or the other. The question of who else needs telling — Report Fraud, NCSC — is still open, and it's not getting easier to answer by waiting."
         }
@@ -609,6 +609,14 @@
           "conditions": [{ "op": "resource_at_least", "resource": "service_outage_hours", "value": 30 }],
           "priority": 8,
           "text": "Regulator notified in time, ransom refused, backups held — but every deliberation that got you to this decision cost real hours of council tax, benefits and case-management systems staying down while the picture was confirmed. Services take closer to a fortnight to return, not a week, because a good decision made slowly still costs the time it took to make it slowly. It does not end there: the recovery bill runs into the millions, and it is the better part of a year before every service is fully itself again. When the ICO closes its file, it isn't with 'no further action' — a reprimand, not a fine, for the stale VPN credential that let this happen. The response was right. Right and unhurried are not, in an incident like this one, quite the same thing."
+        },
+        {
+          "conditions": [
+            { "op": "flag_is", "flag": "holding_statement_first", "value": true },
+            { "op": "flag_is", "flag": "full_account_published", "value": false }
+          ],
+          "priority": 6,
+          "text": "Regulator notified in time, ransom refused, backups held. Services return within the week, in the right order, without a second crisis hiding behind the first one. One promise, though, is still open on the file: the holding statement said a fuller account would follow once the affected-records picture was confirmed, and it never quite came. Nobody chased it, and nobody outside the room seems to have noticed yet — but the ICO's eventual reprimand for the stale VPN credential makes a point of naming it anyway: 'more detail to follow' is a commitment, not a form of words."
         }
       ],
       "narrative": {
@@ -754,12 +762,11 @@
       "label": "Isolate the network immediately",
       "kind": "open",
       "effects": [
-        { "op": "set_flag", "flag": "network_isolated", "value": true },
-        { "op": "modify_stat", "stat": "exposure", "amount": 1 }
+        { "op": "set_flag", "flag": "network_isolated", "value": true }
       ],
-      "stakes": "Cut now, on instinct: isolation lands, deterministically — this is a decision, not a dice roll — but cutting blind before scope is known means you can't yet say what, if anything, got out before the switch was thrown.",
+      "stakes": "Cut now, on instinct: isolation lands, deterministically — this is a decision, not a dice roll. It buys time; it doesn't tell you what, if anything, got out before the switch was thrown, but not knowing yet isn't the same thing as anyone outside the room seeing it.",
       "hook": "Every minute of hesitation is spreading. The switch, at least, is not in question.",
-      "narrative": { "player_intent": "Act immediately on incomplete information.", "dramatic_role": "Deliberately not a skill test: whether isolation works is a matter of organisational capability (segmentation, tested procedures, staff availability) established before the incident, not a coin flip made by Gold Command in the room. The genuine uncertainty here is what already left before you cut the cord, which is why isolating blind still costs a point of exposure — not because the isolation itself might fail." }
+      "narrative": { "player_intent": "Act immediately on incomplete information.", "dramatic_role": "Deliberately not a skill test: whether isolation works is a matter of organisational capability (segmentation, tested procedures, staff availability) established before the incident, not a coin flip made by Gold Command in the room. It also carries no exposure cost — exposure tracks what becomes visible and reconstructable from outside the room, and a decision made in private, however uncertain, hasn't made anything visible yet." }
     },
     {
       "id": "m002",
@@ -804,10 +811,7 @@
       "to": "staff_comms_dilemma",
       "label": "Address staff communications",
       "kind": "open",
-      "conditions": [
-        { "op": "flag_is", "flag": "staff_informed_safely", "value": false },
-        { "op": "flag_is", "flag": "staff_comms_leaked", "value": false }
-      ],
+      "conditions": [{ "op": "flag_is", "flag": "staff_comms_resolved", "value": false }],
       "effects": [],
       "stakes": "Nothing about this workstream depends on the others being finished first — it only depends on nobody having addressed it yet.",
       "hook": "The helpdesk queue doesn't check whether law enforcement's been called before it keeps growing.",
@@ -837,6 +841,23 @@
       "narrative": { "player_intent": "Begin the technical investigation, whatever else is or isn't resolved yet.", "dramatic_role": "The graduation spoke out of the hub's front-loaded triage and into the main investigative branch; always available, since m040/m041b already read law_enforcement_notified live and don't need this route to gate on it." }
     },
     {
+      "id": "m046",
+      "from": "forensics_engage",
+      "to": "gold_command_hub",
+      "label": "Step back to Gold Command — staff comms and reporting haven't gone away",
+      "kind": "open",
+      "conditions": [
+        { "any": [
+          { "op": "flag_is", "flag": "staff_comms_resolved", "value": false },
+          { "op": "flag_is", "flag": "law_enforcement_call_addressed", "value": false }
+        ] }
+      ],
+      "effects": [],
+      "stakes": "The investigation doesn't require abandoning the other workstreams — it was never meant to be a one-way trip out of the hub.",
+      "hook": "The logs will still be there in ten minutes. The helpdesk queue and the reporting decision won't wait as patiently.",
+      "narrative": { "player_intent": "Return to allocate attention elsewhere before committing further to the investigation.", "dramatic_role": "Closes the hub's one real gap: h003 is a one-way graduation spoke with nothing routing back, so choosing the investigation first used to permanently strand whichever of staff comms or law-enforcement reporting was still unresolved. Visible only while at least one of those two is still open; once both are resolved the hub has nothing left to offer here and this route stops appearing." }
+    },
+    {
       "id": "m012",
       "from": "staff_comms_dilemma",
       "to": "gold_command_hub",
@@ -849,10 +870,14 @@
         "failure_to": "gold_command_hub",
         "failure_effects": [
           { "op": "set_flag", "flag": "staff_comms_leaked", "value": true },
+          { "op": "set_flag", "flag": "staff_comms_resolved", "value": true },
           { "op": "modify_stat", "stat": "exposure", "amount": 3 }
         ]
       },
-      "effects": [{ "op": "set_flag", "flag": "staff_informed_safely", "value": true }],
+      "effects": [
+        { "op": "set_flag", "flag": "staff_informed_safely", "value": true },
+        { "op": "set_flag", "flag": "staff_comms_resolved", "value": true }
+      ],
       "stakes": "Fast, and free, and exactly the channel you can't currently vouch for — if a mailbox is still readable by someone who isn't you, or a screenshot makes it further than the building, that's on this email.",
       "hook": "The draft is one paragraph long. Sending it is the only slow part.",
       "narrative": { "player_intent": "Warn staff quickly, accepting the channel risk.", "dramatic_role": "The fast, unverified road; a real chance of the message becoming the leak it was meant to prevent." }
@@ -864,7 +889,11 @@
       "label": "Stand up the out-of-band phone and text tree instead",
       "kind": "open",
       "costs": [{ "resource": "attacker_deadline_hours", "amount": 4 }, { "resource": "comms_capital", "amount": 1 }],
-      "effects": [{ "op": "set_flag", "flag": "staff_informed_safely", "value": true }],
+      "effects": [
+        { "op": "set_flag", "flag": "staff_informed_safely", "value": true },
+        { "op": "set_flag", "flag": "staff_comms_resolved", "value": true },
+        { "op": "modify_resource", "resource": "service_outage_hours", "amount": 4 }
+      ],
       "stakes": "Slower, and it costs a call to HR to find out whether the emergency contact list is even current — but nothing about it depends on a system you don't trust yet.",
       "hook": "Half the numbers on the list are two jobs out of date. It still beats silence.",
       "narrative": { "player_intent": "Warn staff safely, at the cost of time and coordination.", "dramatic_role": "The slower, verifiably safe road — the one real incident responders actually reach for when the compromised channel is the usual one." }
@@ -877,6 +906,7 @@
       "kind": "open",
       "effects": [
         { "op": "set_flag", "flag": "staff_comms_leaked", "value": true },
+        { "op": "set_flag", "flag": "staff_comms_resolved", "value": true },
         { "op": "modify_stat", "stat": "exposure", "amount": 2 }
       ],
       "stakes": "Nobody has to defend a message that was never sent — but the helpdesk queue and the group chats will write their own version of events faster than you're writing yours.",
@@ -918,7 +948,10 @@
       "label": "Push to reopen benefits payments before forensics finish",
       "kind": "open",
       "costs": [{ "resource": "attacker_deadline_hours", "amount": 4 }, { "resource": "comms_capital", "amount": 4 }],
-      "effects": [{ "op": "add_item", "item": "leaders_office_email" }],
+      "effects": [
+        { "op": "add_item", "item": "leaders_office_email" },
+        { "op": "modify_resource", "resource": "service_outage_hours", "amount": 4 }
+      ],
       "stakes": "Residents need their payments; forensics needs the network exactly as it is — and forcing the issue against professional advice this early spends most of the political capital you'll want when the Leader pushes back an hour from now.",
       "hook": "The benefits helpline has stopped ringing. That is not the same as stopped needing.",
       "narrative": { "player_intent": "Prioritise service restoration over investigation.", "dramatic_role": "Early route into the political pressure encounter." }
@@ -989,12 +1022,16 @@
         "stat": "skill",
         "modifier": 2,
         "failure_to": "forensics_engage",
-        "failure_effects": [{ "op": "set_flag", "flag": "exfil_confirmed", "value": "unconfirmed" }]
+        "failure_effects": [
+          { "op": "set_flag", "flag": "exfil_confirmed", "value": "unconfirmed" },
+          { "op": "modify_resource", "resource": "service_outage_hours", "amount": 4 }
+        ]
       },
       "effects": [
         { "op": "set_flag", "flag": "exfil_confirmed", "value": "confirmed" },
         { "op": "add_item", "item": "supplier_vpn_log" },
-        { "op": "add_item", "item": "affected_data_schedule" }
+        { "op": "add_item", "item": "affected_data_schedule" },
+        { "op": "modify_resource", "resource": "service_outage_hours", "amount": 4 }
       ],
       "stakes": "A clean read of the logs, worked alone, turns a suspicion into a fact you can put in a regulator notification — if you can read it right without help, in the four hours it takes.",
       "hook": "The timestamps are all there. Reading them right, under this clock, is the hard part.",
@@ -1014,12 +1051,16 @@
         "stat": "skill",
         "modifier": 4,
         "failure_to": "forensics_engage",
-        "failure_effects": [{ "op": "set_flag", "flag": "exfil_confirmed", "value": "unconfirmed" }]
+        "failure_effects": [
+          { "op": "set_flag", "flag": "exfil_confirmed", "value": "unconfirmed" },
+          { "op": "modify_resource", "resource": "service_outage_hours", "amount": 4 }
+        ]
       },
       "effects": [
         { "op": "set_flag", "flag": "exfil_confirmed", "value": "confirmed" },
         { "op": "add_item", "item": "supplier_vpn_log" },
-        { "op": "add_item", "item": "affected_data_schedule" }
+        { "op": "add_item", "item": "affected_data_schedule" },
+        { "op": "modify_resource", "resource": "service_outage_hours", "amount": 4 }
       ],
       "stakes": "A clean read of the logs turns a suspicion into a fact you can put in a regulator notification — and this time you're not reading them alone.",
       "hook": "Priya C., NCSC's incident management analyst working the case since the report went in, has seen this exact log pattern before. That's worth more than another pot of coffee.",
@@ -1035,6 +1076,23 @@
       "stakes": "Notify inside the statutory window on the evidence you have, whatever state it's in — this is the one call the clock actually measures.",
       "hook": "A timely notification reads better in every report that follows, whether the evidence behind it is definite or still partial.",
       "narrative": { "player_intent": "Notify the ICO immediately, inside the legal deadline.", "dramatic_role": "The fast, defensible compliance route; available whether or not exfiltration is confirmed yet — regulator_call's read_aloud_variants pick the framing (definite vs. partial evidence) to match the actual state." }
+    },
+    {
+      "id": "m047",
+      "from": "regulator_call",
+      "to": "forensics_engage",
+      "label": "Return to the investigation — the regulator's told, the evidence still isn't finished",
+      "kind": "open",
+      "conditions": [
+        { "any": [
+          { "op": "missing_item", "item": "backup_status_report" },
+          { "op": "missing_item", "item": "affected_data_schedule" }
+        ] }
+      ],
+      "effects": [],
+      "stakes": "Notifying the ICO early on the evidence you have is a legitimate, defensible choice — it was never meant to be the last thing the investigation gets to do.",
+      "hook": "The reference number is logged. The logs themselves still have more to say.",
+      "narrative": { "player_intent": "Continue the investigation after an early, evidence-light ICO notification.", "dramatic_role": "Closes the other real gap in the front section: m041 (notify the ICO now, on the evidence you have) used to be a one-way exit from forensics_engage, so choosing the legally sound early-notification path could permanently foreclose backup_status_report and affected_data_schedule — and, downstream, the clean-recovery gamble (m080) and direct individual notification (m077). Visible only while at least one of those two evidence items is still missing." }
     },
     {
       "id": "m042",
@@ -1059,7 +1117,10 @@
       "label": "Loop in comms before deciding",
       "kind": "open",
       "costs": [{ "resource": "attacker_deadline_hours", "amount": 2 }, { "resource": "comms_capital", "amount": 1 }],
-      "effects": [{ "op": "add_item", "item": "draft_public_statement" }],
+      "effects": [
+        { "op": "add_item", "item": "draft_public_statement" },
+        { "op": "modify_resource", "resource": "service_outage_hours", "amount": 2 }
+      ],
       "stakes": "Bringing comms in early shapes what gets said before the decision is even made, at a small cost in goodwill — a proper process now is cheaper than a fight later.",
       "hook": "The line to take is being drafted whether or not you've decided what the line is.",
       "narrative": { "player_intent": "Involve comms before committing to a disclosure path.", "dramatic_role": "Route into the statement-drafting branch." }
@@ -1076,9 +1137,15 @@
         "stat": "luck",
         "modifier": 0,
         "failure_to": "ending_dead",
-        "failure_effects": [{ "op": "modify_stat", "stat": "stamina", "amount": -10 }]
+        "failure_effects": [
+          { "op": "modify_stat", "stat": "stamina", "amount": -10 },
+          { "op": "modify_resource", "resource": "service_outage_hours", "amount": 8 }
+        ]
       },
-      "effects": [{ "op": "modify_stat", "stat": "stamina", "amount": -2 }],
+      "effects": [
+        { "op": "modify_stat", "stat": "stamina", "amount": -2 },
+        { "op": "modify_resource", "resource": "service_outage_hours", "amount": 8 }
+      ],
       "stakes": "Another pass through the logs without sleep might catch what you missed, at the cost of a third of a day. It might also be the pass that breaks you.",
       "hook": "Nobody is going to tell you to stop. That's exactly the problem.",
       "narrative": { "player_intent": "Push past exhaustion for another shot at the evidence.", "dramatic_role": "The optional, repeatable risk that can end the run outright." }
@@ -1091,7 +1158,10 @@
       "kind": "investigation",
       "one_time": true,
       "costs": [{ "resource": "attacker_deadline_hours", "amount": 2 }],
-      "effects": [{ "op": "add_item", "item": "backup_status_report" }],
+      "effects": [
+        { "op": "add_item", "item": "backup_status_report" },
+        { "op": "modify_resource", "resource": "service_outage_hours", "amount": 2 }
+      ],
       "stakes": "Two hours to stop assuming the backups are clean and actually find out — the architecture diagram says they're segmented from the rest of the network. Diagrams are aspirational documents.",
       "hook": "Someone finally asks the technical team the question everyone's been avoiding: have you actually checked, or are we all just hoping?",
       "narrative": { "player_intent": "Verify recovery capability before it becomes the deciding factor.", "dramatic_role": "Grants backup_status_report, which gates m080 in place of the earlier hours-remaining threshold — restoration viability now depends on evidence obtained, not on how much of the attacker's countdown happens to be left." }
@@ -1169,12 +1239,27 @@
       "id": "m071",
       "from": "political_pressure",
       "to": "cover_up_exposed",
-      "label": "Accept the Leader's office revisions before publishing",
+      "label": "Accept the Leader's office revisions and send them straight out",
       "kind": "open",
       "effects": [{ "op": "set_flag", "flag": "cover_up_attempted", "value": true }],
       "stakes": "The revised version goes out under time pressure, without a line-by-line check against what was cut and why — a reasonable-sounding request to smooth the tone can, in practice, remove exactly the sentence that mattered.",
       "hook": "The redline comes back fast. Nobody in the room has time to compare it word for word against the version legal signed off.",
-      "narrative": { "player_intent": "Accept edits from the Leader's office under time pressure.", "dramatic_role": "The road into the cover-up ending — deliberately not labelled as capitulation; the risk here is process (unreviewed edits under pressure), and the outcome should surprise a player who thought they were just accepting a reasonable request." }
+      "narrative": { "player_intent": "Accept edits from the Leader's office under time pressure, unchecked.", "dramatic_role": "The road into the cover-up ending — deliberately not labelled as capitulation; the risk here is process (unreviewed edits going out under pressure), not that the edits came from an executive. m073 is the counterpart that proves it: same request, same office, the only difference is one verification step before publishing." }
+    },
+    {
+      "id": "m073",
+      "from": "political_pressure",
+      "to": "public_disclosure",
+      "label": "Accept the Leader's office revisions, but check the redline against the evidence first",
+      "kind": "open",
+      "costs": [{ "resource": "attacker_deadline_hours", "amount": 2 }],
+      "effects": [
+        { "op": "set_flag", "flag": "public_statement_made", "value": true },
+        { "op": "modify_resource", "resource": "service_outage_hours", "amount": 2 }
+      ],
+      "stakes": "Two hours to read the redline against what's actually confirmed, line by line, before it goes anywhere — long enough to catch the one cut that would have mattered, without refusing the Leader's office a hearing at all.",
+      "hook": "The redline comes back fast. This time, someone actually checks it against the evidence before it goes out.",
+      "narrative": { "player_intent": "Accept executive input on the statement, but verify it before publishing rather than after.", "dramatic_role": "The counterpart to m071: executive review isn't inherently the danger — bypassing factual verification under pressure is. Same revisions accepted, same office, the added check is what keeps this off the cover-up branch." }
     },
     {
       "id": "m072",
@@ -1185,7 +1270,8 @@
       "costs": [{ "resource": "attacker_deadline_hours", "amount": 6 }],
       "effects": [
         { "op": "set_flag", "flag": "public_statement_made", "value": true },
-        { "op": "set_flag", "flag": "holding_statement_first", "value": true }
+        { "op": "set_flag", "flag": "holding_statement_first", "value": true },
+        { "op": "modify_resource", "resource": "service_outage_hours", "amount": 6 }
       ],
       "stakes": "A short, accurate statement of what's confirmed goes out now — an incident is under investigation, services are affected, more detail follows as it's verified — with the fuller account to come once the affected-records question is actually answered rather than guessed at.",
       "hook": "It satisfies nobody completely. The Leader gets the caution about unconfirmed numbers; residents get told something is happening, tonight, not next week.",
@@ -1198,7 +1284,10 @@
       "label": "Loop in the council's cyber insurer before deciding on the ransom",
       "kind": "open",
       "costs": [{ "resource": "attacker_deadline_hours", "amount": 2 }],
-      "effects": [{ "op": "add_item", "item": "insurance_policy_wording" }],
+      "effects": [
+        { "op": "add_item", "item": "insurance_policy_wording" },
+        { "op": "modify_resource", "resource": "service_outage_hours", "amount": 2 }
+      ],
       "stakes": "The policy has an opinion on this decision whether or not you ask for it; better to hear it before you choose.",
       "hook": "Someone in finance has already found the incident-response hotline number in the policy documents.",
       "narrative": { "player_intent": "Consult the insurer before the ransom decision.", "dramatic_role": "Hub spoke into the insurance-informed finale." }
@@ -1212,10 +1301,34 @@
       "one_time": true,
       "conditions": [{ "op": "has_item", "item": "affected_data_schedule" }],
       "costs": [{ "resource": "attacker_deadline_hours", "amount": 3 }, { "resource": "comms_capital", "amount": 1 }],
-      "effects": [{ "op": "set_flag", "flag": "affected_people_notified", "value": true }],
+      "effects": [
+        { "op": "set_flag", "flag": "affected_people_notified", "value": true },
+        { "op": "modify_resource", "resource": "service_outage_hours", "amount": 3 }
+      ],
       "stakes": "A general press statement tells the town something happened. It doesn't tell the specific residents on the affected data schedule that their own data is out — and where a breach is likely to bring them real harm, the law expects them told directly, not left to wonder if the council statement was about them.",
       "hook": "The general statement covers the council. It doesn't cover the people whose bank details just left the building.",
       "narrative": { "player_intent": "Meet the separate, individual-level notification duty a public statement doesn't discharge.", "dramatic_role": "Deliberately distinct from public_statement_made and regulator_notified: UK GDPR draws three separate lines here — tell the regulator (a duty to the ICO), tell the public generally (reputational and practical), and tell the specific people at high risk directly (a duty to them, triggered by risk severity, discharged by neither of the other two). Gated on possession of affected_data_schedule (evidence obtained at m040/m041b) rather than the bare exfil_confirmed flag — the duty is triggered by actually knowing who's at risk, not just suspecting someone is." }
+    },
+    {
+      "id": "m078",
+      "from": "public_disclosure",
+      "to": "public_disclosure",
+      "label": "Publish the fuller account, now the affected-records picture is confirmed",
+      "kind": "open",
+      "one_time": true,
+      "conditions": [
+        { "op": "flag_is", "flag": "holding_statement_first", "value": true },
+        { "op": "flag_is", "flag": "full_account_published", "value": false },
+        { "op": "has_item", "item": "affected_data_schedule" }
+      ],
+      "costs": [{ "resource": "attacker_deadline_hours", "amount": 2 }],
+      "effects": [
+        { "op": "set_flag", "flag": "full_account_published", "value": true },
+        { "op": "modify_resource", "resource": "service_outage_hours", "amount": 2 }
+      ],
+      "stakes": "The short version bought time to get this right. The fuller account was always owed, not optional — this is where that promise actually gets kept.",
+      "hook": "The holding line said 'more detail as it's confirmed'. It's confirmed now.",
+      "narrative": { "player_intent": "Deliver the fuller account the holding statement promised.", "dramatic_role": "Closes the loop the holding statement (m072) opens: without this route, 'more detail to follow' could be issued and simply never followed up on with no mechanical consequence. Gated on affected_data_schedule so the fuller account is genuinely informed, not just a second guess." }
     },
     {
       "id": "m076",
@@ -1227,7 +1340,8 @@
       "costs": [{ "resource": "attacker_deadline_hours", "amount": 1 }],
       "effects": [
         { "op": "set_flag", "flag": "regulator_notified", "value": true },
-        { "op": "set_flag", "flag": "ico_notified_after_public_disclosure", "value": true }
+        { "op": "set_flag", "flag": "ico_notified_after_public_disclosure", "value": true },
+        { "op": "modify_resource", "resource": "service_outage_hours", "amount": 1 }
       ],
       "stakes": "The statement already went to residents and press before the ICO heard anything from you directly — an unusual sequence, and one a post-incident review will ask about — but the statutory duty is notification within seventy-two hours, not notification first in some fixed order, and this call is comfortably inside that window.",
       "hook": "Someone finally asks the question out loud: did anyone actually call the regulator? The silence that follows answers it — but there's still plenty of clock left to fix that.",
@@ -1319,7 +1433,7 @@
   "validation": {
     "notes": "Counts are maintained by scripts/validate-adventure.js and the CI reachability gate; see README.",
     "node_count": 21,
-    "route_count": 39,
+    "route_count": 43,
     "known_soft_locks": [],
     "ending_assertions": {
       "ending_recovery_strong": [{ "flag": "regulator_notified", "value": true }],
