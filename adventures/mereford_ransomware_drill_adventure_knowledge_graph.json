@@ -614,7 +614,20 @@
       "narrative": {
         "present_tension": "Resolved, at the cost of every easy shortcut you didn't take — and at a cost that was never going to be small, whichever choices were made.",
         "sensory_details": ["a services dashboard turning green, department by department", "a debrief slide with no red text on it"],
-        "emotional_undertone": "The quiet, almost anticlimactic satisfaction of a plan that simply worked."
+        "emotional_undertone": "The quiet, almost anticlimactic satisfaction of a plan that simply worked.",
+        "debrief": {
+          "decisions_that_mattered": [
+            "Isolation was treated as a settled organisational capability, not a gamble — the network came down cleanly because the plan for that already existed before tonight.",
+            "The recovery decision waited for the backup status report and the affected-data schedule rather than a clock, so the 'clean' restore was actually clean.",
+            "Regulator notification happened inside the 72-hour window on the facts as they were understood at the time, not on a guess."
+          ],
+          "organisational_actions": [
+            "Audit credential rotation on remote-access and VPN accounts — the entry point here was a stale credential, and the response being excellent didn't make that root cause go away.",
+            "Run an isolation drill that doesn't assume the isolation plan works; this response only stayed calm because that assumption happened to hold.",
+            "Schedule a clean-image restore test outside of a live incident, so 'the backups are good' is verified, not asserted, next time.",
+            "Confirm out-of-band communication channels are actually tested and known to staff before they're needed at 2am."
+          ]
+        }
       }
     },
     {
@@ -628,7 +641,20 @@
       "narrative": {
         "present_tension": "Deferred, at a rate of interest nobody quoted you up front — the insurer quoted it, and you heard it, and paid anyway.",
         "sensory_details": ["a decryption key that actually works, disappointingly ordinary to look at", "a claim rejection letter, impressively fast for an insurer", "an audit finding, filed and unforgettable"],
-        "emotional_undertone": "Relief with a second bill still to arrive."
+        "emotional_undertone": "Relief with a second bill still to arrive.",
+        "debrief": {
+          "decisions_that_mattered": [
+            "Payment was chosen as the fast route back to service, against NCSC guidance that a working decryptor is never guaranteed and against the policy wording nobody had reread since renewal.",
+            "The insurer's notification terms were breached by the timing or manner of the payment decision, not by the fact of paying itself.",
+            "Law enforcement and reporting obligations were treated as secondary to restoring service, which is exactly the ordering the eventual enquiry focused on."
+          ],
+          "organisational_actions": [
+            "Read the current cyber insurance policy wording before the next incident, specifically the notification-timing and payment-authorisation clauses — not during one.",
+            "Confirm the current reporting contacts (Report Fraud at reportfraud.police.uk, NCSC Incident Management) are known and reachable before an incident, not discovered mid-crisis.",
+            "Review organisational readiness for the public-sector ransomware payment ban that is already committed to and moving through Parliament — payment may not be a lawful option much longer.",
+            "Establish who has authority to approve a ransom payment in principle, in advance, rather than deciding it under deadline pressure."
+          ]
+        }
       }
     },
     {
@@ -649,7 +675,20 @@
       "narrative": {
         "present_tension": "Ended, in the worst way an incident can end: everyone still has questions, and nobody in the room can answer them any more.",
         "sensory_details": ["a national news chyron with the council's name in it", "an empty chair where the Leader used to sit"],
-        "emotional_undertone": "An incident that outlasted everyone's authority to fix it."
+        "emotional_undertone": "An incident that outlasted everyone's authority to fix it.",
+        "debrief": {
+          "decisions_that_mattered": [
+            "Containment and investigation fell behind the attacker's own timeline, and nobody re-scoped the response once it became clear the original plan wasn't going to hold.",
+            "Political and reputational pressure was allowed to compete with the technical response for the same attention, rather than being delegated to run in parallel with it.",
+            "Escalation past Gold Command's own authority — political, legal, financial — didn't happen early enough for anyone above that level to help before it became unrecoverable."
+          ],
+          "organisational_actions": [
+            "Clarify Gold Command's actual authority boundaries and escalation triggers before an incident, so 'this needs escalating' is a known threshold, not a judgement call made too late.",
+            "Run a resident-notification exercise at scale — this ending is defined by services failing publicly for weeks, which is also a communications capacity problem, not only a technical one.",
+            "Test isolation and segmentation capability under realistic load, not just in principle; slow containment is what let this run past the point of recovery.",
+            "Build a standing plan for sustained multi-week incident command, since the assumption that Gold Command is a short, intense burst is itself a single point of failure."
+          ]
+        }
       }
     },
     {
@@ -663,7 +702,20 @@
       "narrative": {
         "present_tension": "Ended, with your own signature the last piece of evidence anyone needed.",
         "sensory_details": ["a report with your name in a sentence you can't unread", "a phone that has stopped ringing, which is somehow worse"],
-        "emotional_undertone": "The specific loneliness of being right about the technology and wrong about the truth."
+        "emotional_undertone": "The specific loneliness of being right about the technology and wrong about the truth.",
+        "debrief": {
+          "decisions_that_mattered": [
+            "A public statement was approved that was softer than the facts on the ground supported, trading a harder truth now for an easier one that didn't hold.",
+            "The choice to lead with a holding statement, or not, and who signed off on its wording, became the thing the eventual report actually turned on — not the ransomware itself.",
+            "Staff and public communications diverged, and that gap was the evidence that made the statement look like a cover-up even if it wasn't originally intended as one."
+          ],
+          "organisational_actions": [
+            "Establish a public-statement approval chain that includes someone whose job is specifically to check statements against the facts as currently known, separate from the person under pressure to reassure.",
+            "Practise holding-statement-first discipline: a short, true, incomplete statement now beats a fuller one that turns out to be wrong.",
+            "Review how staff communications and public communications are kept consistent, so neither one is the version that gets contradicted later.",
+            "Treat 'this line isn't quite true yet' as a stop-the-line moment for sign-off, not a wording problem to smooth over."
+          ]
+        }
       }
     },
     {
@@ -677,7 +729,20 @@
       "narrative": {
         "present_tension": "Ended, by the one variable nobody put on the incident dashboard: you.",
         "sensory_details": ["a keyboard, still warm, under someone else's hands now", "a shift handover written by a colleague, careful not to say too much"],
-        "emotional_undertone": "The cost of treating your own limits as the one risk not worth logging."
+        "emotional_undertone": "The cost of treating your own limits as the one risk not worth logging.",
+        "debrief": {
+          "decisions_that_mattered": [
+            "Personal stamina was spent as if it were an unlimited resource, on the assumption that the incident needed one continuous person at the centre of it more than it needed a rested one.",
+            "No handover point was built into the response, so there was no moment where stepping back was a planned decision rather than a collapse.",
+            "The people around Gold Command didn't have a trigger for stepping in — the incident had escalation paths for everything except its own commander."
+          ],
+          "organisational_actions": [
+            "Build shift rotation into the incident command structure from the start of any multi-day response, not as an afterthought once someone is already exhausted.",
+            "Log personal capacity and welfare as a tracked incident risk, with an explicit threshold for when someone is required to step back, not just permitted to.",
+            "Establish a deputy or shadow for Gold Command whose job includes watching the commander, not only the incident.",
+            "Write handover protocols in advance so a change of commander mid-incident is a smooth, planned transfer of context rather than an emergency improvisation."
+          ]
+        }
       }
     }
   ],
