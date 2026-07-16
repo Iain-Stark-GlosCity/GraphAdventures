@@ -1,7 +1,7 @@
 {
   "schema": {
     "name": "adventure-knowledge-graph",
-    "version": "0.1.1",
+    "version": "0.2.0",
     "description": "A stateful, directed knowledge graph for a cyber-incident crisis-management gamebook: Gold Command talks a ransomware attack on a district council through a 72-hour statutory clock. Same executable rule DSL as every adventure on this platform."
   },
   "graph": {
@@ -43,7 +43,8 @@
       "m080's gate moved from resource_at_least attacker_deadline_hours >= 40 to has_item backup_status_report (obtained via the new route m045, forensics_engage, 2 hours). Restoration viability is now about whether the recovery team actually verified the backups, not about how much of the attacker's arbitrary countdown happens to be left — matching how real recovery decisions get made. One consequence worth knowing: the reckless m011 branch (contain_early -> political_pressure directly) never visits forensics_engage, so it can never obtain backup_status_report, so m080 is permanently unavailable on that branch, on top of the comms_capital-gated loss of m070. That's a deliberate, compounding consequence of skipping process early, not a separate bug.",
       "service_outage_hours is new: a resource incremented (not spent) by every route that represents time spent deliberating rather than delivering — verifying scope, waiting for forensic certainty, holding silence, executive sign-off. It's read via a resource_at_least variant on ending_recovery_strong, so a technically clean, well-sequenced response that nonetheless took its time gets an honest 'closer to a fortnight, not a week' instead of always claiming the fastest possible recovery.",
       "DICE POLICY — m001 (immediate isolation) no longer rolls a skill test. Whether isolation succeeds is a matter of organisational capability established before the incident (segmentation, tested procedures, staff availability), not a coin flip Gold Command makes in the room; making a correct decision fail on a bad roll taught the wrong lesson. Isolating blind still costs a point of exposure, because the genuine uncertainty is what already left before the switch was thrown, not whether the switch worked. Remaining tests are all at genuinely exogenous uncertainty: m080 (whether the backups turn out clean given a verified report), m012 (whether the compromised-adjacent email channel holds), m044 (burnout), m081 (whether a ransom payment actually buys a working decryptor). Don't add a skill test to a route whose outcome should be determined by a prior decision or established capability — gate or modify the route instead, the way m041b's forensics modifier already rewards the law-enforcement decision without rolling for it.",
-      "ITEMS — nine artefacts exist (ransom_note, soc_alert_extract, supplier_vpn_log, backup_status_report, insurance_policy_wording, draft_public_statement, affected_data_schedule, leaders_office_email, reporters_questions), all granted, none orphaned. Only two are mechanically gated on (backup_status_report at m080, affected_data_schedule at m077) — that's a scope decision, not an oversight: the other seven exist to make key moments tangible ('here is the specific document/log/email this decision produced or required') rather than abstract flag-flipping, matching the brief's 'evidence, not just narrated choices'. Gating every item would turn artefact collection into busywork; gate the ones where possessing the evidence is genuinely the difference between a decision being informed or assumed, and let the rest do their job as texture. If a future edit wants more artefact-gated decisions, prefer the m077/m080 pattern (has_item as the actual legality condition) over adding items nothing ever checks."
+      "ITEMS — nine artefacts exist (ransom_note, soc_alert_extract, supplier_vpn_log, backup_status_report, insurance_policy_wording, draft_public_statement, affected_data_schedule, leaders_office_email, reporters_questions), all granted, none orphaned. Only two are mechanically gated on (backup_status_report at m080, affected_data_schedule at m077) — that's a scope decision, not an oversight: the other seven exist to make key moments tangible ('here is the specific document/log/email this decision produced or required') rather than abstract flag-flipping, matching the brief's 'evidence, not just narrated choices'. Gating every item would turn artefact collection into busywork; gate the ones where possessing the evidence is genuinely the difference between a decision being informed or assumed, and let the rest do their job as texture. If a future edit wants more artefact-gated decisions, prefer the m077/m080 pattern (has_item as the actual legality condition) over adding items nothing ever checks.",
+      "HUB (v0.2.0) — gold_command_hub converts the front section (staff comms, law enforcement/NCSC reporting) from a fixed linear queue into two genuinely order-independent workstreams: h001 and h002 are both available from the hub immediately, each disappears once resolved (via its own flag, either outcome), and h003 (into forensics_engage) is never gated on either, since m040/m041b already read law_enforcement_notified live and gain nothing from an artificial hub-side gate. This is a deliberately bounded rewrite, not the full parallel-workstream vision (technical/service-continuity/legal/comms/law-enforcement/insurer/governance as simultaneous hub spokes) — that fuller version was scoped and rejected for this pass because it would mean rebuilding the entire back half of the graph (political_pressure's three-way branch, the comms_capital gate on m070, the evidence gates on m080/m077, the ICO-recovery route m076) that took several previous revisions to get right, for comparatively little additional teaching value: that half of the graph already isn't a fixed queue. Converting the one part that genuinely was — the fixed staff-comms-then-law-enforcement-then-forensics chain — captures the real lesson (Gold Command allocates attention across workstreams, doesn't personally complete a checklist in a fixed order) at a fraction of the risk to mechanics that took real iteration to verify. If this graph is restructured further, extend the hub pattern (spoke disappears once resolved, no artificial ordering gate between independent workstreams) rather than inventing a new one."
     ],
     "narrative_premise": "06:10 on a Monday. The SOC has flagged mass file-encryption across Mereford District Council's shared drives. A ransom note names a 72-hour window before stolen data is published. You are Gold Command. Every choice you make in the next three days will be reconstructed later — by the ICO, by an FOI request, or by a journalist — whether or not it feels like it matters now.",
     "core_mystery": "How far in did they get, and can you prove it before the clock forces you to guess in public?",
@@ -86,6 +87,7 @@
         "affected_people_notified": { "type": "boolean", "initial": false },
         "holding_statement_first": { "type": "boolean", "initial": false },
         "law_enforcement_notified": { "type": "boolean", "initial": false },
+        "law_enforcement_call_addressed": { "type": "boolean", "initial": false },
         "staff_informed_safely": { "type": "boolean", "initial": false },
         "staff_comms_leaked": { "type": "boolean", "initial": false }
       }
@@ -293,6 +295,47 @@
         "present_tension": "Structure now is time you don't have; structure later is coordination you won't have.",
         "sensory_details": ["a whiteboard filling with names and roles", "the specific relief of someone finally being told what to do"],
         "emotional_undertone": "Discipline that looks like delay until it doesn't."
+      }
+    },
+    {
+      "id": "gold_command_hub",
+      "type": "hub",
+      "region": "mereford_incident",
+      "title": "Gold Command",
+      "summary": "Not a task list. A set of workstreams that all need addressing, none of which has to wait for the others to finish first.",
+      "tags": ["hub", "command"],
+      "read_aloud": "This is the job, properly understood: not personally working every problem in sequence, but deciding what needs addressing, in what order, by whom, while everything else keeps moving. Right now there are at least two things that can't wait — what staff are told, and whether this gets reported — and neither one depends on the other being finished first. The investigation can start whenever you're ready for it to.",
+      "read_aloud_variants": [
+        {
+          "conditions": [
+            { "op": "flag_is", "flag": "law_enforcement_call_addressed", "value": true },
+            { "any": [
+              { "op": "flag_is", "flag": "staff_informed_safely", "value": true },
+              { "op": "flag_is", "flag": "staff_comms_leaked", "value": true }
+            ] }
+          ],
+          "priority": 30,
+          "text": "Both of the things that couldn't wait have been addressed, for better or worse. What's left now is the investigation itself — and unlike the last two decisions, this one only has one road, not three."
+        },
+        {
+          "conditions": [{ "op": "flag_is", "flag": "law_enforcement_call_addressed", "value": true }],
+          "priority": 20,
+          "text": "Law enforcement is sorted, one way or the other. Staff still don't know anything official, and the helpdesk queue is not going to stay patient forever."
+        },
+        {
+          "conditions": [{ "any": [
+            { "op": "flag_is", "flag": "staff_informed_safely", "value": true },
+            { "op": "flag_is", "flag": "staff_comms_leaked", "value": true }
+          ] }],
+          "priority": 10,
+          "text": "Staff have been told something, one way or the other. The question of who else needs telling — Report Fraud, NCSC — is still open, and it's not getting easier to answer by waiting."
+        }
+      ],
+      "read_aloud_revisit": "Back at the centre of it. Whatever's still open is still open; nothing here resolves itself while you're elsewhere.",
+      "narrative": {
+        "present_tension": "The temptation is to work these one at a time, in the order they occurred to you. Nothing about the incident requires that order.",
+        "sensory_details": ["a whiteboard with three columns and none of them empty", "two phones and a radio, all live at once"],
+        "emotional_undertone": "Competence that looks like delegation, not busyness."
       }
     },
     {
@@ -682,25 +725,63 @@
     {
       "id": "m010",
       "from": "contain_early",
-      "to": "staff_comms_dilemma",
-      "label": "Move to the next phase of the response",
+      "to": "gold_command_hub",
+      "label": "Stand up Gold Command properly and work the response as parallel workstreams",
       "kind": "open",
       "effects": [],
-      "stakes": "The ransom note's data-theft claim needs an answer before you can decide anything else — but first, eight hundred people who work here need to know something is wrong.",
-      "hook": "The helpdesk phone hasn't stopped ringing since the network dropped.",
-      "narrative": { "player_intent": "Begin the response proper.", "dramatic_role": "Hub spoke into the staff-comms dilemma, then the investigation branch beyond it." }
+      "stakes": "Staff need telling, law enforcement needs a decision, and the investigation needs to start — none of them has to wait for the other two to finish first.",
+      "hook": "The helpdesk phone hasn't stopped ringing since the network dropped, and it isn't the only thing that needs attention at once.",
+      "narrative": { "player_intent": "Begin the response as Gold Command, not as a checklist.", "dramatic_role": "The disciplined entry into gold_command_hub, where staff comms and law-enforcement engagement can be addressed in either order before the investigation proper begins." }
+    },
+    {
+      "id": "h001",
+      "from": "gold_command_hub",
+      "to": "staff_comms_dilemma",
+      "label": "Address staff communications",
+      "kind": "open",
+      "conditions": [
+        { "op": "flag_is", "flag": "staff_informed_safely", "value": false },
+        { "op": "flag_is", "flag": "staff_comms_leaked", "value": false }
+      ],
+      "effects": [],
+      "stakes": "Nothing about this workstream depends on the others being finished first — it only depends on nobody having addressed it yet.",
+      "hook": "The helpdesk queue doesn't check whether law enforcement's been called before it keeps growing.",
+      "narrative": { "player_intent": "Turn attention to staff communications.", "dramatic_role": "Hub spoke; disappears from the menu once staff_informed_safely or staff_comms_leaked is set, either way." }
+    },
+    {
+      "id": "h002",
+      "from": "gold_command_hub",
+      "to": "law_enforcement_call",
+      "label": "Address law enforcement and NCSC reporting",
+      "kind": "open",
+      "conditions": [{ "op": "flag_is", "flag": "law_enforcement_call_addressed", "value": false }],
+      "effects": [],
+      "stakes": "This workstream doesn't wait on the others either. It's a phone call, not a dependency.",
+      "hook": "The report form is still open in a tab from an hour ago.",
+      "narrative": { "player_intent": "Turn attention to the reporting decision.", "dramatic_role": "Hub spoke; disappears from the menu once law_enforcement_call_addressed is set." }
+    },
+    {
+      "id": "h003",
+      "from": "gold_command_hub",
+      "to": "forensics_engage",
+      "label": "Move to the technical investigation",
+      "kind": "open",
+      "effects": [],
+      "stakes": "The investigation doesn't have to wait for the other two workstreams to close out — though whichever of them you've already resolved will shape how it goes.",
+      "hook": "Forensics has been ready to start since the logs first came in. Nobody's stopping you.",
+      "narrative": { "player_intent": "Begin the technical investigation, whatever else is or isn't resolved yet.", "dramatic_role": "The graduation spoke out of the hub's front-loaded triage and into the main investigative branch; always available, since m040/m041b already read law_enforcement_notified live and don't need this route to gate on it." }
     },
     {
       "id": "m012",
       "from": "staff_comms_dilemma",
-      "to": "law_enforcement_call",
+      "to": "gold_command_hub",
       "label": "Send an all-staff email now, on the network you're not sure is clean",
       "kind": "risk",
       "test": {
         "type": "luck",
         "stat": "luck",
         "modifier": 0,
-        "failure_to": "law_enforcement_call",
+        "failure_to": "gold_command_hub",
         "failure_effects": [
           { "op": "set_flag", "flag": "staff_comms_leaked", "value": true },
           { "op": "modify_stat", "stat": "exposure", "amount": 3 }
@@ -714,7 +795,7 @@
     {
       "id": "m013",
       "from": "staff_comms_dilemma",
-      "to": "law_enforcement_call",
+      "to": "gold_command_hub",
       "label": "Stand up the out-of-band phone and text tree instead",
       "kind": "open",
       "costs": [{ "resource": "attacker_deadline_hours", "amount": 4 }, { "resource": "comms_capital", "amount": 1 }],
@@ -726,7 +807,7 @@
     {
       "id": "m014",
       "from": "staff_comms_dilemma",
-      "to": "law_enforcement_call",
+      "to": "gold_command_hub",
       "label": "Say nothing formally yet; let it filter through operationally",
       "kind": "open",
       "effects": [
@@ -740,24 +821,30 @@
     {
       "id": "m015",
       "from": "law_enforcement_call",
-      "to": "forensics_engage",
+      "to": "gold_command_hub",
       "label": "Report to Report Fraud and request NCSC incident management support now, before forensics goes any deeper",
       "kind": "open",
-      "effects": [{ "op": "set_flag", "flag": "law_enforcement_notified", "value": true }],
+      "effects": [
+        { "op": "set_flag", "flag": "law_enforcement_notified", "value": true },
+        { "op": "set_flag", "flag": "law_enforcement_call_addressed", "value": true }
+      ],
       "stakes": "An outside agency in the room this early, in exchange for a formal, defensible evidence chain from here on.",
       "hook": "The report takes four minutes to submit. It costs you nothing but the interruption.",
-      "narrative": { "player_intent": "Engage police reporting and NCSC support before the forensic work proceeds.", "dramatic_role": "The procedurally sound but socially costly choice; strengthens the forensics test that follows." }
+      "narrative": { "player_intent": "Engage police reporting and NCSC support before the forensic work proceeds.", "dramatic_role": "The procedurally sound but socially costly choice; strengthens the forensics test whenever it's eventually run." }
     },
     {
       "id": "m016",
       "from": "law_enforcement_call",
-      "to": "forensics_engage",
+      "to": "gold_command_hub",
       "label": "Handle it internally for now, without looping in law enforcement",
       "kind": "open",
-      "effects": [{ "op": "modify_stat", "stat": "exposure", "amount": 1 }],
-      "stakes": "Working without an audience, at the cost of a weaker evidence trail if this ever needs proving to someone else — and this window doesn't reopen once forensics is already underway.",
-      "hook": "Nobody has actually decided not to report it. It just isn't happening right now, and there's no later moment in this incident where the decision comes back around.",
-      "narrative": { "player_intent": "Delay law enforcement engagement.", "dramatic_role": "The quieter road; weakens the forensics test and nudges exposure regardless of outcome. One-way — there's no route back to law_enforcement_call once forensics begins." }
+      "effects": [
+        { "op": "modify_stat", "stat": "exposure", "amount": 1 },
+        { "op": "set_flag", "flag": "law_enforcement_call_addressed", "value": true }
+      ],
+      "stakes": "Working without an audience, at the cost of a weaker evidence trail if this ever needs proving to someone else — and this decision doesn't come back around once made.",
+      "hook": "Nobody has actually decided not to report it. It just isn't happening right now.",
+      "narrative": { "player_intent": "Delay law enforcement engagement.", "dramatic_role": "The quieter road; weakens whatever forensics test is eventually run and nudges exposure regardless of outcome. One-way — law_enforcement_call_addressed removes this spoke from the hub once chosen, either way." }
     },
     {
       "id": "m011",
@@ -1166,8 +1253,8 @@
   ],
   "validation": {
     "notes": "Counts are maintained by scripts/validate-adventure.js and the CI reachability gate; see README.",
-    "node_count": 20,
-    "route_count": 36,
+    "node_count": 21,
+    "route_count": 39,
     "known_soft_locks": [],
     "ending_assertions": {
       "ending_recovery_strong": [{ "flag": "regulator_notified", "value": true }],
