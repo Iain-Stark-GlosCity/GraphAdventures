@@ -68,9 +68,12 @@ const SERVER_INFO = {
 
     "Narrating a walk result: use route_resolution, when present, as the outcome's core " +
       "narration — it's written for exactly this moment (success or failure, whichever " +
-      "happened). For skill/luck tests, resolution's rolls/total/target are for your own " +
-      "reasoning about pacing and tone, not something to recite — narrate the outcome, not the " +
-      "arithmetic. For combat, resolution.narrative (desire, fear, misconception, voice, " +
+      "happened). For skill/luck tests, weave the outcome into the scene rather than reading " +
+      "out a report, but always include the actual numbers from resolution (the rolls, the " +
+      "total, the target) somewhere in or alongside the narration, quoted exactly as given — " +
+      "never paraphrase, round, or drop them, and never substitute a dramatized result of your " +
+      "own. The player is entitled to see the real dice behind a real outcome. For combat, " +
+      "resolution.narrative (desire, fear, misconception, voice, " +
       "non_combat_leverage, aftermath) should drive how the encounter talks and fights, not " +
       "just how many stamina points changed. When effects_applied or arrival_effects_applied " +
       "includes an add_item with a narrative block, narrate the item's origin and " +
@@ -84,8 +87,13 @@ const SERVER_INFO = {
       "fits the fiction, and re-offer the real choices from the corrected state.",
 
     "When status is completed, call get_node once more and narrate the ending in full. " +
-      "get_log returns the complete step history if you need to reconstruct what's happened so " +
-      "far in the run.",
+      "Then call get_log and close with a short structured debrief, separate from the ending " +
+      "narration: 3-5 decisions from the log that most shaped this outcome (Decision → " +
+      "Consequence), followed by the ending node's narrative.debrief.organisational_actions " +
+      "when present, offered as real follow-up actions rather than in-fiction prose. Keep the " +
+      "debrief plainly labelled as out-of-character commentary — the player should be able to " +
+      "tell where the story ends and the retrospective begins. If narrative.debrief isn't " +
+      "present on the ending node, base the debrief on the log alone.",
   ].join("\n\n"),
 };
 
