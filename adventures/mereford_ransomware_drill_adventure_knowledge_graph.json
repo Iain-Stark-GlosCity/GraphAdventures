@@ -31,7 +31,10 @@
       "regulator_call's read_aloud_variants are keyed on exfil_confirmed as well as late_notification: a player who ran the NCA-backed logs test (m041b) before notifying has a confirmed fact, not a hedge, and the notification text has to say so. m041 itself stays a single, evidence-agnostic route ('on the evidence you have') precisely so the destination node's variant can carry the true framing — don't push evidence-state language back onto the route label, or the two will drift out of sync again the next time a route gets edited without checking the node it feeds.",
       "m081 (paying the ransom) is a luck test, not a guaranteed purchase, on a document check of NCSC's actual current guidance (ncsc.gov.uk/guidance/organisations-considering-payment-in-ransomware-incidents, July 2026): NCSC and UK law enforcement do not encourage, endorse or condone payment, and are explicit that paying carries no guarantee of getting a working decryptor or any data back at all. A route that always pays off misrepresents that guidance as strongly as the earlier ungated ending misrepresented the ICO duty. Failure routes to ending_catastrophic — paid and still lost everything, the compounded worst case — with its own read_aloud_variant.",
       "cyber_insurance_call and ending_ransom_paid both name the UK government's July 2025 consultation response committing to a targeted ban on ransomware payments by all public sector bodies (local government included), verified against gov.uk and the Home Office consultation outcome. As of this adventure's present day the ban is announced policy, not yet enacted law — the text is careful to say so — but it is real, current, and specifically on-point for a district council, and a training exercise that ignores it is behind the actual policy conversation its players will be having.",
-      "IMPORTANT — m060 and m070 do not, and should not, force a stop at regulator_call before reaching public_disclosure. That's deliberate, not an oversight: skipping the ICO notification has to be a real, choosable path or the m080 gate (regulator_notified required for the clean-recovery ending) isn't teaching anything, it's just decoration on a route that was never reachable anyway. What WAS a bug, and is now fixed: public_disclosure's read_aloud used to unconditionally claim 'the regulator now know[s] what you know' even on the skip-the-ICO path, which is a false statement of fact — a public statement is not an ICO notification, and the two routes never touch regulator_notified. Fixed with a read_aloud_variant keyed on regulator_notified = false that says so plainly, at the point the omission happens, rather than leaving the player to discover it only when m080 quietly disappears three nodes later. If a future edit is tempted to route m060/m070 through regulator_call to 'fix' this: don't — that removes the choice the whole insurer-gate mechanic exists to test. Fix the narration, not the graph."
+      "IMPORTANT — m060 and m070 do not, and should not, force a stop at regulator_call before reaching public_disclosure. That's deliberate, not an oversight: skipping the ICO notification has to be a real, choosable path or the m080 gate (regulator_notified required for the clean-recovery ending) isn't teaching anything, it's just decoration on a route that was never reachable anyway. What WAS a bug, and is now fixed: public_disclosure's read_aloud used to unconditionally claim 'the regulator now know[s] what you know' even on the skip-the-ICO path, which is a false statement of fact — a public statement is not an ICO notification, and the two routes never touch regulator_notified. Fixed with a read_aloud_variant keyed on regulator_notified = false that says so plainly, at the point the omission happens, rather than leaving the player to discover it only when m080 quietly disappears three nodes later. If a future edit is tempted to route m060/m070 through regulator_call to 'fix' this: don't — that removes the choice the whole insurer-gate mechanic exists to test. Fix the narration, not the graph.",
+      "This content revision was benchmarked against four documented, non-Gloucester real-world incidents rather than genre convention: Redcar & Cleveland BC (2020, ~£11.3m cost, 8.5-month recovery), Hackney LBC (2020, ICO reprimand issued in 2024 despite praised NCSC/NCA/Met engagement — reprimands for public bodies are the ICO's normal outcome, not a sign of a bad response), the HSE Ireland Conti attack (2021, PwC's Independent Post Incident Review — an eight-week undetected dwell time between initial compromise and ransomware deployment was the single most-cited finding), and Colonial Pipeline (2021, whose root cause — an unrotated legacy VPN credential — is the direct real-world model for this adventure's own hidden_truth). Three concrete changes came out of that comparison: forensics_engage's confirmed-exfiltration variant now reveals a six-week dwell time before the three-day-old exfiltration, so the story acknowledges that '06:10' was when the incident became visible, not when it began; ending_recovery_strong now costs millions and the better part of a year even in the best case, and closes with an ICO reprimand rather than 'no further action', matching Hackney's real outcome where good response and regulatory consequence for the underlying gap were not mutually exclusive; and staff_comms_dilemma exists because every real incident report in that set features a period where staff, press or the public learned things informally before anyone official told them, and none of this adventure's prior comms mechanics (political_pressure, comms_prep) touched the internal, staff-facing side of that problem or the specific dilemma of a compromised organisation not trusting its own email.",
+      "staff_comms_dilemma sits between contain_early and law_enforcement_call on the investigative branch (m010) only — the reckless direct-to-political_pressure branch (m011) skips it, consistent with that branch's established character of skipping process steps (it also skips law_enforcement_call and forensics entirely). staff_informed_safely and staff_comms_leaked are the two outcomes; the latter is read downstream by political_pressure's own read_aloud_variant, so an internal comms failure surfaces again as a concrete complaint from the Leader, not just a one-off consequence at the point of choice.",
+      "regulator_call's ICO case reference (RFA1122334) and named NCSC duty analyst (Priya Chandrasekaran) are illustrative, not drawn from a real case file — the point is procedural realism (a real incident generates a specific reference number and puts a named person on the other end of the NCSC line), not any claim to represent an actual ICO case."
     ],
     "narrative_premise": "06:10 on a Monday. The SOC has flagged mass file-encryption across Mereford District Council's shared drives. A ransom note names a 72-hour window before stolen data is published. You are Gold Command. Every choice you make in the next three days will be reconstructed later — by the ICO, by an FOI request, or by a journalist — whether or not it feels like it matters now.",
     "core_mystery": "How far in did they get, and can you prove it before the clock forces you to guess in public?",
@@ -69,7 +72,9 @@
         "cover_up_attempted": { "type": "boolean", "initial": false },
         "late_containment": { "type": "boolean", "initial": false },
         "late_notification": { "type": "boolean", "initial": false },
-        "law_enforcement_notified": { "type": "boolean", "initial": false }
+        "law_enforcement_notified": { "type": "boolean", "initial": false },
+        "staff_informed_safely": { "type": "boolean", "initial": false },
+        "staff_comms_leaked": { "type": "boolean", "initial": false }
       }
     },
     "condition_dsl": {
@@ -169,6 +174,22 @@
       }
     },
     {
+      "id": "staff_comms_dilemma",
+      "type": "encounter",
+      "region": "mereford_incident",
+      "title": "Who Tells the Building?",
+      "summary": "Eight hundred staff are about to try to log in to systems that no longer work, and the fastest way to warn them is the one channel nobody can currently vouch for.",
+      "tags": ["comms", "internal", "pivotal"],
+      "read_aloud": "The helpdesk queue is already forty deep with people asking why they can't get into the case management system, and it is going to be four hundred deep by lunchtime. Somebody needs to tell eight hundred staff what's happening before rumour does it for you — and the obvious tool for that, the all-staff email, is the one thing nobody in this room is prepared to vouch for. The intrusion came in through a VPN account with valid credentials. Nobody yet knows how far the attacker got, or whether a mailbox is still being read by someone who isn't you.",
+      "read_aloud_revisit": "The helpdesk queue is still climbing. The question of how to tell people anything at all is still open.",
+      "narrative": {
+        "present_tension": "The fastest channel is the one you trust least, and the channel you trust most is the slowest one you have.",
+        "hidden_truth": "The attacker's access to the network died with the initial containment; nobody currently on the network can read outgoing mail. But nobody in the room knows that for certain yet, and 'probably fine' is not something you can put your name to in writing.",
+        "sensory_details": ["a helpdesk queue counter climbing in the corner of a screen", "a draft email open in a mail client nobody's sure is safe to send from", "a WhatsApp group someone started without being asked to"],
+        "emotional_undertone": "The specific paralysis of not trusting the tool you'd normally reach for first."
+      }
+    },
+    {
       "id": "law_enforcement_call",
       "type": "location",
       "region": "mereford_incident",
@@ -191,10 +212,17 @@
       "summary": "Forensics works the logs. The exfiltration claim in the ransom note may be real, may be bluff — the evidence is ambiguous under time pressure.",
       "tags": ["investigation"],
       "read_aloud": "Forensics gets to work on the logs, and the ransom note's claim of stolen data sits there unresolved: it might be real, it might be bluff dressed up to look real, and the evidence available inside the deadline is stubbornly ambiguous either way. You can push for a read now, on partial evidence, or wait for something closer to certainty — and the clock is charging interest on that choice too.",
+      "read_aloud_variants": [
+        {
+          "conditions": [{ "op": "flag_is", "flag": "exfil_confirmed", "value": "confirmed" }],
+          "priority": 10,
+          "text": "The logs finally give up the shape of it, and it's worse than a three-day story. The compromised VPN credential was used to log in, quietly, six weeks before the ransom note ever landed — six weeks of an account that should have raised an alert and never did, because nobody was watching that specific account closely enough to notice a login pattern that didn't belong to the person it was issued to. The exfiltration itself, a benefits-and-payroll export, happened three days before deployment; the door had been open for a month and a half before anyone walked through it with intent to encrypt. This incident did not begin at 06:10. It only became visible then."
+        }
+      ],
       "read_aloud_revisit": "The logs are still being read, line by line, against a claim that refuses to resolve cleanly.",
       "narrative": {
         "present_tension": "Certainty and speed are trading against each other, and the trade only gets worse the longer you hold both.",
-        "hidden_truth": "The exfiltration is real: the attackers pulled a benefits-and-payroll export through the same compromised VPN link three days before the ransom note landed.",
+        "hidden_truth": "The exfiltration is real: the attackers pulled a benefits-and-payroll export through the same compromised VPN link three days before the ransom note landed. The initial compromise itself is older still — six weeks of quiet access on that VPN account before the export, undetected the whole time.",
         "sensory_details": ["log timestamps scrolling past faster than anyone can read them", "a forensic analyst's coffee, also cold"],
         "emotional_undertone": "The specific vertigo of a fact that exists but hasn't been proven yet."
       }
@@ -237,6 +265,13 @@
       "summary": "The Leader and Chief Exec want services back and disclosure minimised. 'Managed' is doing a lot of work in that sentence.",
       "tags": ["social", "pivotal"],
       "read_aloud": "The Leader and the Chief Exec want services back and disclosure minimised, and they say so in the careful, deniable language of people who will not be the ones quoted. 'Managed' is doing a great deal of work in that sentence. Everyone in the room agrees residents come first; nobody says out loud what that means this week, because it means something different to each of them.",
+      "read_aloud_variants": [
+        {
+          "conditions": [{ "op": "flag_is", "flag": "staff_comms_leaked", "value": true }],
+          "priority": 10,
+          "text": "The Leader and the Chief Exec want services back and disclosure minimised, and they say so in the careful, deniable language of people who will not be the ones quoted — except this time the Leader opens with a complaint of their own: half the senior team heard about the breach from their own staff's group chats before anyone official told them anything. 'Managed' is doing a great deal of work in that sentence, and so is the fact that the room no longer entirely trusts you to manage the telling of things. Everyone agrees residents come first; nobody says out loud what that means this week, because it means something different to each of them, and now the staff have their own version circulating too."
+        }
+      ],
       "read_aloud_revisit": "The Leader's office again, the same careful language, the same word — managed — still doing all the work it was doing before.",
       "rumour_delivery": [
         {
@@ -301,7 +336,7 @@
       "title": "The 72-Hour Clock, Kept",
       "summary": "The ICO notification goes out inside the statutory window — the one call on this list that is actually a legal duty, not a courtesy.",
       "tags": ["compliance"],
-      "read_aloud": "The call to the ICO goes out promptly, on evidence that is good enough rather than perfect. This is the one notification on your list that isn't optional: UK GDPR gives you seventy-two hours from becoming aware of a breach to tell the regulator, whether or not you're certain yet what happened, and this call goes out with most of that window still in hand. Somebody separately rings the NCSC's reporting line too, for the technical support and threat intelligence — welcome, useful, but voluntary, and nobody will ever ask you to prove you made that second call. Only the first one is checked against a clock.",
+      "read_aloud": "The call to the ICO goes out promptly, on evidence that is good enough rather than perfect. This is the one notification on your list that isn't optional: UK GDPR gives you seventy-two hours from becoming aware of a breach to tell the regulator, whether or not you're certain yet what happened, and this call goes out with most of that window still in hand. It comes back with a case reference — RFA1122334, written down twice to be sure — that will follow this incident through every report that mentions it from here on. Somebody separately rings the NCSC's reporting line too; the duty analyst who picks up, Priya Chandrasekaran, takes the technical detail and promises a call back within the hour — welcome, useful, but voluntary, and nobody will ever ask you to prove you made that second call. Only the ICO reference number is checked against a clock.",
       "read_aloud_variants": [
         {
           "conditions": [
@@ -309,17 +344,17 @@
             { "op": "flag_is", "flag": "exfil_confirmed", "value": "confirmed" }
           ],
           "priority": 20,
-          "text": "The call to the ICO goes out at last, and for once you're not reading from a script of caveats: the logs are read, the exfiltration is confirmed, and the notification carries a fact instead of a hedge. It is still later than it should have been — UK GDPR's seventy-two hours were still running when you finally dialled, but only just, and the delay is on the record alongside the certainty. Somebody separately rings the NCSC's reporting line too, for the technical support and threat intelligence — welcome, useful, but voluntary. Only the ICO call was ever checked against a clock, and this one, at least, is telling the truth about what you know."
+          "text": "The call to the ICO goes out at last, and for once you're not reading from a script of caveats: the logs are read, the exfiltration is confirmed, and the notification carries a fact instead of a hedge. It comes back with a case reference — RFA1122334 — attached to a notification that is late but, for once, complete. It is still later than it should have been — UK GDPR's seventy-two hours were still running when you finally dialled, but only just, and the delay is on the record alongside the certainty. Somebody separately rings the NCSC's reporting line too; the duty analyst, Priya Chandrasekaran, has clearly seen the pattern before and doesn't waste time on the parts you already know. Only the ICO reference is ever checked against a clock, and this one, at least, is telling the truth about what you know."
         },
         {
           "conditions": [{ "op": "flag_is", "flag": "late_notification", "value": true }],
           "priority": 15,
-          "text": "The call to the ICO goes out at last, on evidence that is good enough rather than perfect — later than it should have, after a wait for certainty that ran on longer than the decision needed. UK GDPR gives you seventy-two hours from becoming aware of a breach to tell the regulator; you're still inside that window, but you've spent enough of it that this notification carries the delay on its face, not just in your own conscience. Somebody separately rings the NCSC's reporting line too, for the technical support and threat intelligence — welcome, useful, but voluntary, and nobody will ever ask you to prove you made that second call. Only the first one was ever checked against a clock, and the clock noticed."
+          "text": "The call to the ICO goes out at last, on evidence that is good enough rather than perfect — later than it should have, after a wait for certainty that ran on longer than the decision needed. It comes back with a case reference — RFA1122334 — and a timestamp that will sit next to the delay in every subsequent report. UK GDPR gives you seventy-two hours from becoming aware of a breach to tell the regulator; you're still inside that window, but you've spent enough of it that this notification carries the delay on its face, not just in your own conscience. Somebody separately rings the NCSC's reporting line too; the duty analyst, Priya Chandrasekaran, takes the detail down without comment on the timing — welcome, useful, but voluntary, and nobody will ever ask you to prove you made that second call. Only the ICO reference was ever checked against a clock, and the clock noticed."
         },
         {
           "conditions": [{ "op": "flag_is", "flag": "exfil_confirmed", "value": "confirmed" }],
           "priority": 10,
-          "text": "The call to the ICO goes out promptly, and this time 'on the evidence you have' means something more than a hedge: the logs are read and the exfiltration is confirmed before you ever pick up the phone. This is the one notification on your list that isn't optional — UK GDPR gives you seventy-two hours from becoming aware of a breach to tell the regulator — and this call goes out early, with a definite answer instead of a probable one. Somebody separately rings the NCSC's reporting line too, for the technical support and threat intelligence — welcome, useful, but voluntary, and nobody will ever ask you to prove you made that second call. Only the first one is checked against a clock."
+          "text": "The call to the ICO goes out promptly, and this time 'on the evidence you have' means something more than a hedge: the logs are read and the exfiltration is confirmed before you ever pick up the phone. It comes back with a case reference — RFA1122334 — attached to a notification that is both timely and complete, which the caller on the other end notes is rarer than you'd think. This is the one notification on your list that isn't optional — UK GDPR gives you seventy-two hours from becoming aware of a breach to tell the regulator — and this call goes out early, with a definite answer instead of a probable one. Somebody separately rings the NCSC's reporting line too; the duty analyst, Priya Chandrasekaran, takes the technical detail and promises a call back within the hour — welcome, useful, but voluntary, and nobody will ever ask you to prove you made that second call. Only the ICO reference is checked against a clock."
         }
       ],
       "read_aloud_revisit": "The ICO notification sits logged and timestamped, a fact nobody can later dispute. The NCSC call sits alongside it, helpful and unrequired.",
@@ -371,11 +406,11 @@
       "type": "ending",
       "region": "mereford_incident",
       "title": "ENDING: The Playbook Worked",
-      "summary": "Regulator notified in time, ransom refused, backups held. Services return within the week. The ICO takes no further action; the incident becomes the case study you cite next time someone asks 'is this worth the budget.'",
+      "summary": "Regulator notified in time (case RFA1122334), ransom refused, backups held. Services return within the week — the decision window closes clean, though the full recovery bill and the ICO's finding on the stale VPN credential still have months left to run.",
       "tags": ["ending", "strong"],
-      "read_aloud": "Regulator notified in time, ransom refused, backups held. Services return within the week, in the right order, without a second crisis hiding behind the first one. The ICO takes no further action. The incident becomes the case study you cite, calmly, the next time someone in a budget meeting asks whether any of this was worth paying for.",
+      "read_aloud": "Regulator notified in time, ransom refused, backups held. Services return within the week, in the right order, without a second crisis hiding behind the first one. It does not end there: the recovery bill runs into the millions before the last system is rebuilt from clean images, and it is the better part of a year before every service is fully itself again — a fast, well-run response doesn't shrink the actual cost of a breach this size, it just keeps it from becoming a second, worse story. When the ICO closes its file against case RFA1122334, months later, it isn't with 'no further action' — it's a reprimand, not a fine, for the stale VPN credential that let this happen in the first place. The response bought you that: a regulator willing to say, in writing, that what you did afterwards was right, even though what let the attacker in wasn't. The incident becomes the case study you cite, calmly, the next time someone in a budget meeting asks whether any of this was worth paying for — not because it ended cheaply, but because it ended honestly.",
       "narrative": {
-        "present_tension": "Resolved, at the cost of every easy shortcut you didn't take.",
+        "present_tension": "Resolved, at the cost of every easy shortcut you didn't take — and at a cost that was never going to be small, whichever choices were made.",
         "sensory_details": ["a services dashboard turning green, department by department", "a debrief slide with no red text on it"],
         "emotional_undertone": "The quiet, almost anticlimactic satisfaction of a plan that simply worked."
       }
@@ -489,13 +524,60 @@
     {
       "id": "m010",
       "from": "contain_early",
-      "to": "law_enforcement_call",
-      "label": "Move to confirm exfiltration",
+      "to": "staff_comms_dilemma",
+      "label": "Move to the next phase of the response",
       "kind": "open",
       "effects": [],
-      "stakes": "The ransom note's data-theft claim needs an answer before you can decide anything else — starting with who else needs to be in on the answer.",
-      "hook": "The note says data left the building. The note also wants your money.",
-      "narrative": { "player_intent": "Begin the investigation.", "dramatic_role": "Hub spoke to the investigation branch." }
+      "stakes": "The ransom note's data-theft claim needs an answer before you can decide anything else — but first, eight hundred people who work here need to know something is wrong.",
+      "hook": "The helpdesk phone hasn't stopped ringing since the network dropped.",
+      "narrative": { "player_intent": "Begin the response proper.", "dramatic_role": "Hub spoke into the staff-comms dilemma, then the investigation branch beyond it." }
+    },
+    {
+      "id": "m012",
+      "from": "staff_comms_dilemma",
+      "to": "law_enforcement_call",
+      "label": "Send an all-staff email now, on the network you're not sure is clean",
+      "kind": "risk",
+      "test": {
+        "type": "luck",
+        "stat": "luck",
+        "modifier": 0,
+        "failure_to": "law_enforcement_call",
+        "failure_effects": [
+          { "op": "set_flag", "flag": "staff_comms_leaked", "value": true },
+          { "op": "modify_stat", "stat": "exposure", "amount": 3 }
+        ]
+      },
+      "effects": [{ "op": "set_flag", "flag": "staff_informed_safely", "value": true }],
+      "stakes": "Fast, and free, and exactly the channel you can't currently vouch for — if a mailbox is still readable by someone who isn't you, or a screenshot makes it further than the building, that's on this email.",
+      "hook": "The draft is one paragraph long. Sending it is the only slow part.",
+      "narrative": { "player_intent": "Warn staff quickly, accepting the channel risk.", "dramatic_role": "The fast, unverified road; a real chance of the message becoming the leak it was meant to prevent." }
+    },
+    {
+      "id": "m013",
+      "from": "staff_comms_dilemma",
+      "to": "law_enforcement_call",
+      "label": "Stand up the out-of-band phone and text tree instead",
+      "kind": "open",
+      "costs": [{ "resource": "hours_to_deadline", "amount": 4 }, { "resource": "comms_capital", "amount": 1 }],
+      "effects": [{ "op": "set_flag", "flag": "staff_informed_safely", "value": true }],
+      "stakes": "Slower, and it costs a call to HR to find out whether the emergency contact list is even current — but nothing about it depends on a system you don't trust yet.",
+      "hook": "Half the numbers on the list are two jobs out of date. It still beats silence.",
+      "narrative": { "player_intent": "Warn staff safely, at the cost of time and coordination.", "dramatic_role": "The slower, verifiably safe road — the one real incident responders actually reach for when the compromised channel is the usual one." }
+    },
+    {
+      "id": "m014",
+      "from": "staff_comms_dilemma",
+      "to": "law_enforcement_call",
+      "label": "Say nothing formally yet; let it filter through operationally",
+      "kind": "open",
+      "effects": [
+        { "op": "set_flag", "flag": "staff_comms_leaked", "value": true },
+        { "op": "modify_stat", "stat": "exposure", "amount": 2 }
+      ],
+      "stakes": "Nobody has to defend a message that was never sent — but the helpdesk queue and the group chats will write their own version of events faster than you're writing yours.",
+      "hook": "By the time you have a line to take, three hundred people already have their own.",
+      "narrative": { "player_intent": "Delay any formal internal communication.", "dramatic_role": "The road into a staff-side leak, symmetrical with the press-side cover-up branch elsewhere in the graph." }
     },
     {
       "id": "m015",
@@ -847,8 +929,8 @@
   ],
   "validation": {
     "notes": "Counts are maintained by scripts/validate-adventure.js and the CI reachability gate; see README.",
-    "node_count": 19,
-    "route_count": 29,
+    "node_count": 20,
+    "route_count": 32,
     "known_soft_locks": [],
     "ending_assertions": {
       "ending_recovery_strong": [{ "flag": "regulator_notified", "value": true }],
