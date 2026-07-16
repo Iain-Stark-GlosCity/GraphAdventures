@@ -45,3 +45,18 @@ test("validation rejects broken references", () => {
   const errors = validateAdventure(broken);
   assert.ok(errors.some((e) => e.includes("rBAD") && e.includes("nowhere")));
 });
+
+test("validation rejects a read_aloud_variants condition referencing an unknown flag", () => {
+  const broken = structuredClone(adventure);
+  broken.doc = structuredClone(adventure.doc);
+  const node = broken.doc.nodes.find((n) => n.id === broken.doc.graph.entry_node);
+  node.read_aloud_variants = [
+    {
+      conditions: [{ op: "flag_is", flag: "totally_made_up_flag", value: true }],
+      priority: 1,
+      text: "unreachable variant with a typo'd condition",
+    },
+  ];
+  const errors = validateAdventure(broken);
+  assert.ok(errors.some((e) => e.includes("read_aloud_variants") && e.includes("totally_made_up_flag")));
+});

@@ -24,6 +24,8 @@ test("each operator evaluates against state", () => {
   assert.ok(!evalCondition({ op: "stat_at_least", stat: "reputation", value: 2 }, state));
   assert.ok(evalCondition({ op: "stat_below", stat: "skill", value: 9 }, state));
   assert.ok(!evalCondition({ op: "resource_at_least", resource: "torch_turns", value: 1 }, state));
+  assert.ok(evalCondition({ op: "resource_below", resource: "torch_turns", value: 1 }, state));
+  assert.ok(!evalCondition({ op: "resource_below", resource: "gold", value: 15 }, state));
   assert.ok(evalCondition({ op: "has_condition", condition: "soaked" }, state));
   assert.ok(evalCondition({ op: "missing_condition", condition: "spore_dreams" }, state));
   assert.ok(evalCondition({ op: "knows", fact: "rumour_red_quill" }, state));
