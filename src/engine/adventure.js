@@ -136,6 +136,9 @@ function validateAdventure(adventure) {
     if (("encounter_id" in node) && !adventure.encountersById.has(node.encounter_id)) {
       err(`node ${node.id}`, `unknown encounter ${node.encounter_id}`);
     }
+    for (const variant of node.read_aloud_variants ?? []) {
+      checkConditions(variant.conditions, `node ${node.id}.read_aloud_variants`);
+    }
   }
 
   for (const route of doc.routes) {

@@ -67,6 +67,8 @@ export function evalCondition(cond, state) {
       return state.stats[cond.stat] < cond.value;
     case "resource_at_least":
       return state.resources[cond.resource] >= cond.value;
+    case "resource_below":
+      return state.resources[cond.resource] < cond.value;
     case "has_condition":
       return state.conditions.includes(cond.condition);
     case "missing_condition":
@@ -425,6 +427,8 @@ function describeCondition(cond, adventure) {
       return `requires ${cond.stat} below ${cond.value}`;
     case "resource_at_least":
       return `requires at least ${cond.value} ${cond.resource}`;
+    case "resource_below":
+      return `requires ${cond.resource} below ${cond.value}`;
     case "has_condition":
       return `requires the ${cond.condition} condition`;
     case "missing_condition":

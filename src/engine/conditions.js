@@ -8,6 +8,7 @@ const SUPPORTED_OPERATORS = new Set([
   "stat_at_least",
   "stat_below",
   "resource_at_least",
+  "resource_below",
   "has_condition",
   "missing_condition",
   "knows",
@@ -33,6 +34,8 @@ function evalCondition(cond, state) {
       return state.stats[cond.stat] < cond.value;
     case "resource_at_least":
       return state.resources[cond.resource] >= cond.value;
+    case "resource_below":
+      return state.resources[cond.resource] < cond.value;
     case "has_condition":
       return state.conditions.includes(cond.condition);
     case "missing_condition":

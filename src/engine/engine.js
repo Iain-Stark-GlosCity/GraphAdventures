@@ -342,6 +342,8 @@ function createEngine({ adventure, adventures, store, now = () => new Date().toI
         return `requires ${cond.stat} below ${cond.value}`;
       case "resource_at_least":
         return `requires at least ${cond.value} ${cond.resource}`;
+      case "resource_below":
+        return `requires ${cond.resource} below ${cond.value}`;
       case "has_condition":
         return `requires the ${cond.condition} condition`;
       case "missing_condition":
