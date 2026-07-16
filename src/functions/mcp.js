@@ -93,12 +93,24 @@ const SERVER_INFO = {
 
     "When status is completed, call get_node once more and narrate the ending in full. " +
       "Then call get_log and close with a short structured debrief, separate from the ending " +
-      "narration: 3-5 decisions from the log that most shaped this outcome (Decision → " +
-      "Consequence), followed by the ending node's narrative.debrief.organisational_actions " +
-      "when present, offered as real follow-up actions rather than in-fiction prose. Keep the " +
-      "debrief plainly labelled as out-of-character commentary — the player should be able to " +
-      "tell where the story ends and the retrospective begins. If narrative.debrief isn't " +
-      "present on the ending node, base the debrief on the log alone.",
+      "narration and plainly labelled as out-of-character commentary — the player should be " +
+      "able to tell where the story ends and the retrospective begins. The debrief has two " +
+      "parts, and they come from different sources: (1) 4-6 decision points drawn from THIS " +
+      "run's actual log — walk through get_log's steps in order and pick the ones that " +
+      "genuinely branched the outcome (a workstream choice, a route taken instead of its " +
+      "alternatives, a test passed or failed, a flag that changed), each as a short Decision " +
+      "-> Consequence line naming the real route label and what it led to; don't summarise a " +
+      "generic version of 'the' playthrough, summarise the one this player actually took, " +
+      "including any backtracking (returning to an earlier node) if it happened, since that's " +
+      "itself often the interesting decision. (2) the ending node's " +
+      "narrative.debrief.organisational_actions verbatim, when present, as real follow-up " +
+      "actions — these are written per-ending, not per-run, so use them as-is rather than " +
+      "trying to derive them from the log. narrative.debrief.decisions_that_mattered is " +
+      "reference material for your own understanding of what that ending is generally about, " +
+      "not something to output directly — always prefer the log's specific decisions over it, " +
+      "since a real run rarely takes the single most illustrative path an ending's authors had " +
+      "in mind when they wrote it. If narrative.debrief isn't present on the ending node, base " +
+      "the whole debrief on the log alone.",
   ].join("\n\n"),
 };
 
