@@ -308,7 +308,7 @@
         {
           "conditions": [{ "op": "flag_is", "flag": "regulator_notified", "value": false }],
           "priority": 10,
-          "text": "The statement goes out. Residents and press know what you know, at roughly the same time you know it — but the regulator isn't on that list, not yet, not from you. A public statement is not an ICO notification; the two feel similar from a podium and are not the same act, and nobody in the room has actually made the second one. That's still fixable — the seventy-two hours haven't closed, and the call can still be made, late and out of order as it will now look — but it fixes itself for nobody. Somebody has to notice the gap and pick up the phone. The ransom deadline does not pause to let the news cycle, or the gap in your paperwork, catch up."
+          "text": "The statement goes out. Residents and press know what you know, at roughly the same time you know it — but the regulator isn't on that list, not yet, not from you. A public statement is not an ICO notification; the two feel similar from a podium and are not the same act, and nobody in the room has actually made the second one. That's still fixable — the seventy-two hours haven't closed, and the call can still be made, out of order as it will now look but not late — but it fixes itself for nobody. Somebody has to notice the gap and pick up the phone. The ransom deadline does not pause to let the news cycle, or the gap in your paperwork, catch up."
         }
       ],
       "read_aloud_revisit": "The statement is out there now, doing its slow work in inboxes and newsrooms, impossible to call back.",
@@ -369,7 +369,7 @@
       ],
       "read_aloud_revisit": "The ICO notification sits logged and timestamped, a fact nobody can later dispute. The NCSC call sits alongside it, helpful and unrequired.",
       "narrative": {
-        "present_tension": "A timely, imperfect notification will always read better in hindsight than a late, complete one — and only the ICO clock actually enforces that lesson.",
+        "present_tension": "A prompt, imperfect notification will always read better in hindsight than a slower, complete one — and only the ICO clock actually enforces that lesson, since the law itself is content with either as long as both land inside it.",
         "sensory_details": ["a call reference number, written down twice to be sure", "the strange calm of a deadline actually met"],
         "emotional_undertone": "A small, procedural act of courage that nobody in the room will call brave."
       }
