@@ -27,7 +27,7 @@
       "law_enforcement_call and cyber_insurance_call model two real levers most ransomware training skips: reporting to Report Fraud (the national cyber crime and fraud service that replaced Action Fraud in December 2025) and requesting NCSC incident management support is a genuine, low-cost decision with a mechanical payoff (a stronger forensics test) rather than flavour text, and the insurer's refusal to cover a ransom payment is drawn from how UK cyber insurance policies actually treat sanctions-adjacent payment risk, not invented for drama. NCSC's incident management team, not the NCA, is the realistic source of 24/7 technical support for a council-scale incident — Priya C. is deliberately introduced here rather than at regulator_call, and regulator_call no longer repeats a separate NCSC contact, since a real council would already be in contact with the same team by the time it calls the ICO.",
       "political_pressure's rumour_delivery is the closest a solo gamebook gets to the multi-stakeholder friction of a live tabletop exercise: two speakers, both right from where they're standing, neither of whom the player gets to cross-examine.",
       "regulator_call and its flag (regulator_notified) refer to the ICO specifically, not to a bundled 'ICO/NCSC' action: the ICO notification is the actual legal duty the 72-hour clock enforces under UK GDPR, while an NCSC report is valuable, voluntary technical-advisory engagement with no statutory deadline of its own. The read_aloud narrates both calls happening together, as councils typically do in practice, but is explicit that only one of them is checked against a clock — don't reintroduce the conflation.",
-      "hours_to_deadline and comms_capital are load-bearing, not decorative: every route that represents genuine delay (verifying scope, waiting for forensic certainty, holding silence, the burnout grind, executive sign-off) spends hours_to_deadline, and spending enough of it locks the clean-recovery gamble (m080) behind a foreshadowed resource_at_least gate — dawdle for certainty and the option to refuse the ransom on your own terms can be gone by the time you reach it. comms_capital works the same way on the political axis, gating the integrity route through political_pressure (m070, requires comms_capital >= 3 of a starting 5): the reckless direct road (m011, cost 4) always forecloses it, the careful comms-led road (m043 cost 1, then m061 cost 1, total 2) always preserves it. Verify with real numbers before shipping a gate like this — the first version of this gate required more capital than any reachable path could retain, making the 'integrity' choice permanently unreachable.",
+      "attacker_deadline_hours and comms_capital are load-bearing, not decorative: every route that represents genuine delay (verifying scope, waiting for forensic certainty, holding silence, the burnout grind, executive sign-off) spends attacker_deadline_hours, and spending enough of it locks the clean-recovery gamble (m080) behind a foreshadowed resource_at_least gate — dawdle for certainty and the option to refuse the ransom on your own terms can be gone by the time you reach it. comms_capital works the same way on the political axis, gating the integrity route through political_pressure (m070, requires comms_capital >= 3 of a starting 5): the reckless direct road (m011, cost 4) always forecloses it, the careful comms-led road (m043 cost 1, then m061 cost 1, total 2) always preserves it. Verify with real numbers before shipping a gate like this — the first version of this gate required more capital than any reachable path could retain, making the 'integrity' choice permanently unreachable.",
       "m080 (the clean-recovery gamble) requires regulator_notified = true as well as enough hours remaining, and validation.ending_assertions enforces it: ending_recovery_strong's prose claims the regulator was notified in time, so no route may reach it without actually setting that flag. A route that grants the best ending without the mechanics to back it up is worse than no ending at all — it teaches the wrong lesson.",
       "regulator_call's read_aloud_variants are keyed on exfil_confirmed as well as on the ICO-timing flags below: a player who ran the NCSC-supported logs test (m041b) before notifying has a confirmed fact, not a hedge, and the notification text has to say so. m041 itself stays a single, evidence-agnostic route ('on the evidence you have') precisely so the destination node's variant can carry the true framing — don't push evidence-state language back onto the route label, or the two will drift out of sync again the next time a route gets edited without checking the node it feeds.",
       "m081 (paying the ransom) is a luck test, not a guaranteed purchase, on a document check of NCSC's actual current guidance (ncsc.gov.uk/guidance/organisations-considering-payment-in-ransomware-incidents, July 2026): NCSC and UK law enforcement do not encourage, endorse or condone payment, and are explicit that paying carries no guarantee of getting a working decryptor or any data back at all. A route that always pays off misrepresents that guidance as strongly as the earlier ungated ending misrepresented the ICO duty. Failure routes to ending_catastrophic — paid and still lost everything, the compounded worst case — with its own read_aloud_variant.",
@@ -38,7 +38,12 @@
       "affected_people_notified is new and deliberately distinct from both public_statement_made and regulator_notified. UK GDPR draws three separate lines: tell the ICO (regulator_notified, a duty to the regulator, checked against the 72-hour clock), tell the public generally (public_statement_made, reputational and practical, no statutory deadline), and tell the specific individuals at high risk directly (affected_people_notified, m077, triggered by risk severity — a stolen benefits-and-payroll export is exactly the kind of high-risk personal data that engages it — and discharged by neither of the other two). ending_recovery_strong's variant for exfil_confirmed = confirmed AND affected_people_notified = false gives this a real consequence: a second, distinct ICO finding, because a general press statement was never a substitute for telling the residents whose own data was taken.",
       "This content revision was benchmarked against four documented, non-Gloucester real-world incidents rather than genre convention: Redcar & Cleveland BC (2020, ~£11.3m cost, 8.5-month recovery), Hackney LBC (2020, ICO reprimand issued in 2024 despite praised NCSC/NCA/Met engagement — reprimands for public bodies are the ICO's normal outcome, not a sign of a bad response), the HSE Ireland Conti attack (2021, PwC's Independent Post Incident Review — an eight-week undetected dwell time between initial compromise and ransomware deployment was the single most-cited finding), and Colonial Pipeline (2021, whose root cause — an unrotated legacy VPN credential — is the direct real-world model for this adventure's own hidden_truth). Three concrete changes came out of that comparison: forensics_engage's confirmed-exfiltration variant now reveals a six-week dwell time before the three-day-old exfiltration, so the story acknowledges that '06:10' was when the incident became visible, not when it began; ending_recovery_strong now costs millions and the better part of a year even in the best case, and closes with an ICO reprimand rather than 'no further action', matching Hackney's real outcome where good response and regulatory consequence for the underlying gap were not mutually exclusive; and staff_comms_dilemma exists because every real incident report in that set features a period where staff, press or the public learned things informally before anyone official told them, and none of this adventure's prior comms mechanics (political_pressure, comms_prep) touched the internal, staff-facing side of that problem or the specific dilemma of a compromised organisation not trusting its own email.",
       "staff_comms_dilemma sits between contain_early and law_enforcement_call on the investigative branch (m010) only — the reckless direct-to-political_pressure branch (m011) skips it, consistent with that branch's established character of skipping process steps (it also skips law_enforcement_call and forensics entirely). staff_informed_safely and staff_comms_leaked are the two outcomes; the latter is read downstream by political_pressure's own read_aloud_variant, so an internal comms failure surfaces again as a concrete complaint from the Leader, not just a one-off consequence at the point of choice.",
-      "regulator_call's ICO case reference (RFA1122334) and named NCSC duty analyst (Priya C.) are illustrative, not drawn from a real case file — the point is procedural realism (a real incident generates a specific reference number and puts a named person on the other end of the NCSC line), not any claim to represent an actual ICO case."
+      "regulator_call's ICO case reference (RFA1122334) and named NCSC duty analyst (Priya C.) are illustrative, not drawn from a real case file — the point is procedural realism (a real incident generates a specific reference number and puts a named person on the other end of the NCSC line), not any claim to represent an actual ICO case.",
+      "MECHANICS — renamed hours_to_deadline to attacker_deadline_hours throughout: it was doing five jobs (attacker threat, press pressure, forensic pacing, restoration viability, insurer timing) under a name that implied it was also the ICO's clock. It never was — ICO compliance is represented purely by flags (regulator_notified, ico_notification_delayed, ico_notified_after_public_disclosure) precisely because no reachable path in this graph can breach the statutory 72 hours, so a second clock tracking the same number would carry no information. What the rename doesn't fix on its own: adding a genuinely separate ico_deadline_hours resource was considered and rejected, since it would tick in lockstep with the attacker's clock for the same reason and add a resource nothing can ever meaningfully read. If this graph is ever restructured so ICO timing can vary independently of the attacker's countdown, that's the moment to revisit this.",
+      "m080's gate moved from resource_at_least attacker_deadline_hours >= 40 to has_item backup_status_report (obtained via the new route m045, forensics_engage, 2 hours). Restoration viability is now about whether the recovery team actually verified the backups, not about how much of the attacker's arbitrary countdown happens to be left — matching how real recovery decisions get made. One consequence worth knowing: the reckless m011 branch (contain_early -> political_pressure directly) never visits forensics_engage, so it can never obtain backup_status_report, so m080 is permanently unavailable on that branch, on top of the comms_capital-gated loss of m070. That's a deliberate, compounding consequence of skipping process early, not a separate bug.",
+      "service_outage_hours is new: a resource incremented (not spent) by every route that represents time spent deliberating rather than delivering — verifying scope, waiting for forensic certainty, holding silence, executive sign-off. It's read via a resource_at_least variant on ending_recovery_strong, so a technically clean, well-sequenced response that nonetheless took its time gets an honest 'closer to a fortnight, not a week' instead of always claiming the fastest possible recovery.",
+      "DICE POLICY — m001 (immediate isolation) no longer rolls a skill test. Whether isolation succeeds is a matter of organisational capability established before the incident (segmentation, tested procedures, staff availability), not a coin flip Gold Command makes in the room; making a correct decision fail on a bad roll taught the wrong lesson. Isolating blind still costs a point of exposure, because the genuine uncertainty is what already left before the switch was thrown, not whether the switch worked. Remaining tests are all at genuinely exogenous uncertainty: m080 (whether the backups turn out clean given a verified report), m012 (whether the compromised-adjacent email channel holds), m044 (burnout), m081 (whether a ransom payment actually buys a working decryptor). Don't add a skill test to a route whose outcome should be determined by a prior decision or established capability — gate or modify the route instead, the way m041b's forensics modifier already rewards the law-enforcement decision without rolling for it.",
+      "ITEMS — nine artefacts exist (ransom_note, soc_alert_extract, supplier_vpn_log, backup_status_report, insurance_policy_wording, draft_public_statement, affected_data_schedule, leaders_office_email, reporters_questions), all granted, none orphaned. Only two are mechanically gated on (backup_status_report at m080, affected_data_schedule at m077) — that's a scope decision, not an oversight: the other seven exist to make key moments tangible ('here is the specific document/log/email this decision produced or required') rather than abstract flag-flipping, matching the brief's 'evidence, not just narrated choices'. Gating every item would turn artefact collection into busywork; gate the ones where possessing the evidence is genuinely the difference between a decision being informed or assumed, and let the rest do their job as texture. If a future edit wants more artefact-gated decisions, prefer the m077/m080 pattern (has_item as the actual legality condition) over adding items nothing ever checks."
     ],
     "narrative_premise": "06:10 on a Monday. The SOC has flagged mass file-encryption across Mereford District Council's shared drives. A ransom note names a 72-hour window before stolen data is published. You are Gold Command. Every choice you make in the next three days will be reconstructed later — by the ICO, by an FOI request, or by a journalist — whether or not it feels like it matters now.",
     "core_mystery": "How far in did they get, and can you prove it before the clock forces you to guess in public?",
@@ -58,11 +63,12 @@
         "exposure": { "type": "integer", "min": 0, "max": 15, "initial": 0 }
       },
       "resources": {
-        "hours_to_deadline": { "type": "integer", "min": 0, "initial": 72 },
-        "comms_capital": { "type": "integer", "min": 0, "initial": 5 }
+        "attacker_deadline_hours": { "type": "integer", "min": 0, "initial": 72 },
+        "comms_capital": { "type": "integer", "min": 0, "initial": 5 },
+        "service_outage_hours": { "type": "integer", "min": 0, "initial": 0 }
       },
       "collections": {
-        "inventory": { "type": "set", "initial": [] },
+        "inventory": { "type": "set", "initial": ["ransom_note", "soc_alert_extract"] },
         "conditions": { "type": "set", "initial": [] },
         "knowledge": { "type": "set", "initial": ["ransom_note_seen"] }
       },
@@ -116,7 +122,116 @@
       }
     }
   ],
-  "items": [],
+  "items": [
+    {
+      "id": "ransom_note",
+      "name": "The Ransom Note",
+      "type": "evidence",
+      "description": "Flat, rehearsed corporate prose, sitting in three inboxes before anyone in the building has finished their coffee: pay within seventy-two hours or the stolen data goes public. It reads like it was written for a dozen other councils first.",
+      "traits": ["evidence", "initial", "attacker-authored"],
+      "narrative_semantics": {
+        "origin": "Delivered automatically alongside the encryption, timestamped seconds after the first files locked.",
+        "symbolic_role": "The clock the attacker wants Gold Command watching, as opposed to the clocks that actually govern the response.",
+        "world_revelation": "Its payment instructions are the first hint — to anyone who reads them closely — that this group is plausibly sanctions-adjacent."
+      }
+    },
+    {
+      "id": "soc_alert_extract",
+      "name": "SOC Alert Extract",
+      "type": "evidence",
+      "description": "The raw detection log: mass file-encryption events across the shared drives, timestamped, unreviewed, arriving faster than anyone can read them.",
+      "traits": ["evidence", "initial", "technical"],
+      "narrative_semantics": {
+        "origin": "Generated automatically by the council's monitoring tooling at first detection.",
+        "symbolic_role": "What Gold Command actually knows at 06:10, as distinct from what gets assumed or narrated in the following hours.",
+        "world_revelation": "Read carefully, it shows detection — not compromise. The compromise happened earlier; this is only the moment it became visible."
+      }
+    },
+    {
+      "id": "supplier_vpn_log",
+      "name": "Supplier VPN Access Log",
+      "type": "evidence",
+      "description": "Login records for the print supplier's VPN account, stretching back weeks further than anyone in the room expected to look.",
+      "traits": ["evidence", "technical", "root-cause"],
+      "narrative_semantics": {
+        "origin": "Pulled during the forensic logs review, once someone finally asks how the attacker actually got in.",
+        "symbolic_role": "The dwell-time proof: six weeks of quiet access before the three-day-old exfiltration.",
+        "world_revelation": "A credential reused from a breach two years ago, never rotated, sitting in a system nobody was watching closely enough."
+      }
+    },
+    {
+      "id": "backup_status_report",
+      "name": "Backup Status Report",
+      "type": "evidence",
+      "description": "A verified account of what's actually recoverable: which images are clean, which are reachable from the compromised network, and which were never as segmented as the architecture diagram claimed.",
+      "traits": ["evidence", "technical", "recovery"],
+      "narrative_semantics": {
+        "origin": "Compiled by the technical team once someone stops assuming the backups are fine and actually checks.",
+        "symbolic_role": "The difference between hoping a restore will work and knowing whether it can.",
+        "world_revelation": "Segmentation was real but incomplete — which is why refusing the ransom is a genuine gamble, not a guaranteed win, even with this report in hand."
+      }
+    },
+    {
+      "id": "insurance_policy_wording",
+      "name": "Cyber Insurance Policy Wording",
+      "type": "document",
+      "description": "The actual clauses, not the summary: what's covered, what's excluded, and the sanctions carve-out nobody reads until the day it matters.",
+      "traits": ["document", "legal"],
+      "narrative_semantics": {
+        "origin": "Retrieved from the policy file the moment the insurer's incident line is called.",
+        "symbolic_role": "A decision that someone else has already priced, whether or not Gold Command likes the price.",
+        "world_revelation": "Restoration and forensic costs are covered. A payment to a sanctions-adjacent actor is not, and voids the policy outright."
+      }
+    },
+    {
+      "id": "draft_public_statement",
+      "name": "Draft Public Statement",
+      "type": "document",
+      "description": "Comms and legal's working draft — what's confirmed, what's still assumed, and the gap between the two that the final wording has to resolve one way or the other.",
+      "traits": ["document", "comms"],
+      "narrative_semantics": {
+        "origin": "Drafted jointly by comms and legal once the decision is made to loop them in early.",
+        "symbolic_role": "The moment private uncertainty has to become public language.",
+        "world_revelation": "What gets cut from it, and by whom, says more about the organisation than what stays in."
+      }
+    },
+    {
+      "id": "affected_data_schedule",
+      "name": "Affected Data Schedule",
+      "type": "evidence",
+      "description": "The specific list: whose benefits records, whose payroll details, exactly what left the network and who it belongs to.",
+      "traits": ["evidence", "technical", "personal-data"],
+      "narrative_semantics": {
+        "origin": "Produced by forensics alongside confirmation that exfiltration actually happened.",
+        "symbolic_role": "The difference between 'a breach occurred' and knowing, specifically, whose lives it touches.",
+        "world_revelation": "A general press statement was never going to substitute for this list reaching the people named on it."
+      }
+    },
+    {
+      "id": "leaders_office_email",
+      "name": "Email from the Leader's Office",
+      "type": "document",
+      "description": "Three lines, sent before anyone from the Leader's office has actually spoken to Gold Command: services back, disclosure minimised, come and explain in person.",
+      "traits": ["document", "political"],
+      "narrative_semantics": {
+        "origin": "Sent the moment word of the breach reaches the Leader's office through channels other than Gold Command's own briefing.",
+        "symbolic_role": "Political pressure arriving in writing, before it arrives in the room.",
+        "world_revelation": "The instruction is deniable by design — nothing in it could be read back as a direction to conceal anything, and everything in it points that way."
+      }
+    },
+    {
+      "id": "reporters_questions",
+      "name": "A Reporter's Questions",
+      "type": "document",
+      "description": "A voicemail and a follow-up email, both patient, both asking the same thing in slightly different words: why have council tax payments failed, and why won't anyone say.",
+      "traits": ["document", "external"],
+      "narrative_semantics": {
+        "origin": "Left by a local reporter during the wait for forensic certainty, when the silence has gone on long enough to be noticed from outside the building.",
+        "symbolic_role": "The outside world's patience, running out on a schedule nobody inside the room controls.",
+        "world_revelation": "The questions aren't hostile. They're the questions any competent local reporter would ask, which is precisely what makes them hard to dismiss."
+      }
+    }
+  ],
   "encounters": [],
   "nodes": [
     {
@@ -338,6 +453,13 @@
       "summary": "The council's cyber insurer joins the call before the ransom decision, and their position is blunter than the policy document ever was.",
       "tags": ["compliance", "pivotal"],
       "read_aloud": "The insurer's incident line delivers four facts, flatly, before anyone gets to a decision. Restoration and forensic costs are covered. A ransom payment to a group this plausibly linked to a sanctioned jurisdiction is not covered, and authorising one is very likely to void the policy outright. The recovery panel needs a verified backup status before it will sign off on a restore attempt. And central government already can't pay ransoms — the Home Office's own consultation response has committed to extending that ban to every public body in the country, councils included, though it isn't law yet. Only after all four facts land does the person on the line add anything of their own: it isn't really a coverage decision, they say. It's the decision.",
+      "read_aloud_variants": [
+        {
+          "conditions": [{ "op": "resource_at_least", "resource": "attacker_deadline_hours", "value": 60 }],
+          "priority": 5,
+          "text": "The insurer's incident line delivers four facts, flatly, before anyone gets to a decision. Restoration and forensic costs are covered. A ransom payment to a group this plausibly linked to a sanctioned jurisdiction is not covered, and authorising one is very likely to void the policy outright. The recovery panel needs a verified backup status before it will sign off on a restore attempt. And central government already can't pay ransoms — the Home Office's own consultation response has committed to extending that ban to every public body in the country, councils included, though it isn't law yet. Only after all four facts land does the person on the line add anything of their own: whoever's running this, they say, is moving fast — most of the attacker's own seventy-two hours are still sitting unused, which is not something they can say about every call like this one."
+        }
+      ],
       "read_aloud_revisit": "The insurer's position hasn't moved: covered for recovery, not covered for the ransom, and the two are not equally risky in ways that matter to them.",
       "narrative": {
         "present_tension": "The policy was written to make this decision look simple. Making it under a live deadline does not feel simple.",
@@ -439,6 +561,11 @@
           ],
           "priority": 10,
           "text": "Regulator notified in time, ransom refused, backups held. Services return within the week, in the right order, without a second crisis hiding behind the first one. It does not end there — and this time the ICO's reprimand carries two findings, not one: the stale VPN credential that let this happen, and a general press statement that stood in for direct notification to the specific residents whose benefits and payroll data was actually taken, when the risk to them individually should have triggered a direct letter or call. The recovery bill still runs into the millions; the better part of a year still passes before every service is fully itself again. The response was fast and well-run in every way that touched the council's own systems. It was not, in the end, quite complete in the one way that touched the residents whose data left the building — the reprimand is careful to say so."
+        },
+        {
+          "conditions": [{ "op": "resource_at_least", "resource": "service_outage_hours", "value": 30 }],
+          "priority": 8,
+          "text": "Regulator notified in time, ransom refused, backups held — but every deliberation that got you to this decision cost real hours of council tax, benefits and case-management systems staying down while the picture was confirmed. Services take closer to a fortnight to return, not a week, because a good decision made slowly still costs the time it took to make it slowly. It does not end there: the recovery bill runs into the millions, and it is the better part of a year before every service is fully itself again. When the ICO closes its file, it isn't with 'no further action' — a reprimand, not a fine, for the stale VPN credential that let this happen. The response was right. Right and unhurried are not, in an incident like this one, quite the same thing."
         }
       ],
       "narrative": {
@@ -517,18 +644,14 @@
       "from": "incident_alert",
       "to": "contain_early",
       "label": "Isolate the network immediately",
-      "kind": "risk",
-      "test": {
-        "type": "skill",
-        "stat": "skill",
-        "modifier": 0,
-        "failure_to": "spread_confirmed",
-        "failure_effects": [{ "op": "modify_stat", "stat": "exposure", "amount": 3 }]
-      },
-      "effects": [{ "op": "set_flag", "flag": "network_isolated", "value": true }],
-      "stakes": "Cut now, on instinct, and you either contain it clean or misjudge the scope and watch it spread anyway.",
-      "hook": "Every minute of hesitation is spreading; every switch you throw blind might be the wrong one.",
-      "narrative": { "player_intent": "Act immediately on incomplete information.", "dramatic_role": "The judgement test that opens the adventure." }
+      "kind": "open",
+      "effects": [
+        { "op": "set_flag", "flag": "network_isolated", "value": true },
+        { "op": "modify_stat", "stat": "exposure", "amount": 1 }
+      ],
+      "stakes": "Cut now, on instinct: isolation lands, deterministically — this is a decision, not a dice roll — but cutting blind before scope is known means you can't yet say what, if anything, got out before the switch was thrown.",
+      "hook": "Every minute of hesitation is spreading. The switch, at least, is not in question.",
+      "narrative": { "player_intent": "Act immediately on incomplete information.", "dramatic_role": "Deliberately not a skill test: whether isolation works is a matter of organisational capability (segmentation, tested procedures, staff availability) established before the incident, not a coin flip made by Gold Command in the room. The genuine uncertainty here is what already left before you cut the cord, which is why isolating blind still costs a point of exposure — not because the isolation itself might fail." }
     },
     {
       "id": "m002",
@@ -536,8 +659,11 @@
       "to": "spread_confirmed",
       "label": "Verify scope before cutting services",
       "kind": "open",
-      "costs": [{ "resource": "hours_to_deadline", "amount": 6 }],
-      "effects": [{ "op": "modify_stat", "stat": "exposure", "amount": 3 }],
+      "costs": [{ "resource": "attacker_deadline_hours", "amount": 6 }],
+      "effects": [
+        { "op": "modify_stat", "stat": "exposure", "amount": 3 },
+        { "op": "modify_resource", "resource": "service_outage_hours", "amount": 6 }
+      ],
       "stakes": "Caution costs blast radius and six hours off the clock; verification takes time the encryption doesn't.",
       "hook": "Cutting services blind has its own cost. So does not cutting them.",
       "narrative": { "player_intent": "Confirm the picture before acting.", "dramatic_role": "The cautious road, guaranteed to cost exposure." }
@@ -591,7 +717,7 @@
       "to": "law_enforcement_call",
       "label": "Stand up the out-of-band phone and text tree instead",
       "kind": "open",
-      "costs": [{ "resource": "hours_to_deadline", "amount": 4 }, { "resource": "comms_capital", "amount": 1 }],
+      "costs": [{ "resource": "attacker_deadline_hours", "amount": 4 }, { "resource": "comms_capital", "amount": 1 }],
       "effects": [{ "op": "set_flag", "flag": "staff_informed_safely", "value": true }],
       "stakes": "Slower, and it costs a call to HR to find out whether the emergency contact list is even current — but nothing about it depends on a system you don't trust yet.",
       "hook": "Half the numbers on the list are two jobs out of date. It still beats silence.",
@@ -639,8 +765,8 @@
       "to": "political_pressure",
       "label": "Push to reopen benefits payments before forensics finish",
       "kind": "open",
-      "costs": [{ "resource": "hours_to_deadline", "amount": 4 }, { "resource": "comms_capital", "amount": 4 }],
-      "effects": [],
+      "costs": [{ "resource": "attacker_deadline_hours", "amount": 4 }, { "resource": "comms_capital", "amount": 4 }],
+      "effects": [{ "op": "add_item", "item": "leaders_office_email" }],
       "stakes": "Residents need their payments; forensics needs the network exactly as it is — and forcing the issue against professional advice this early spends most of the political capital you'll want when the Leader pushes back an hour from now.",
       "hook": "The benefits helpline has stopped ringing. That is not the same as stopped needing.",
       "narrative": { "player_intent": "Prioritise service restoration over investigation.", "dramatic_role": "Early route into the political pressure encounter." }
@@ -665,8 +791,8 @@
       "to": "deeper_spread",
       "label": "Try to buy time before isolating",
       "kind": "open",
-      "costs": [{ "resource": "hours_to_deadline", "amount": 12 }],
-      "effects": [],
+      "costs": [{ "resource": "attacker_deadline_hours", "amount": 12 }],
+      "effects": [{ "op": "modify_resource", "resource": "service_outage_hours", "amount": 12 }],
       "stakes": "Every extra minute of uncontained spread is a minute you can't get back, and this one costs half a day of runway.",
       "hook": "The backups are supposed to be segmented from this. Supposed to be.",
       "narrative": { "player_intent": "Delay containment further.", "dramatic_role": "The road to the overrun ending." }
@@ -688,8 +814,11 @@
       "to": "spread_confirmed",
       "label": "Verify scope first",
       "kind": "open",
-      "costs": [{ "resource": "hours_to_deadline", "amount": 6 }],
-      "effects": [{ "op": "modify_stat", "stat": "exposure", "amount": 3 }],
+      "costs": [{ "resource": "attacker_deadline_hours", "amount": 6 }],
+      "effects": [
+        { "op": "modify_stat", "stat": "exposure", "amount": 3 },
+        { "op": "modify_resource", "resource": "service_outage_hours", "amount": 6 }
+      ],
       "stakes": "Even with structure standing, verification still costs blast radius and the same six hours it always does.",
       "hook": "Command structure doesn't slow the encryption down. Only isolation does that.",
       "narrative": { "player_intent": "Verify before acting, with structure in place.", "dramatic_role": "The cautious route out of the structured branch." }
@@ -702,7 +831,7 @@
       "kind": "investigation",
       "one_time": true,
       "conditions": [{ "op": "flag_is", "flag": "law_enforcement_notified", "value": false }],
-      "costs": [{ "resource": "hours_to_deadline", "amount": 4 }],
+      "costs": [{ "resource": "attacker_deadline_hours", "amount": 4 }],
       "test": {
         "type": "skill",
         "stat": "skill",
@@ -710,7 +839,11 @@
         "failure_to": "forensics_engage",
         "failure_effects": [{ "op": "set_flag", "flag": "exfil_confirmed", "value": "unconfirmed" }]
       },
-      "effects": [{ "op": "set_flag", "flag": "exfil_confirmed", "value": "confirmed" }],
+      "effects": [
+        { "op": "set_flag", "flag": "exfil_confirmed", "value": "confirmed" },
+        { "op": "add_item", "item": "supplier_vpn_log" },
+        { "op": "add_item", "item": "affected_data_schedule" }
+      ],
       "stakes": "A clean read of the logs, worked alone, turns a suspicion into a fact you can put in a regulator notification — if you can read it right without help, in the four hours it takes.",
       "hook": "The timestamps are all there. Reading them right, under this clock, is the hard part.",
       "narrative": { "player_intent": "Establish whether data actually left the network, without outside support.", "dramatic_role": "The core investigative test, run at the harder difficulty available when law enforcement wasn't looped in." }
@@ -723,7 +856,7 @@
       "kind": "investigation",
       "one_time": true,
       "conditions": [{ "op": "flag_is", "flag": "law_enforcement_notified", "value": true }],
-      "costs": [{ "resource": "hours_to_deadline", "amount": 4 }],
+      "costs": [{ "resource": "attacker_deadline_hours", "amount": 4 }],
       "test": {
         "type": "skill",
         "stat": "skill",
@@ -731,7 +864,11 @@
         "failure_to": "forensics_engage",
         "failure_effects": [{ "op": "set_flag", "flag": "exfil_confirmed", "value": "unconfirmed" }]
       },
-      "effects": [{ "op": "set_flag", "flag": "exfil_confirmed", "value": "confirmed" }],
+      "effects": [
+        { "op": "set_flag", "flag": "exfil_confirmed", "value": "confirmed" },
+        { "op": "add_item", "item": "supplier_vpn_log" },
+        { "op": "add_item", "item": "affected_data_schedule" }
+      ],
       "stakes": "A clean read of the logs turns a suspicion into a fact you can put in a regulator notification — and this time you're not reading them alone.",
       "hook": "Priya C., NCSC's incident management analyst working the case since the report went in, has seen this exact log pattern before. That's worth more than another pot of coffee.",
       "narrative": { "player_intent": "Establish whether data actually left the network, with formal backup.", "dramatic_role": "The reward for the reporting decision: a meaningfully better test at the adventure's core investigation." }
@@ -753,9 +890,13 @@
       "to": "delay_disclosure",
       "label": "Wait for forensic certainty before notifying",
       "kind": "open",
-      "costs": [{ "resource": "hours_to_deadline", "amount": 24 }],
-      "effects": [{ "op": "modify_stat", "stat": "exposure", "amount": 2 }],
-      "stakes": "Certainty is worth having. It is not free — a full day of the clock, and the option to still refuse the ransom on your own terms may not survive the wait.",
+      "costs": [{ "resource": "attacker_deadline_hours", "amount": 24 }],
+      "effects": [
+        { "op": "modify_stat", "stat": "exposure", "amount": 2 },
+        { "op": "modify_resource", "resource": "service_outage_hours", "amount": 24 },
+        { "op": "add_item", "item": "reporters_questions" }
+      ],
+      "stakes": "Certainty is worth having. It is not free — a full day spent, and a reporter's questions arriving before you have an answer for them.",
       "hook": "Somewhere outside this room, a reporter is already noticing the silence.",
       "narrative": { "player_intent": "Delay notification for a stronger evidence base.", "dramatic_role": "The road that lets exposure and the press cycle catch up." }
     },
@@ -765,8 +906,8 @@
       "to": "comms_prep",
       "label": "Loop in comms before deciding",
       "kind": "open",
-      "costs": [{ "resource": "hours_to_deadline", "amount": 2 }, { "resource": "comms_capital", "amount": 1 }],
-      "effects": [],
+      "costs": [{ "resource": "attacker_deadline_hours", "amount": 2 }, { "resource": "comms_capital", "amount": 1 }],
+      "effects": [{ "op": "add_item", "item": "draft_public_statement" }],
       "stakes": "Bringing comms in early shapes what gets said before the decision is even made, at a small cost in goodwill — a proper process now is cheaper than a fight later.",
       "hook": "The line to take is being drafted whether or not you've decided what the line is.",
       "narrative": { "player_intent": "Involve comms before committing to a disclosure path.", "dramatic_role": "Route into the statement-drafting branch." }
@@ -777,7 +918,7 @@
       "to": "forensics_engage",
       "label": "Keep working through the night instead of resting",
       "kind": "risk",
-      "costs": [{ "resource": "hours_to_deadline", "amount": 8 }],
+      "costs": [{ "resource": "attacker_deadline_hours", "amount": 8 }],
       "test": {
         "type": "luck",
         "stat": "luck",
@@ -789,6 +930,19 @@
       "stakes": "Another pass through the logs without sleep might catch what you missed, at the cost of a third of a day. It might also be the pass that breaks you.",
       "hook": "Nobody is going to tell you to stop. That's exactly the problem.",
       "narrative": { "player_intent": "Push past exhaustion for another shot at the evidence.", "dramatic_role": "The optional, repeatable risk that can end the run outright." }
+    },
+    {
+      "id": "m045",
+      "from": "forensics_engage",
+      "to": "forensics_engage",
+      "label": "Get a verified backup status, not an assumed one",
+      "kind": "investigation",
+      "one_time": true,
+      "costs": [{ "resource": "attacker_deadline_hours", "amount": 2 }],
+      "effects": [{ "op": "add_item", "item": "backup_status_report" }],
+      "stakes": "Two hours to stop assuming the backups are clean and actually find out — the architecture diagram says they're segmented from the rest of the network. Diagrams are aspirational documents.",
+      "hook": "Someone finally asks the technical team the question everyone's been avoiding: have you actually checked, or are we all just hoping?",
+      "narrative": { "player_intent": "Verify recovery capability before it becomes the deciding factor.", "dramatic_role": "Grants backup_status_report, which gates m080 in place of the earlier hours-remaining threshold — restoration viability now depends on evidence obtained, not on how much of the attacker's countdown happens to be left." }
     },
     {
       "id": "m050",
@@ -810,8 +964,11 @@
       "to": "cover_up_exposed",
       "label": "Hold the line on silence a while longer",
       "kind": "open",
-      "costs": [{ "resource": "hours_to_deadline", "amount": 24 }],
-      "effects": [{ "op": "set_flag", "flag": "cover_up_attempted", "value": true }],
+      "costs": [{ "resource": "attacker_deadline_hours", "amount": 24 }],
+      "effects": [
+        { "op": "set_flag", "flag": "cover_up_attempted", "value": true },
+        { "op": "modify_resource", "resource": "service_outage_hours", "amount": 24 }
+      ],
       "stakes": "Silence held past the point of plausibility stops looking like caution, and costs another day you don't have.",
       "hook": "The reporter's questions aren't going away because you don't answer them.",
       "narrative": { "player_intent": "Continue withholding disclosure.", "dramatic_role": "The road into the cover-up ending." }
@@ -833,8 +990,11 @@
       "to": "political_pressure",
       "label": "Hold for exec sign-off first",
       "kind": "open",
-      "costs": [{ "resource": "hours_to_deadline", "amount": 6 }, { "resource": "comms_capital", "amount": 1 }],
-      "effects": [],
+      "costs": [{ "resource": "attacker_deadline_hours", "amount": 6 }, { "resource": "comms_capital", "amount": 1 }],
+      "effects": [
+        { "op": "add_item", "item": "leaders_office_email" },
+        { "op": "modify_resource", "resource": "service_outage_hours", "amount": 6 }
+      ],
       "stakes": "Sign-off is procedure. It is also an opportunity for the statement to change hands, and six hours — and a little more goodwill — you don't get back.",
       "hook": "The Leader's office has asked to see it before it goes anywhere.",
       "narrative": { "player_intent": "Route the statement through executive approval.", "dramatic_role": "Route into the political pressure encounter." }
@@ -870,7 +1030,7 @@
       "to": "public_disclosure",
       "label": "Issue a short holding statement now; publish the fuller account once affected records are confirmed",
       "kind": "open",
-      "costs": [{ "resource": "hours_to_deadline", "amount": 6 }],
+      "costs": [{ "resource": "attacker_deadline_hours", "amount": 6 }],
       "effects": [
         { "op": "set_flag", "flag": "public_statement_made", "value": true },
         { "op": "set_flag", "flag": "holding_statement_first", "value": true }
@@ -885,8 +1045,8 @@
       "to": "cyber_insurance_call",
       "label": "Loop in the council's cyber insurer before deciding on the ransom",
       "kind": "open",
-      "costs": [{ "resource": "hours_to_deadline", "amount": 2 }],
-      "effects": [],
+      "costs": [{ "resource": "attacker_deadline_hours", "amount": 2 }],
+      "effects": [{ "op": "add_item", "item": "insurance_policy_wording" }],
       "stakes": "The policy has an opinion on this decision whether or not you ask for it; better to hear it before you choose.",
       "hook": "Someone in finance has already found the incident-response hotline number in the policy documents.",
       "narrative": { "player_intent": "Consult the insurer before the ransom decision.", "dramatic_role": "Hub spoke into the insurance-informed finale." }
@@ -898,12 +1058,12 @@
       "label": "Directly contact the residents whose data was actually taken",
       "kind": "open",
       "one_time": true,
-      "conditions": [{ "op": "flag_is", "flag": "exfil_confirmed", "value": "confirmed" }],
-      "costs": [{ "resource": "hours_to_deadline", "amount": 3 }, { "resource": "comms_capital", "amount": 1 }],
+      "conditions": [{ "op": "has_item", "item": "affected_data_schedule" }],
+      "costs": [{ "resource": "attacker_deadline_hours", "amount": 3 }, { "resource": "comms_capital", "amount": 1 }],
       "effects": [{ "op": "set_flag", "flag": "affected_people_notified", "value": true }],
-      "stakes": "A general press statement tells the town something happened. It doesn't tell the specific residents in the benefits-and-payroll export that their own data is out — and where a breach is likely to bring them real harm, the law expects them told directly, not left to wonder if the council statement was about them.",
+      "stakes": "A general press statement tells the town something happened. It doesn't tell the specific residents on the affected data schedule that their own data is out — and where a breach is likely to bring them real harm, the law expects them told directly, not left to wonder if the council statement was about them.",
       "hook": "The general statement covers the council. It doesn't cover the people whose bank details just left the building.",
-      "narrative": { "player_intent": "Meet the separate, individual-level notification duty a public statement doesn't discharge.", "dramatic_role": "Deliberately distinct from public_statement_made and regulator_notified: UK GDPR draws three separate lines here — tell the regulator (a duty to the ICO), tell the public generally (reputational and practical), and tell the specific people at high risk directly (a duty to them, triggered by risk severity, discharged by neither of the other two). Gated on exfil_confirmed = confirmed because the duty is triggered by knowing there's a real risk to specific people, not by suspicion alone." }
+      "narrative": { "player_intent": "Meet the separate, individual-level notification duty a public statement doesn't discharge.", "dramatic_role": "Deliberately distinct from public_statement_made and regulator_notified: UK GDPR draws three separate lines here — tell the regulator (a duty to the ICO), tell the public generally (reputational and practical), and tell the specific people at high risk directly (a duty to them, triggered by risk severity, discharged by neither of the other two). Gated on possession of affected_data_schedule (evidence obtained at m040/m041b) rather than the bare exfil_confirmed flag — the duty is triggered by actually knowing who's at risk, not just suspecting someone is." }
     },
     {
       "id": "m076",
@@ -912,7 +1072,7 @@
       "label": "Notify the ICO now — still within the statutory window",
       "kind": "open",
       "conditions": [{ "op": "flag_is", "flag": "regulator_notified", "value": false }],
-      "costs": [{ "resource": "hours_to_deadline", "amount": 1 }],
+      "costs": [{ "resource": "attacker_deadline_hours", "amount": 1 }],
       "effects": [
         { "op": "set_flag", "flag": "regulator_notified", "value": true },
         { "op": "set_flag", "flag": "ico_notified_after_public_disclosure", "value": true }
@@ -928,11 +1088,11 @@
       "label": "Refuse to pay, restore from backup",
       "kind": "risk",
       "conditions": [
-        { "op": "resource_at_least", "resource": "hours_to_deadline", "value": 40 },
+        { "op": "has_item", "item": "backup_status_report" },
         { "op": "flag_is", "flag": "regulator_notified", "value": true }
       ],
       "disclosure": "foreshadowed",
-      "foreshadow": "A full restore-and-verify cycle needs real runway — the recovery team is honest that they can't safely attempt it on whatever's left of the clock once you're this far into the seventy-two hours. And the insurer has noticed something else: there's no ICO reference number on this file. A clean recovery doesn't cover a missed statutory duty.",
+      "foreshadow": "The recovery panel won't sign off on a restore attempt without a verified backup status in hand — nobody gets to gamble on a diagram's word alone. And the insurer has noticed something else: there's no ICO reference number on this file. A clean recovery doesn't cover a missed statutory duty.",
       "test": {
         "type": "luck",
         "stat": "luck",
@@ -941,9 +1101,9 @@
         "failure_effects": [{ "op": "modify_stat", "stat": "exposure", "amount": 2 }]
       },
       "effects": [],
-      "stakes": "Refusing the ransom bets everything on the backups actually being clean — the diagram said segmented, and no amount of judgement gets you a better answer than the restore job itself. At least the policy covers the attempt, and there's still enough clock left to risk it.",
-      "hook": "The backups were segmented on the diagram. Now you find out if they were segmented in fact.",
-      "narrative": { "player_intent": "Refuse the ransom and recover independently.", "dramatic_role": "The clean-recovery finale gamble; the one moment fortune, not judgement, decides the outcome — and only available if earlier delays haven't already spent the clock it needs." }
+      "stakes": "Refusing the ransom bets everything on the backups actually being clean. The verified status report says segmentation held for most of the estate, not all of it — a genuine gamble even with the evidence in hand, not a formality.",
+      "hook": "The backups were segmented on the diagram. The report in your hand says: mostly.",
+      "narrative": { "player_intent": "Refuse the ransom and recover independently.", "dramatic_role": "The clean-recovery finale gamble; the one moment fortune, not judgement, decides the outcome. Gated on evidence (backup_status_report, from m045) rather than the attacker's countdown — restoration viability depends on what the recovery team actually verified, not on how much of the ransom deadline happens to be left. The reckless m011 branch never visits forensics_engage, so it never obtains this report either; losing access to both the integrity comms route and the clean-recovery ending is a deliberate, consistent consequence of that branch, not a separate oversight." }
     },
     {
       "id": "m081",
@@ -1007,7 +1167,7 @@
   "validation": {
     "notes": "Counts are maintained by scripts/validate-adventure.js and the CI reachability gate; see README.",
     "node_count": 20,
-    "route_count": 34,
+    "route_count": 36,
     "known_soft_locks": [],
     "ending_assertions": {
       "ending_recovery_strong": [{ "flag": "regulator_notified", "value": true }],
