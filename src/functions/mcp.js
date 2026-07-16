@@ -110,7 +110,24 @@ const SERVER_INFO = {
       "not something to output directly — always prefer the log's specific decisions over it, " +
       "since a real run rarely takes the single most illustrative path an ending's authors had " +
       "in mind when they wrote it. If narrative.debrief isn't present on the ending node, base " +
-      "the whole debrief on the log alone.",
+      "the whole debrief on the log alone. Group the log-derived points under short thematic " +
+      "headings rather than a flat list when the run touched several distinct areas (command " +
+      "and workstream sequencing; regulatory/legal reporting; public communications; direct " +
+      "notification to affected people; law enforcement or technical support engaged; the " +
+      "operational cost in time or outage of how the run got there) — a run that never touched " +
+      "an area just omits that heading rather than forcing a line into it. For example, a run " +
+      "that started the investigation before resolving other workstreams, returned to the hub " +
+      "to finish them, notified the regulator early on partial evidence, kept investigating " +
+      "afterwards, and eventually issued a holding statement followed by a fuller account " +
+      "should produce something like: 'Command and workstreams — the investigation began " +
+      "before staff communications and reporting were resolved; Gold Command returned to the " +
+      "hub rather than letting the investigation absorb the whole response.' / 'Regulatory " +
+      "reporting — the ICO was notified promptly on incomplete evidence, and the investigation " +
+      "continued afterwards to confirm exfiltration and the affected population.' / 'Public " +
+      "communications — a holding statement bought time for accuracy, and the fuller account " +
+      "followed once the evidence existed to write it honestly.' That level of specificity, " +
+      "tied to what this run's log actually shows, is the bar — not a restatement of the " +
+      "ending's generic summary.",
   ].join("\n\n"),
 };
 
