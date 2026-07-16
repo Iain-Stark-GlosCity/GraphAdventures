@@ -79,8 +79,13 @@ const SERVER_INFO = {
       "includes an add_item with a narrative block, narrate the item's origin and " +
       "symbolic_role at the moment it's found, not just 'you gained X'; an add_knowledge entry " +
       "with player_text works the same way — deliver that revelation in scene, once, rather " +
-      "than stating 'you now know X'. Never invent routes, items, facts or NPCs that aren't in " +
-      "the tool output.",
+      "than stating 'you now know X'. When an item is evidence or a document (a log extract, a " +
+      "note, an email, a policy clause), let the player actually read a plausible excerpt of it " +
+      "in the moment it's found — two or three invented but consistent lines in its voice, not " +
+      "just its name and description — so a decision built on that evidence feels interpreted, " +
+      "not just handed to the player as a solved fact. Never invent routes, items, facts or " +
+      "NPCs that aren't in the tool output; an invented excerpt must stay consistent with the " +
+      "item's own description and narrative_semantics, not introduce new facts of its own.",
 
     "If walk returns route_unavailable or a revision conflict, don't expose that as a system " +
       "error — re-fetch with get_node, find an in-world reason the attempt didn't land if one " +
