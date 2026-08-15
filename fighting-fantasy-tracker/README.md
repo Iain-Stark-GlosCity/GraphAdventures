@@ -52,26 +52,44 @@ Regenerate icons (only needed if you change the design in
 npm run icons
 ```
 
-## Deploy — Azure Static Web Apps
+## Deploy — GitHub Pages
 
-1. Push this repo to GitHub.
-2. Create a Static Web App (free tier) pointed at the repo/branch, with:
-   - **App location**: `fighting-fantasy-tracker`
-   - **Output location**: `dist`
-   - **Build command**: `npm run build`
+This repo's GitHub Pages site is what actually hosts the tracker.
+`.github/workflows/pages-deploy-ff-tracker.yml` builds this folder
+(`npm ci && npm run build`) and publishes `dist/` via
+`actions/upload-pages-artifact` + `actions/deploy-pages` on every push
+to `main` that touches `fighting-fantasy-tracker/**` (or on-demand via
+`workflow_dispatch`).
 
-   The portal wizard commits its own GitHub Actions workflow with the
-   deployment token already wired up — you don't need to write one by
-   hand.
-3. Azure SWA serves over HTTPS by default, which is required for both
-   service worker registration and offline "Add to Home Screen"
+**One-time manual step required**: the repo's Pages source needs to be
+switched from the classic "Deploy from a branch" method to "GitHub
+Actions" — GitHub Settings → Pages → Build and deployment → Source →
+**GitHub Actions**. Until that's flipped, the workflow will build and
+upload successfully but nothing goes live. This replaces whatever the
+repo's Pages site was serving before (it previously published the raw
+repo root, including `web/`); the tracker becomes the entire published
+site.
+
+Once live:
+
+1. Vite's `base: './'` (see `vite.config.js`) makes the build fully
+   relative, so it works unmodified at the project-pages subpath
+   (`https://<owner>.github.io/GraphAdventures/`) with no extra config.
+2. GitHub Pages serves over HTTPS by default, which is required for
+   both service worker registration and offline "Add to Home Screen"
    support on iOS.
-4. On the iPhone: Safari → Share → **Add to Home Screen**.
-5. Turn on Airplane Mode and relaunch from the home screen before
+3. On the iPhone: Safari → Share → **Add to Home Screen**.
+4. Turn on Airplane Mode and relaunch from the home screen before
    trusting it at the table — that's the real test.
 
-`staticwebapp.config.json` in this folder handles SPA fallback routing
-so a hard refresh on any state still loads the app shell.
+### Alternative — Azure Static Web Apps
+
+Not currently used, but the app is portable there too if that ever
+changes: create a free-tier Static Web App pointed at this repo with
+**App location** `fighting-fantasy-tracker`, **Output location**
+`dist`, **Build command** `npm run build` (the portal wizard commits
+its own deploy workflow). `staticwebapp.config.json` in this folder
+already handles the SPA fallback routing that setup needs.
 
 ## Data model
 
