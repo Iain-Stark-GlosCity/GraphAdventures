@@ -1,0 +1,23 @@
+{
+  "name": "ff-gamebook-tracker",
+  "version": "1.0.0",
+  "description": "Offline-first companion PWA for playing physical Fighting Fantasy gamebooks: dice roller, combat tracker, character sheet, section tracker.",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "icons": "node scripts/generate-icons.mjs"
+  },
+  "dependencies": {
+    "idb": "^8.0.0"
+  },
+  "devDependencies": {
+    "vite": "^5.4.11",
+    "vite-plugin-pwa": "^0.20.5"
+  }
+}
